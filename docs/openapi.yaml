@@ -1,0 +1,495 @@
+openapi: 3.1.0
+info:
+  title: Tribe API
+  version: 2.0.0
+  description: Trust-first social media platform for Indian college students
+  contact:
+    name: Tribe Engineering
+servers:
+  - url: /api
+    description: API base path
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: Session token from /auth/register or /auth/login
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+          enum: [VALIDATION_ERROR, UNAUTHORIZED, FORBIDDEN, NOT_FOUND, CONFLICT, RATE_LIMITED, PAYLOAD_TOO_LARGE, INTERNAL_ERROR, AGE_REQUIRED, CHILD_RESTRICTED, BANNED, SUSPENDED]
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        phone: { type: string, pattern: '^\d{10}$' }
+        displayName: { type: string, minLength: 2, maxLength: 50 }
+        username: { type: string, nullable: true, pattern: '^[a-z0-9._]{3,30}$' }
+        bio: { type: string, maxLength: 150 }
+        avatarMediaId: { type: string, nullable: true }
+        ageStatus: { type: string, enum: [UNKNOWN, ADULT, CHILD] }
+        birthYear: { type: integer, nullable: true }
+        role: { type: string, enum: [USER, MODERATOR, ADMIN, SUPER_ADMIN] }
+        collegeId: { type: string, nullable: true }
+        collegeName: { type: string, nullable: true }
+        houseId: { type: string, nullable: true }
+        houseSlug: { type: string, nullable: true }
+        houseName: { type: string, nullable: true }
+        isBanned: { type: boolean }
+        isVerified: { type: boolean }
+        suspendedUntil: { type: string, nullable: true, format: date-time }
+        strikeCount: { type: integer }
+        consentVersion: { type: string, nullable: true }
+        personalizedFeed: { type: boolean }
+        targetedAds: { type: boolean }
+        followersCount: { type: integer }
+        followingCount: { type: integer }
+        postsCount: { type: integer }
+        onboardingComplete: { type: boolean }
+        onboardingStep: { type: string, enum: [AGE, COLLEGE, CONSENT, DONE] }
+        createdAt: { type: string, format: date-time }
+    ContentItem:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string, enum: [POST, REEL, STORY] }
+        authorId: { type: string }
+        caption: { type: string, maxLength: 2200 }
+        media: { type: array, items: { $ref: '#/components/schemas/MediaRef' } }
+        visibility: { type: string, enum: [PUBLIC, LIMITED, SHADOW_LIMITED, HELD_FOR_REVIEW, REMOVED] }
+        likeCount: { type: integer }
+        commentCount: { type: integer }
+        saveCount: { type: integer }
+        viewCount: { type: integer }
+        expiresAt: { type: string, nullable: true, format: date-time }
+        createdAt: { type: string, format: date-time }
+    MediaRef:
+      type: object
+      properties:
+        id: { type: string }
+        url: { type: string }
+        type: { type: string, enum: [IMAGE, VIDEO, THUMBNAIL] }
+        mimeType: { type: string }
+    College:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        officialName: { type: string }
+        city: { type: string }
+        state: { type: string }
+        type: { type: string }
+        aisheCode: { type: string, nullable: true }
+        membersCount: { type: integer }
+    House:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        motto: { type: string }
+        color: { type: string }
+        domain: { type: string }
+        icon: { type: string }
+        membersCount: { type: integer }
+        totalPoints: { type: integer }
+    Notification:
+      type: object
+      properties:
+        id: { type: string }
+        userId: { type: string }
+        type: { type: string, enum: [FOLLOW, LIKE, COMMENT, MENTION, REPORT_RESOLVED, STRIKE_ISSUED, APPEAL_DECIDED, HOUSE_POINTS] }
+        actorId: { type: string }
+        message: { type: string }
+        read: { type: boolean }
+        createdAt: { type: string, format: date-time }
+    PaginatedFeed:
+      type: object
+      properties:
+        items: { type: array }
+        nextCursor: { type: string, nullable: true }
+        feedType: { type: string }
+
+paths:
+  # ===== HEALTH =====
+  /healthz:
+    get:
+      tags: [Health]
+      summary: Liveness check
+      responses:
+        '200': { description: OK }
+  /readyz:
+    get:
+      tags: [Health]
+      summary: Readiness check (DB connected)
+      responses:
+        '200': { description: DB connected }
+        '503': { description: DB not ready }
+
+  # ===== AUTH =====
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register new user with phone + 4-digit PIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, pin, displayName]
+              properties:
+                phone: { type: string, pattern: '^\d{10}$' }
+                pin: { type: string, pattern: '^\d{4}$' }
+                displayName: { type: string, minLength: 2, maxLength: 50 }
+      responses:
+        '201': { description: User created, token returned. House assigned deterministically. }
+        '400': { description: Validation error }
+        '409': { description: Phone already registered }
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login with phone + PIN (brute force protected)
+      description: 5 failed attempts locks account for 15 minutes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, pin]
+              properties:
+                phone: { type: string }
+                pin: { type: string }
+      responses:
+        '200': { description: Login success }
+        '401': { description: Invalid credentials }
+        '429': { description: Too many attempts, locked }
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout current session
+      security: [{ BearerAuth: [] }]
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current authenticated user
+      security: [{ BearerAuth: [] }]
+  /auth/sessions:
+    get:
+      tags: [Auth]
+      summary: List active sessions
+      security: [{ BearerAuth: [] }]
+    delete:
+      tags: [Auth]
+      summary: Revoke all sessions (force logout everywhere)
+      security: [{ BearerAuth: [] }]
+  /auth/pin:
+    patch:
+      tags: [Auth]
+      summary: Change PIN (revokes other sessions)
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPin, newPin]
+              properties:
+                currentPin: { type: string }
+                newPin: { type: string, pattern: '^\d{4}$' }
+
+  # ===== ONBOARDING =====
+  /me/profile:
+    patch:
+      tags: [Onboarding]
+      summary: Update profile (displayName, username, bio, avatar)
+      security: [{ BearerAuth: [] }]
+  /me/age:
+    patch:
+      tags: [Onboarding]
+      summary: Set birth year (ADULT/CHILD classification, DPDP gates)
+      security: [{ BearerAuth: [] }]
+  /me/college:
+    patch:
+      tags: [Onboarding]
+      summary: Link/unlink college
+      security: [{ BearerAuth: [] }]
+  /me/onboarding:
+    patch:
+      tags: [Onboarding]
+      summary: Mark onboarding complete
+      security: [{ BearerAuth: [] }]
+
+  # ===== CONTENT =====
+  /content/posts:
+    post:
+      tags: [Content]
+      summary: Create POST, REEL, or STORY
+      description: |
+        - POST: text and/or media
+        - REEL: requires media (video), max 30s
+        - STORY: requires media, auto-expires in 24h
+        - Children cannot post media/reels/stories
+      security: [{ BearerAuth: [] }]
+  /content/{id}:
+    get:
+      tags: [Content]
+      summary: Get single content item (increments viewCount)
+    delete:
+      tags: [Content]
+      summary: Delete content (author or moderator+)
+      security: [{ BearerAuth: [] }]
+
+  # ===== FEEDS =====
+  /feed/public:
+    get:
+      tags: [Feed]
+      summary: Public feed (all PUBLIC posts, cursor-paginated)
+      parameters:
+        - name: cursor
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20, maximum: 50 }
+  /feed/following:
+    get:
+      tags: [Feed]
+      summary: Posts from followed users + own posts
+      security: [{ BearerAuth: [] }]
+  /feed/college/{collegeId}:
+    get:
+      tags: [Feed]
+      summary: Posts from a specific college
+  /feed/house/{houseId}:
+    get:
+      tags: [Feed]
+      summary: Posts from a specific house
+  /feed/stories:
+    get:
+      tags: [Feed]
+      summary: Story rail grouped by author (followed + own)
+      security: [{ BearerAuth: [] }]
+  /feed/reels:
+    get:
+      tags: [Feed]
+      summary: Reels feed (cursor-paginated)
+
+  # ===== SOCIAL =====
+  /follow/{userId}:
+    post:
+      tags: [Social]
+      summary: Follow a user (self-follow rejected)
+      security: [{ BearerAuth: [] }]
+    delete:
+      tags: [Social]
+      summary: Unfollow a user
+      security: [{ BearerAuth: [] }]
+  /content/{id}/like:
+    post:
+      tags: [Social]
+      summary: Like content (switches from dislike if exists)
+      security: [{ BearerAuth: [] }]
+  /content/{id}/dislike:
+    post:
+      tags: [Social]
+      summary: Dislike content (internal signal only, not shown to author)
+      security: [{ BearerAuth: [] }]
+  /content/{id}/reaction:
+    delete:
+      tags: [Social]
+      summary: Remove like/dislike
+      security: [{ BearerAuth: [] }]
+  /content/{id}/save:
+    post:
+      tags: [Social]
+      summary: Save/bookmark content
+      security: [{ BearerAuth: [] }]
+    delete:
+      tags: [Social]
+      summary: Unsave content
+      security: [{ BearerAuth: [] }]
+  /content/{id}/comments:
+    get:
+      tags: [Social]
+      summary: Get comments (cursor-paginated, supports parentId for threads)
+    post:
+      tags: [Social]
+      summary: Add comment (supports threaded replies via parentId)
+      security: [{ BearerAuth: [] }]
+
+  # ===== USERS =====
+  /users/{id}:
+    get:
+      tags: [Users]
+      summary: Get user profile (includes isFollowing if authenticated)
+  /users/{id}/posts:
+    get:
+      tags: [Users]
+      summary: Get user's posts (filter by kind)
+  /users/{id}/followers:
+    get:
+      tags: [Users]
+      summary: Get user's followers
+  /users/{id}/following:
+    get:
+      tags: [Users]
+      summary: Get user's following
+  /users/{id}/saved:
+    get:
+      tags: [Users]
+      summary: Get saved items (own only, IDOR protected)
+      security: [{ BearerAuth: [] }]
+
+  # ===== DISCOVERY =====
+  /colleges/search:
+    get:
+      tags: [Discovery]
+      summary: Search colleges (q, state, type filters)
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+        - name: state
+          in: query
+          schema: { type: string }
+        - name: type
+          in: query
+          schema: { type: string }
+  /colleges/{id}:
+    get:
+      tags: [Discovery]
+      summary: Get college details
+  /colleges/{id}/members:
+    get:
+      tags: [Discovery]
+      summary: Get college members
+  /colleges/states:
+    get:
+      tags: [Discovery]
+      summary: Get distinct states
+  /colleges/types:
+    get:
+      tags: [Discovery]
+      summary: Get distinct college types
+  /houses:
+    get:
+      tags: [Discovery]
+      summary: Get all 12 houses
+  /houses/leaderboard:
+    get:
+      tags: [Discovery]
+      summary: House leaderboard (sorted by points)
+  /houses/{idOrSlug}:
+    get:
+      tags: [Discovery]
+      summary: Get house details + top members
+  /houses/{idOrSlug}/members:
+    get:
+      tags: [Discovery]
+      summary: Get house members
+  /search:
+    get:
+      tags: [Discovery]
+      summary: Global search (users, colleges, houses)
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string, minLength: 2 }
+        - name: type
+          in: query
+          schema: { type: string, enum: [all, users, colleges, houses] }
+  /suggestions/users:
+    get:
+      tags: [Discovery]
+      summary: User suggestions (same college > same house > popular)
+      security: [{ BearerAuth: [] }]
+
+  # ===== MEDIA =====
+  /media/upload:
+    post:
+      tags: [Media]
+      summary: Upload media (base64, age-gated)
+      description: 5MB max for images, 30MB for video, 30s max duration
+      security: [{ BearerAuth: [] }]
+  /media/{id}:
+    get:
+      tags: [Media]
+      summary: Serve media binary (cacheable)
+
+  # ===== NOTIFICATIONS =====
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: Get notifications (cursor-paginated, actor-enriched)
+      security: [{ BearerAuth: [] }]
+  /notifications/read:
+    patch:
+      tags: [Notifications]
+      summary: Mark notifications as read (specific IDs or all)
+      security: [{ BearerAuth: [] }]
+
+  # ===== REPORTS & APPEALS =====
+  /reports:
+    post:
+      tags: [Safety]
+      summary: Report content/user (duplicate prevention, auto-hold at 3+)
+      security: [{ BearerAuth: [] }]
+  /appeals:
+    post:
+      tags: [Safety]
+      summary: Appeal a moderation decision
+      security: [{ BearerAuth: [] }]
+    get:
+      tags: [Safety]
+      summary: Get own appeals
+      security: [{ BearerAuth: [] }]
+  /grievances:
+    post:
+      tags: [Safety]
+      summary: File grievance ticket (SLA 3h legal, 72h general)
+      security: [{ BearerAuth: [] }]
+    get:
+      tags: [Safety]
+      summary: Get own grievance tickets
+      security: [{ BearerAuth: [] }]
+
+  # ===== MODERATION (moderator+) =====
+  /moderation/queue:
+    get:
+      tags: [Moderation]
+      summary: Moderation queue (buckets: held, reports, appeals)
+      security: [{ BearerAuth: [] }]
+  /moderation/{contentId}/action:
+    post:
+      tags: [Moderation]
+      summary: Take moderation action (APPROVE, HOLD, REMOVE, SHADOW_LIMIT, STRIKE, SUSPEND, BAN)
+      security: [{ BearerAuth: [] }]
+
+  # ===== LEGAL =====
+  /legal/consent:
+    get:
+      tags: [Legal]
+      summary: Get active DPDP consent notice
+  /legal/accept:
+    post:
+      tags: [Legal]
+      summary: Accept consent notice version
+      security: [{ BearerAuth: [] }]
+
+  # ===== ADMIN =====
+  /admin/colleges/seed:
+    post:
+      tags: [Admin]
+      summary: Seed 1366 Indian colleges from AISHE data
+  /admin/stats:
+    get:
+      tags: [Admin]
+      summary: Platform statistics
