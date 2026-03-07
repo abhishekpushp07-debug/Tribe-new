@@ -31,7 +31,7 @@ function jsonErr(message, code, status = 400) {
 // ========== RATE LIMITER (in-memory, per IP) ==========
 const rateLimitStore = new Map()
 const RATE_LIMIT_WINDOW_MS = 60 * 1000 // 1 minute
-const RATE_LIMIT_MAX = 120 // requests per window
+const RATE_LIMIT_MAX = 5000 // requests per window (elevated for load testing)
 
 function checkRateLimit(request) {
   const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
