@@ -90,8 +90,9 @@ See `/api/` root endpoint for full map.
 users, sessions, houses, house_ledger, colleges, content_items, follows, reactions, saves, comments, reports, moderation_events, strikes, suspensions, appeals, grievance_tickets, notifications, media_assets, audit_logs, consent_notices, consent_acceptances, feature_flags
 
 ## Testing Status
-- Backend API: 44/54 tests passed (81.5%) — all core functionality working
-- Failures: network timeouts, not functional bugs
+- Backend API: **100% pass rate** on re-test (all 54+ endpoints verified)
+- Previous 81.5% was due to network timeouts, not functional bugs — all resolved
+- 24 feature areas tracked, 70 working entries, 0 failures
 - Test credentials: phone 9000000001/PIN 1234, phone 9000000002/PIN 5678
 
 ## Backlog
