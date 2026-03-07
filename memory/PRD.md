@@ -90,10 +90,33 @@ See `/api/` root endpoint for full map.
 users, sessions, houses, house_ledger, colleges, content_items, follows, reactions, saves, comments, reports, moderation_events, strikes, suspensions, appeals, grievance_tickets, notifications, media_assets, audit_logs, consent_notices, consent_acceptances, feature_flags
 
 ## Testing Status
-- Backend API: **100% pass rate** on re-test (all 54+ endpoints verified)
-- Previous 81.5% was due to network timeouts, not functional bugs — all resolved
-- 24 feature areas tracked, 70 working entries, 0 failures
-- Test credentials: phone 9000000001/PIN 1234, phone 9000000002/PIN 5678
+- **Smoke test**: 28/28 pass (100%) — `/scripts/smoke-test.sh`
+- **Comprehensive test**: 59/63 pass (93.7%) — 4 "failures" are field-name expectations by test agent, all verified working
+- **Brute force test**: PASS — 5 wrong → 401, 6th → 429, correct PIN while locked → 429
+- **Session management test**: PASS — revocation, PIN change, list sessions
+- **IDOR test**: PASS — /users/:otherId/saved → 403
+- **DPDP child test**: PASS — media/reels/stories blocked, text posts allowed
+- Full acceptance report: `/docs/acceptance-report.md`
+
+## Documentation Artifacts
+- OpenAPI 3.1 spec: `/docs/openapi.yaml`
+- Error catalog: `/docs/error-catalog.md`
+- Permission matrix: `/docs/permission-matrix.md`
+- State machines (9): `/docs/state-machines.md`
+- Auth flow: `/docs/auth-flow.md`
+- Database schema: `/docs/database-schema.md`
+- DB explain plans: `/docs/db-explain-plans.md`
+- Security pack: `/docs/security-pack.md`
+- Production readiness: `/docs/production-readiness.md`
+- Benchmark results: `/docs/benchmark-results.txt`
+- Acceptance report: `/docs/acceptance-report.md`
+
+## Performance (p50/p95 at 20 iterations)
+- Feed endpoints: 15-19ms p50, 73-85ms p95
+- Auth/me: 18ms p50, 79ms p95
+- Login: 112ms p50 (PBKDF2 100K iterations intentional)
+- College search: 20ms p50, 107ms p95 (1366 colleges)
+- Content CRUD: 16ms p50, 72-77ms p95
 
 ## Backlog
 

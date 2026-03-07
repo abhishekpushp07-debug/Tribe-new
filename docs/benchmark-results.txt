@@ -1,0 +1,45 @@
+=====================================
+Tribe Performance Benchmark
+API: http://localhost:3000
+Iterations per endpoint: 20
+=====================================
+
+--- Health ---
+  GET /healthz                                   p50= 17ms  p95= 78ms  p99= 78ms  min= 15ms  max= 78ms
+  GET /readyz                                    p50= 18ms  p95=195ms  p99=195ms  min= 15ms  max=195ms
+
+--- Auth ---
+  POST /auth/login                               p50=112ms  p95=174ms  p99=174ms  min= 83ms  max=174ms
+  GET /auth/me                                   p50= 18ms  p95= 79ms  p99= 79ms  min= 16ms  max= 79ms
+
+--- Feeds ---
+  GET /feed/public                               p50= 19ms  p95= 85ms  p99= 85ms  min= 17ms  max= 85ms
+  GET /feed/following                            p50= 63ms  p95= 80ms  p99= 80ms  min= 15ms  max= 80ms
+  GET /feed/stories                              p50= 16ms  p95= 75ms  p99= 75ms  min= 15ms  max= 75ms
+  GET /feed/reels                                p50= 18ms  p95= 73ms  p99= 73ms  min= 14ms  max= 73ms
+  GET /feed/college/:id                          p50= 17ms  p95= 75ms  p99= 75ms  min= 15ms  max= 75ms
+  GET /feed/house/:id                            p50= 15ms  p95= 78ms  p99= 78ms  min= 15ms  max= 78ms
+
+--- Content ---
+  POST /content/posts (create)                   p50= 16ms  p95= 72ms  p99= 72ms  min= 15ms  max= 72ms
+  GET /content/:id                               p50= 16ms  p95= 77ms  p99= 77ms  min= 14ms  max= 77ms
+  GET /content/:id/comments                      p50= 23ms  p95= 75ms  p99= 75ms  min= 14ms  max= 75ms
+  POST /content/:id/like                         p50= 16ms  p95= 72ms  p99= 72ms  min= 15ms  max= 72ms
+
+--- Social ---
+  POST /content/:id/comments                     p50= 16ms  p95= 77ms  p99= 77ms  min= 15ms  max= 77ms
+  GET /notifications                             p50= 16ms  p95= 77ms  p99= 77ms  min= 14ms  max= 77ms
+
+--- Discovery ---
+  GET /colleges/search?q=IIT                     p50= 20ms  p95=107ms  p99=107ms  min= 15ms  max=107ms
+  GET /houses                                    p50= 16ms  p95= 85ms  p99= 85ms  min= 14ms  max= 85ms
+  GET /houses/leaderboard                        p50= 16ms  p95= 81ms  p99= 81ms  min= 15ms  max= 81ms
+  GET /search?q=Priya                            p50= 16ms  p95= 79ms  p99= 79ms  min= 14ms  max= 79ms
+  GET /suggestions/users                         p50= 15ms  p95= 72ms  p99= 72ms  min= 15ms  max= 72ms
+
+--- Admin ---
+  GET /admin/stats                               p50= 18ms  p95= 72ms  p99= 72ms  min= 15ms  max= 72ms
+
+=====================================
+Benchmark complete
+=====================================
