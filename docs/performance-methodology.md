@@ -91,3 +91,24 @@ cd /app && python3 scripts/load-test.py "http://localhost:3000" 20 50
 ```
 
 Raw JSON results: `/app/docs/load-test-results.json`
+
+---
+
+## With Caching (Post-Hardening)
+
+### Results: Latency by Endpoint (ms) — Cached
+
+| Endpoint | p50 | p95 | p99 | Improvement vs Cold |
+|----------|-----|-----|-----|---------------------|
+| Public Feed | 154 | 161 | 193 | 24% faster |
+| Reels Feed | 137 | 189 | 190 | 46% faster |
+| College Feed | 117 | 189 | 189 | 50% faster |
+| House Feed | 147 | 205 | 207 | 31% faster |
+| Houses List | 122 | 157 | 158 | 24% faster |
+| House Leaderboard | 113 | 165 | 167 | 29% faster |
+| Admin Stats | 111 | 183 | 185 | 62% faster |
+
+### Cache Performance
+- First request (cold): hits DB, stores result
+- Subsequent requests (warm): served from memory in <5ms at handler level
+- Overall p50 reduction: 24-62% across cached endpoints

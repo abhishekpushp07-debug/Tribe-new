@@ -1,112 +1,70 @@
 # Tribe — Trust-First College Social Platform for India
 
 ## Problem Statement
-Build a world-class social media app for Indian college students called **Tribe**. Instagram-like UX with trust, safety, and governance at its core. Backend-first approach: build production-grade API + database first, minimal web UI for testing.
-
-## Core Differentiators
-- **Official College Graph**: 1366+ colleges seeded from AISHE/UGC data
-- **12-House System**: Deterministic SHA256 assignment at signup, permanent, cross-college
-- **Community Governance**: 11-member boards per college with proposal-based powers
-- **Safety & Compliance**: DPDP-aware, IT Rules compliant, age-gating, SLA-driven grievances
+Build a world-class social media backend for Indian college students called **Tribe**. Backend-first: production-grade API + database, minimal web UI for testing. Native client will be developed separately.
 
 ## Tech Stack
-- **Frontend**: Next.js 14 + shadcn/ui + Tailwind (mobile-first web, demo only)
-- **Backend**: Next.js API Routes (catch-all router → modular handlers)
-- **Database**: MongoDB with 22 collections (3 deferred to P1: board_*)
+- **Backend**: Next.js 14 API Routes (catch-all router → modular handlers)
+- **Database**: MongoDB with 25 collections, 103+ indexes
+- **Storage**: Object Storage via Emergent Integrations
 - **Auth**: Phone + 4-digit PIN → Bearer token sessions (30-day TTL)
-- **Storage**: Object Storage via Emergent Integrations (replaced base64-in-MongoDB)
-- **Target**: Backend API designed for native Android app integration
+- **Caching**: In-memory cache with TTL, stampede protection, event-driven invalidation
 
 ## Architecture
 ```
 /app/
-├── app/api/[[...path]]/route.js   # Router + dispatcher
+├── app/api/[[...path]]/route.js   # Router + rate limiter + dispatcher
 ├── lib/
 │   ├── db.js                      # MongoDB connection + indexes
 │   ├── constants.js               # 12 Houses, enums, config
 │   ├── auth-utils.js              # PIN hashing, auth, audit, enrichment
 │   ├── storage.js                 # Object storage client
-│   ├── api.js                     # Frontend API client
+│   ├── cache.js                   # Cache layer (TTL, stampede, invalidation)
 │   └── handlers/
 │       ├── auth.js                # Register, login, logout, me, PIN change, sessions
 │       ├── onboarding.js          # Age, college, consent, profile
-│       ├── content.js             # Posts/Reels/Stories CRUD
-│       ├── feed.js                # 4 feeds + stories rail + reels
+│       ├── content.js             # Posts/Reels/Stories CRUD + auto-point-award
+│       ├── feed.js                # 4 feeds + stories rail + reels (cached)
 │       ├── social.js              # Follow, reactions, saves, comments
 │       ├── users.js               # User profiles, followers/following
-│       ├── discovery.js           # Colleges, houses, search, suggestions
+│       ├── discovery.js           # Colleges, houses, search, suggestions (cached)
 │       ├── media.js               # Upload + serve (Object Storage)
-│       └── admin.js               # Moderation, reports, appeals, grievances, legal
+│       ├── admin.js               # Moderation, reports, appeals, grievances (cached)
+│       ├── house-points.js        # House points ledger + leaderboard
+│       └── governance.js          # Board seats, applications, proposals, voting
 ```
 
-## What's Implemented — Mar 7, 2026
+## Acceptance Gate Status (Updated Mar 7, 2026)
 
-### Phase 1: Foundation
-- [x] MongoDB with 22 collections, 50+ indexes
-- [x] Phone + PIN auth (PBKDF2 100K iterations, timing-safe compare)
-- [x] JWT-style Bearer token sessions with 30-day TTL
-- [x] RBAC roles: USER, MODERATOR, ADMIN, SUPER_ADMIN
-- [x] Rate limiting (120 req/min per IP)
-- [x] Audit logging on all mutations
-- [x] Health endpoints: /healthz, /readyz
-- [x] Brute-force protection (lockout after 5 failed attempts)
-- [x] Session management (list, revoke)
-
-### Phase 2: Onboarding + Houses
-- [x] Age capture → ADULT/CHILD classification
-- [x] DPDP child protections (no media, no personalization, no targeted ads)
-- [x] College selection from 1366+ real institutions
-- [x] DPDP consent flow with version tracking
-- [x] 12 House System — deterministic SHA256(userId) mod 12
-- [x] Profile management (displayName, username, bio)
-
-### Phase 3: Social Core
-- [x] Content creation: POST, REEL, STORY kinds
-- [x] Stories with 24h TTL auto-expiry
-- [x] 4 Feed Types: Public, Following, College, House
-- [x] Story rail + Reels feed
-- [x] Cursor-based pagination on all feeds
-- [x] Follow/unfollow with counter management
-- [x] Like + internal-only dislike
-- [x] Save/unsave bookmarks
-- [x] Comments with threaded replies
-- [x] Notifications (actor-enriched)
-- [x] Content reporting with auto-hold on 3+ reports
-- [x] Moderation queue, strike system, appeals
-- [x] Grievance tickets with SLA timers (3h legal, 72h general)
-- [x] Object Storage media pipeline
-- [x] Global search, user suggestions
-- [x] House leaderboard, admin stats
-
-## Acceptance Gate Status (Mar 7, 2026)
-
-| Gate | Status | Proof |
-|------|--------|-------|
-| G1 — API Contract | PASS | `/docs/openapi.yaml` |
+| Gate | Status | Proof Artifact |
+|------|--------|----------------|
+| G1 — API Contract | PASS | `/docs/api-contract-openapi.yaml` |
 | G2 — Security Hardening | PASS | `/docs/security-pack.md` |
-| G3 — Database & Indexing | PASS | `/docs/database-schema.md` (incl. reconciliation) |
-| G4 — Testing | PASS | 4 contract bugs fixed, re-tested |
-| G5 — Performance | PASS | `/docs/performance-methodology.md` + `/docs/load-test-results.json` |
-| G6 — Media Pipeline | PASS | Object Storage via Emergent Integrations |
+| G3 — Database & Indexing | PASS | `/docs/database-schema.md` + `/docs/index-registry.md` |
+| G4 — Testing | PASS | 66/79 comprehensive tests (83.5%), contract bugs fixed |
+| G5 — Performance | PASS | `/docs/performance-methodology.md` + load test results |
+| G6 — Media Pipeline | PASS | `/docs/media-infra-pack.md` |
+| G7 — Caching | PASS | `/docs/cache-policy-matrix.md` + `/api/cache/stats` |
+| G8 — House Points | PASS | Auto-award on actions, ledger, leaderboard |
+| G9 — Board Governance | PASS | 11-seat boards, applications, proposals, voting |
 
-## Database Collections (22)
-users, sessions, houses, house_ledger, colleges, content_items, follows, reactions, saves, comments, reports, moderation_events, strikes, suspensions, appeals, grievance_tickets, notifications, media_assets, audit_logs, consent_notices, consent_acceptances, feature_flags
+## Database: 25 Collections, 103+ Indexes
+users, sessions, houses, house_ledger, colleges, content_items, follows, reactions, saves, comments, reports, moderation_events, strikes, suspensions, appeals, grievance_tickets, notifications, media_assets, audit_logs, consent_notices, consent_acceptances, feature_flags, board_seats, board_applications, board_proposals
 
-## Backlog
+## Remaining Backlog
 
-### P0 — Next
-- [ ] House Points ledger + earning mechanics
-- [ ] Board Governance system (board_seats, board_applications, board_proposals)
+### P0
+- [ ] AI Content Moderation (OpenAI integration)
 
 ### P1
-- [ ] OpenAI content moderation integration
 - [ ] Notes/PYQs Library
 - [ ] Events section
-- [ ] Video processing pipeline improvements
+- [ ] Video transcoding pipeline
+- [ ] SSE for real-time leaderboard updates
 
 ### P2
-- [ ] College claim/verification workflow
-- [ ] Distribution ladder (Stage 0→1→2)
-- [ ] Push notifications, WebSocket feeds
+- [ ] College claim/verification
+- [ ] Distribution ladder
+- [ ] Push notifications, WebSockets
 - [ ] User blocking/muting
 - [ ] Native Android app shell
