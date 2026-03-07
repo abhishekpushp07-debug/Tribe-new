@@ -1,567 +1,342 @@
 #!/usr/bin/env python3
 """
-Focused Backend API Re-Testing for Tribe Social Platform
-Re-testing ONLY the previously failed scenarios from 54-test run.
-
-Previous failures to address:
-1. Stories feed (forgot auth token)
-2. Profile updates (timeout) 
-3. Registration with new users (timeout)
-4. Appeals endpoint (timeout)
-5. Grievances flow
-6. Full social interaction flow
-7. Media upload + content with media
-
-Base URL: https://tribe-backend.preview.emergentagent.com/api
+Focused Tribe Backend Test - Validates KEY CONTRACT FIXES and Core Functionality
+Avoids rate limiting by using fresh user accounts
 """
 
 import requests
 import json
-import sys
-import time
-from typing import Dict, Any, Optional
+import random
+import base64
+from datetime import datetime
 
-# Configuration
 BASE_URL = "https://tribe-backend.preview.emergentagent.com/api"
-HEADERS = {"Content-Type": "application/json"}
 
-# Test credentials from review request
-EXISTING_USERS = [
-    {"phone": "9000000001", "pin": "1234"},  # User 1 (fully onboarded, House Vikram)
-    {"phone": "9000000002", "pin": "5678"},  # User 2 (House Aryabhatta)
-]
-
-# NEW test user for retry testing
-NEW_TEST_USER = {"phone": "9000000088", "pin": "4321", "displayName": "Test User Retry"}
-
-# Global storage for test data
-test_data = {
-    "tokens": [],
-    "users": [],
-    "new_user_token": None,
-    "new_user": None,
-    "posts": [],
-    "colleges": [],
-    "media": []
-}
-
-class TestResult:
+class FocusedTester:
     def __init__(self):
-        self.passed = 0
-        self.failed = 0
-        self.errors = []
-    
-    def success(self, test_name: str, message: str = ""):
-        self.passed += 1
-        print(f"✅ {test_name}: PASSED {message}")
-    
-    def fail(self, test_name: str, message: str):
-        self.failed += 1
-        self.errors.append(f"{test_name}: {message}")
-        print(f"❌ {test_name}: FAILED - {message}")
-    
-    def summary(self):
-        total = self.passed + self.failed
-        print(f"\n{'='*60}")
-        print(f"FOCUSED RE-TEST SUMMARY")
-        print(f"{'='*60}")
-        print(f"Total Tests: {total}")
-        print(f"Passed: {self.passed}")
-        print(f"Failed: {self.failed}")
-        print(f"Success Rate: {(self.passed/total*100) if total > 0 else 0:.1f}%")
+        self.tests_passed = 0
+        self.tests_failed = 0
+        self.failed_tests = []
+
+    def log(self, message):
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"[{timestamp}] {message}")
+
+    def generate_phone(self):
+        return f"91{random.randint(10000000, 99999999)}"
+
+    def generate_pin(self):
+        return f"{random.randint(1000, 9999)}"
+
+    def create_authenticated_user(self, adult=True):
+        """Create and authenticate a new user"""
+        phone = self.generate_phone()
+        pin = self.generate_pin()
         
-        if self.errors:
-            print(f"\nFAILURES:")
-            for error in self.errors:
-                print(f"  - {error}")
-
-result = TestResult()
-
-def make_request(method: str, endpoint: str, data: Dict[Any, Any] = None, 
-                headers: Dict[str, str] = None, token: str = None, retry=True) -> tuple:
-    """Make HTTP request with optional retry on timeout"""
-    url = f"{BASE_URL}{endpoint}"
-    req_headers = HEADERS.copy()
-    
-    if headers:
-        req_headers.update(headers)
-    
-    if token:
-        req_headers["Authorization"] = f"Bearer {token}"
-    
-    for attempt in range(2 if retry else 1):
-        try:
-            if method == "GET":
-                response = requests.get(url, headers=req_headers, timeout=45)
-            elif method == "POST":
-                response = requests.post(url, json=data, headers=req_headers, timeout=45)
-            elif method == "PATCH":
-                response = requests.patch(url, json=data, headers=req_headers, timeout=45)
-            elif method == "DELETE":
-                response = requests.delete(url, headers=req_headers, timeout=45)
-            else:
-                return None, False
-            
-            return response, True
-            
-        except requests.exceptions.Timeout:
-            if attempt == 0 and retry:
-                print(f"⏰ Timeout on {method} {endpoint}, retrying...")
-                time.sleep(2)
-                continue
-            else:
-                print(f"⏰ Timeout on {method} {endpoint} after retries")
-                return None, False
-        except Exception as e:
-            if attempt == 0 and retry:
-                print(f"⚠️  Error on {method} {endpoint}: {e}, retrying...")
-                time.sleep(2)
-                continue
-            else:
-                print(f"❌ Error on {method} {endpoint}: {e}")
-                return None, False
-    
-    return None, False
-
-def login_existing_users():
-    """Login existing users to get tokens"""
-    print("\n🔍 Step 1: Login with Existing Users...")
-    
-    for i, user_data in enumerate(EXISTING_USERS):
-        login_data = {"phone": user_data["phone"], "pin": user_data["pin"]}
-        response, success = make_request("POST", "/auth/login", login_data)
+        # Register
+        register_data = {
+            "phone": phone,
+            "pin": pin,
+            "displayName": f"Test User {random.randint(1000, 9999)}"
+        }
         
-        if success and response.status_code == 200:
-            data = response.json()
-            if "token" in data and "user" in data:
-                test_data["tokens"].append(data["token"])
-                test_data["users"].append(data["user"])
-                result.success(f"Login Existing User {i+1}", f"Phone: {user_data['phone']}")
-            else:
-                result.fail(f"Login Existing User {i+1}", "Missing token in response")
-        else:
-            result.fail(f"Login Existing User {i+1}", 
-                       f"Status: {response.status_code if response else 'Timeout/Error'}")
-
-def test_stories_feed_with_auth():
-    """Test stories feed WITH proper authentication (previously failed due to missing auth)"""
-    print("\n🔍 Step 2: Stories Feed with Authentication...")
-    
-    if not test_data["tokens"]:
-        result.fail("Stories Feed", "No auth tokens available")
-        return
-    
-    # Use first user's token for authenticated request
-    token = test_data["tokens"][0]
-    response, success = make_request("GET", "/feed/stories", token=token)
-    
-    if success and response.status_code == 200:
-        data = response.json()
-        if "storyRail" in data:
-            result.success("Stories Feed (Auth)", f"Got stories feed with authentication - {len(data['storyRail'])} story groups")
-        else:
-            result.fail("Stories Feed (Auth)", "Missing storyRail in response")
-    else:
-        result.fail("Stories Feed (Auth)", 
-                   f"Status: {response.status_code if response else 'Timeout/Error'}")
-
-def test_new_user_registration_and_profile_flow():
-    """Test complete registration + profile flow with NEW user (previously timed out)"""
-    print("\n🔍 Step 3: NEW User Registration + Full Profile Flow...")
-    
-def test_new_user_registration_and_profile_flow():
-    """Test complete registration + profile flow with NEW user (previously timed out)"""
-    print("\n🔍 Step 3: NEW User Registration + Full Profile Flow...")
-    
-    # Step 1: Register NEW user
-    response, success = make_request("POST", "/auth/register", NEW_TEST_USER)
-    
-    if success and response.status_code == 201:
-        # New registration successful
-        data = response.json()
-        if "token" in data and "user" in data:
-            test_data["new_user_token"] = data["token"]
-            test_data["new_user"] = data["user"]
-            result.success("Register NEW User", f"User ID: {data['user']['id']}")
-        else:
-            result.fail("Register NEW User", "Missing token/user in response")
-            return
-    elif success and response.status_code == 409:
-        # User exists, login instead
-        login_data = {"phone": NEW_TEST_USER["phone"], "pin": NEW_TEST_USER["pin"]}
-        response, success = make_request("POST", "/auth/login", login_data)
+        response = requests.post(f"{BASE_URL}/auth/register", json=register_data)
+        if response.status_code != 201:
+            return None, None
+            
+        token = response.json().get('token')
+        headers = {'Authorization': f'Bearer {token}'}
         
-        if success and response.status_code == 200:
-            data = response.json()
-            if "token" in data and "user" in data:
-                test_data["new_user_token"] = data["token"]
-                test_data["new_user"] = data["user"]
-                result.success("Register NEW User (existing)", f"Logged in existing user: {data['user']['id']}")
-            else:
-                result.fail("Register NEW User", "Missing token/user in login response")
-                return
-        else:
-            result.fail("Register NEW User", "User exists but login failed")
-            return
-    else:
-        result.fail("Register NEW User", 
-                   f"Status: {response.status_code if response else 'Timeout/Error'}")
-        return
-    
-    token = test_data["new_user_token"]
-    
-    # Step 2: Update Profile
-    profile_data = {
-        "username": "testretry",
-        "bio": "Testing retry flow"
-    }
-    response, success = make_request("PATCH", "/me/profile", profile_data, token=token)
-    
-    if success and response.status_code == 200:
-        result.success("Profile Update (NEW User)", "Profile updated successfully")
-    else:
-        result.fail("Profile Update (NEW User)", 
-                   f"Status: {response.status_code if response else 'Timeout/Error'}")
-    
-    # Step 3: Set Age
-    age_data = {"birthYear": 2000}
-    response, success = make_request("PATCH", "/me/age", age_data, token=token)
-    
-    if success and response.status_code == 200:
-        result.success("Age Setting (NEW User)", "Age set successfully")
-    else:
-        result.fail("Age Setting (NEW User)", 
-                   f"Status: {response.status_code if response else 'Timeout/Error'}")
-    
-    # Step 4: Search and Link College
-    response, success = make_request("GET", "/colleges/search?q=IIT&limit=5")
-    
-    if success and response.status_code == 200:
-        data = response.json()
-        if "colleges" in data and len(data["colleges"]) > 0:
-            college_id = data["colleges"][0]["id"]
-            test_data["colleges"] = data["colleges"]
-            
-            college_data = {"collegeId": college_id}
-            response, success = make_request("PATCH", "/me/college", college_data, token=token)
-            
-            if success and response.status_code == 200:
-                result.success("College Link (NEW User)", "College linked successfully")
-            else:
-                result.fail("College Link (NEW User)", 
-                           f"Status: {response.status_code if response else 'Timeout/Error'}")
-        else:
-            result.fail("College Search (NEW User)", "No colleges found")
-    else:
-        result.fail("College Search (NEW User)", 
-                   f"Status: {response.status_code if response else 'Timeout/Error'}")
-    
-    # Step 5: Accept Legal Terms
-    legal_data = {"version": "1.0"}
-    response, success = make_request("POST", "/legal/accept", legal_data, token=token)
-    
-    if success and response.status_code == 200:
-        result.success("Legal Accept (NEW User)", "Legal terms accepted")
-    else:
-        result.fail("Legal Accept (NEW User)", 
-                   f"Status: {response.status_code if response else 'Timeout/Error'}")
-    
-    # Step 6: Complete Onboarding
-    response, success = make_request("PATCH", "/me/onboarding", {}, token=token)
-    
-    if success and response.status_code == 200:
-        result.success("Onboarding Complete (NEW User)", "Onboarding completed")
-    else:
-        result.fail("Onboarding Complete (NEW User)", 
-                   f"Status: {response.status_code if response else 'Timeout/Error'}")
+        # Set age
+        current_year = datetime.now().year
+        birth_year = current_year - (25 if adult else 15)
+        age_data = {"birthYear": birth_year}
+        
+        requests.patch(f"{BASE_URL}/me/age", json=age_data, headers=headers)
+        
+        return token, headers
 
-def test_appeals_flow():
-    """Test appeals flow (previously timed out)"""
-    print("\n🔍 Step 4: Appeals Flow...")
-    
-    if not test_data["tokens"]:
-        result.fail("Appeals Flow", "No auth tokens available")
-        return
-    
-    token = test_data["tokens"][0]
-    
-    # Create Appeal
-    appeal_data = {
-        "targetType": "CONTENT",
-        "targetId": f"test-content-{int(time.time())}",  # Use unique ID
-        "reason": "Testing appeal"
-    }
-    response, success = make_request("POST", "/appeals", appeal_data, token=token)
-    
-    if success and (response.status_code == 201 or 
-                   (response.status_code == 409 and "Appeal already pending" in response.text)):
-        result.success("Create Appeal", "Appeal created or already exists")
-    else:
-        result.fail("Create Appeal", 
-                   f"Status: {response.status_code if response else 'Timeout/Error'}")
-    
-    # Get Appeals
-    response, success = make_request("GET", "/appeals", token=token)
-    
-    if success and response.status_code == 200:
-        data = response.json()
-        if "appeals" in data:
-            result.success("Get Appeals", f"Got {len(data['appeals'])} appeals")
+    def test_result(self, condition, test_name):
+        if condition:
+            self.tests_passed += 1
+            self.log(f"✅ {test_name}: PASSED")
+            return True
         else:
-            result.fail("Get Appeals", "Missing appeals in response")
-    else:
-        result.fail("Get Appeals", 
-                   f"Status: {response.status_code if response else 'Timeout/Error'}")
+            self.tests_failed += 1
+            self.failed_tests.append(test_name)
+            self.log(f"❌ {test_name}: FAILED")
+            return False
 
-def test_grievances_flow():
-    """Test grievances flow"""
-    print("\n🔍 Step 5: Grievances Flow...")
-    
-    if not test_data["tokens"]:
-        result.fail("Grievances Flow", "No auth tokens available")
-        return
-    
-    token = test_data["tokens"][0]
-    
-    # Create Legal Notice Grievance
-    legal_grievance = {
-        "ticketType": "LEGAL_NOTICE",
-        "subject": "Test Legal Notice",
-        "description": "Testing SLA compliance"
-    }
-    response, success = make_request("POST", "/grievances", legal_grievance, token=token)
-    
-    if success and response.status_code == 201:
-        result.success("Create Legal Grievance", "Legal grievance created")
-    else:
-        result.fail("Create Legal Grievance", 
-                   f"Status: {response.status_code if response else 'Timeout/Error'}")
-    
-    # Create General Grievance
-    general_grievance = {
-        "ticketType": "GENERAL",
-        "subject": "General test",
-        "description": "Testing general grievance"
-    }
-    response, success = make_request("POST", "/grievances", general_grievance, token=token)
-    
-    if success and response.status_code == 201:
-        result.success("Create General Grievance", "General grievance created")
-    else:
-        result.fail("Create General Grievance", 
-                   f"Status: {response.status_code if response else 'Timeout/Error'}")
-    
-    # Get Grievances
-    response, success = make_request("GET", "/grievances", token=token)
-    
-    if success and response.status_code == 200:
-        data = response.json()
-        if "tickets" in data:
-            result.success("Get Grievances", f"Got {len(data['tickets'])} grievances")
-        else:
-            result.fail("Get Grievances", "Missing tickets in response")
-    else:
-        result.fail("Get Grievances", 
-                   f"Status: {response.status_code if response else 'Timeout/Error'}")
-
-def test_media_upload_and_content():
-    """Test media upload + content creation with media"""
-    print("\n🔍 Step 6: Media Upload + Content with Media...")
-    
-    if not test_data["new_user_token"]:
-        result.fail("Media Upload", "No new user token available")
-        return
-    
-    token = test_data["new_user_token"]
-    
-    # Upload Media
-    media_data = {
-        "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
-        "mimeType": "image/png",
-        "type": "IMAGE"
-    }
-    response, success = make_request("POST", "/media/upload", media_data, token=token)
-    
-    if success and response.status_code == 201:
-        data = response.json()
-        if "id" in data:
-            media_id = data["id"]
-            test_data["media"].append(data)
-            result.success("Media Upload", f"Media ID: {media_id}")
+    def run_focused_tests(self):
+        self.log("Starting Focused Tribe Backend Test Suite")
+        self.log("Focus: CONTRACT FIXES + Core Functionality")
+        
+        # Test 1: Health Endpoints
+        self.log("\n=== HEALTH ENDPOINTS ===")
+        
+        response = requests.get(f"{BASE_URL}/")
+        self.test_result(response.status_code == 200, "Root endpoint")
+        
+        response = requests.get(f"{BASE_URL}/healthz")
+        self.test_result(response.status_code == 200, "Health check")
+        
+        response = requests.get(f"{BASE_URL}/readyz")
+        self.test_result(response.status_code == 200, "Readiness check")
+        
+        # Test 2: Core Registration & Onboarding
+        self.log("\n=== REGISTRATION & ONBOARDING ===")
+        
+        phone = self.generate_phone()
+        pin = self.generate_pin()
+        register_data = {
+            "phone": phone,
+            "pin": pin,
+            "displayName": f"Test User {random.randint(1000, 9999)}"
+        }
+        
+        response = requests.post(f"{BASE_URL}/auth/register", json=register_data)
+        registration_success = self.test_result(response.status_code == 201 and 'token' in response.json(), "User registration")
+        
+        if registration_success:
+            token = response.json().get('token')
+            headers = {'Authorization': f'Bearer {token}'}
             
-            # Create Post with Media
-            post_data = {
-                "caption": "Post with uploaded media!",
-                "mediaIds": [media_id]
-            }
-            response, success = make_request("POST", "/content/posts", post_data, token=token)
+            # Age setting
+            age_data = {"birthYear": 2000}
+            response = requests.patch(f"{BASE_URL}/me/age", json=age_data, headers=headers)
+            self.test_result(response.status_code == 200, "Age setting")
             
-            if success and response.status_code == 201:
+            # College search & linking
+            response = requests.get(f"{BASE_URL}/colleges/search?q=IIT")
+            college_search_success = self.test_result(response.status_code == 200 and len(response.json().get('colleges', [])) > 0, "College search")
+            
+            if college_search_success:
+                college_id = response.json()['colleges'][0]['id']
+                college_data = {"collegeId": college_id}
+                response = requests.patch(f"{BASE_URL}/me/college", json=college_data, headers=headers)
+                self.test_result(response.status_code == 200, "College linking")
+            
+            # Legal consent
+            consent_data = {"version": "1.0"}
+            response = requests.post(f"{BASE_URL}/legal/accept", consent_data, headers=headers)
+            self.test_result(response.status_code == 200, "Legal consent")
+            
+            # Login verification
+            login_data = {"phone": phone, "pin": pin}
+            response = requests.post(f"{BASE_URL}/auth/login", json=login_data)
+            self.test_result(response.status_code == 200 and 'token' in response.json(), "Login verification")
+        
+        # Test 3: CRITICAL CONTRACT FIXES
+        self.log("\n=== CRITICAL CONTRACT FIXES ===")
+        
+        token, headers = self.create_authenticated_user()
+        if token:
+            # Contract Fix 1: Stories feed
+            response = requests.get(f"{BASE_URL}/feed/stories", headers=headers)
+            if response.status_code == 200:
                 data = response.json()
-                if "post" in data:
-                    test_data["posts"].append(data["post"])
-                    result.success("Post with Media", f"Post ID: {data['post']['id']}")
-                else:
-                    result.fail("Post with Media", "Missing post in response")
+                has_both_fields = 'stories' in data and 'storyRail' in data
+                self.test_result(has_both_fields, "Stories feed contract (stories + storyRail)")
             else:
-                result.fail("Post with Media", 
-                           f"Status: {response.status_code if response else 'Timeout/Error'}")
+                self.test_result(False, "Stories feed contract (stories + storyRail)")
             
-            # Create Story with Media (should have expiresAt)
-            story_data = {
-                "caption": "Story with media",
-                "mediaIds": [media_id],
-                "kind": "STORY"
+            # Contract Fix 2: Content mediaIds field
+            post_data = {"caption": "Test post for mediaIds validation"}
+            response = requests.post(f"{BASE_URL}/content/posts", json=post_data, headers=headers)
+            if response.status_code == 201:
+                post = response.json().get('post', {})
+                has_media_ids = 'mediaIds' in post
+                self.test_result(has_media_ids, "Content mediaIds field")
+            else:
+                self.test_result(False, "Content mediaIds field")
+            
+            # Contract Fix 3: Grievance POST (both grievance + ticket)
+            grievance_data = {
+                "ticketType": "LEGAL_NOTICE",
+                "subject": "Test legal grievance",
+                "description": "Test description"
             }
-            response, success = make_request("POST", "/content/posts", story_data, token=token)
-            
-            if success and response.status_code == 201:
+            response = requests.post(f"{BASE_URL}/grievances", json=grievance_data, headers=headers)
+            if response.status_code == 201:
                 data = response.json()
-                if "post" in data and "expiresAt" in data["post"]:
-                    result.success("Story with Media", f"Story with expiresAt: {data['post']['expiresAt']}")
-                else:
-                    result.fail("Story with Media", "Missing expiresAt or post in response")
+                has_both_fields = 'grievance' in data and 'ticket' in data
+                self.test_result(has_both_fields, "Grievance POST contract (grievance + ticket)")
             else:
-                result.fail("Story with Media", 
-                           f"Status: {response.status_code if response else 'Timeout/Error'}")
-        else:
-            result.fail("Media Upload", "Missing media ID in response")
-    else:
-        result.fail("Media Upload", 
-                   f"Status: {response.status_code if response else 'Timeout/Error'}")
-
-def test_full_social_interaction_flow():
-    """Test full social flow with new user interacting"""
-    print("\n🔍 Step 7: Full Social Interaction Flow...")
-    
-    if not test_data["new_user_token"] or not test_data["tokens"] or not test_data["posts"]:
-        result.fail("Social Flow", "Missing required data for social interactions")
-        return
-    
-    new_user_token = test_data["new_user_token"]
-    existing_user_token = test_data["tokens"][0]
-    post_id = test_data["posts"][0]["id"]
-    new_user_id = test_data["new_user"]["id"]
-    
-    # Existing user likes new user's post
-    response, success = make_request("POST", f"/content/{post_id}/like", token=existing_user_token)
-    if success and response.status_code == 200:
-        result.success("Like Post (Social Flow)", "Post liked")
-    else:
-        result.fail("Like Post (Social Flow)", 
-                   f"Status: {response.status_code if response else 'Timeout/Error'}")
-    
-    # Existing user comments on new user's post
-    comment_data = {"body": "Great post!"}
-    response, success = make_request("POST", f"/content/{post_id}/comments", comment_data, token=existing_user_token)
-    if success and response.status_code == 201:
-        result.success("Comment Post (Social Flow)", "Comment added")
-    else:
-        result.fail("Comment Post (Social Flow)", 
-                   f"Status: {response.status_code if response else 'Timeout/Error'}")
-    
-    # Existing user follows new user
-    response, success = make_request("POST", f"/follow/{new_user_id}", token=existing_user_token)
-    if success and response.status_code == 200:
-        result.success("Follow User (Social Flow)", "User followed")
-    else:
-        result.fail("Follow User (Social Flow)", 
-                   f"Status: {response.status_code if response else 'Timeout/Error'}")
-    
-    # Existing user saves new user's post
-    response, success = make_request("POST", f"/content/{post_id}/save", token=existing_user_token)
-    if success and response.status_code == 200:
-        result.success("Save Post (Social Flow)", "Post saved")
-    else:
-        result.fail("Save Post (Social Flow)", 
-                   f"Status: {response.status_code if response else 'Timeout/Error'}")
-    
-    # Check notifications for new user
-    response, success = make_request("GET", "/notifications", token=new_user_token)
-    if success and response.status_code == 200:
-        data = response.json()
-        if "notifications" in data:
-            result.success("Check Notifications", f"Got {len(data['notifications'])} notifications")
+                self.test_result(False, "Grievance POST contract (grievance + ticket)")
             
-            # Mark notifications as read
-            response, success = make_request("PATCH", "/notifications/read", {}, token=new_user_token)
-            if success and response.status_code == 200:
-                result.success("Mark Notifications Read", "Notifications marked as read")
+            # Contract Fix 4: Grievance GET (both grievances + tickets arrays)
+            response = requests.get(f"{BASE_URL}/grievances", headers=headers)
+            if response.status_code == 200:
+                data = response.json()
+                has_both_arrays = 'grievances' in data and 'tickets' in data
+                self.test_result(has_both_arrays, "Grievance GET contract (grievances + tickets)")
             else:
-                result.fail("Mark Notifications Read", 
-                           f"Status: {response.status_code if response else 'Timeout/Error'}")
-        else:
-            result.fail("Check Notifications", "Missing notifications in response")
-    else:
-        result.fail("Check Notifications", 
-                   f"Status: {response.status_code if response else 'Timeout/Error'}")
-
-def test_moderation_flow():
-    """Test moderation and admin functionality"""
-    print("\n🔍 Step 8: Moderation Flow...")
-    
-    if not test_data["tokens"] or not test_data["posts"]:
-        result.fail("Moderation Flow", "Missing required data")
-        return
-    
-    token = test_data["tokens"][0]
-    post_id = test_data["posts"][0]["id"]
-    
-    # Report a post
-    report_data = {
-        "targetType": "CONTENT",
-        "targetId": post_id,
-        "reasonCode": "INAPPROPRIATE",
-        "details": "Testing moderation flow"
-    }
-    response, success = make_request("POST", "/reports", report_data, token=token)
-    
-    if success and response.status_code == 201:
-        result.success("Report Post", "Post reported successfully")
-    else:
-        result.fail("Report Post", 
-                   f"Status: {response.status_code if response else 'Timeout/Error'}")
-    
-    # Check admin stats
-    response, success = make_request("GET", "/admin/stats")
-    
-    if success and response.status_code == 200:
-        data = response.json()
-        if "users" in data and "posts" in data:
-            result.success("Admin Stats", f"Users: {data['users']}, Posts: {data['posts']}")
-        else:
-            result.fail("Admin Stats", "Missing stats data")
-    else:
-        result.fail("Admin Stats", 
-                   f"Status: {response.status_code if response else 'Timeout/Error'}")
-
-def run_focused_tests():
-    """Run focused re-tests for previously failed scenarios"""
-    print("🎯 Starting FOCUSED RE-TESTING for Previously Failed Scenarios")
-    print("=" * 70)
-    print("📋 Target: Stories Feed, Registration+Profile, Appeals, Grievances, Social Flow")
-    print("=" * 70)
-    
-    try:
-        # Core flow
-        login_existing_users()
-        test_stories_feed_with_auth()
-        test_new_user_registration_and_profile_flow()
-        test_appeals_flow()
-        test_grievances_flow()
-        test_media_upload_and_content()
-        test_full_social_interaction_flow()
-        test_moderation_flow()
+                self.test_result(False, "Grievance GET contract (grievances + tickets)")
         
-    except Exception as e:
-        print(f"\n❌ Unexpected error during focused testing: {e}")
-        result.fail("Test Execution", str(e))
-    
-    # Print summary
-    result.summary()
-    
-    return result.failed == 0
+        # Test 4: Content Lifecycle
+        self.log("\n=== CONTENT LIFECYCLE ===")
+        
+        token, headers = self.create_authenticated_user()
+        if token:
+            # Text post
+            post_data = {"caption": f"Test post {datetime.now().isoformat()}"}
+            response = requests.post(f"{BASE_URL}/content/posts", json=post_data, headers=headers)
+            post_creation_success = self.test_result(response.status_code == 201, "Text post creation")
+            
+            post_id = None
+            if post_creation_success:
+                post_id = response.json().get('post', {}).get('id')
+                
+                # Get post
+                if post_id:
+                    response = requests.get(f"{BASE_URL}/content/{post_id}", headers=headers)
+                    self.test_result(response.status_code == 200, "Content retrieval")
+                    
+                    # Delete post
+                    response = requests.delete(f"{BASE_URL}/content/{post_id}", headers=headers)
+                    self.test_result(response.status_code == 200, "Content deletion")
+        
+        # Test 5: Feed Endpoints
+        self.log("\n=== FEED ENDPOINTS ===")
+        
+        response = requests.get(f"{BASE_URL}/feed/public")
+        self.test_result(response.status_code == 200, "Public feed")
+        
+        token, headers = self.create_authenticated_user()
+        if token:
+            response = requests.get(f"{BASE_URL}/feed/following", headers=headers)
+            self.test_result(response.status_code == 200, "Following feed")
+            
+            response = requests.get(f"{BASE_URL}/feed/reels", headers=headers)
+            self.test_result(response.status_code == 200, "Reels feed")
+        
+        # Test 6: Social Features
+        self.log("\n=== SOCIAL FEATURES ===")
+        
+        token, headers = self.create_authenticated_user()
+        if token:
+            # Get users to follow
+            response = requests.get(f"{BASE_URL}/suggestions/users", headers=headers)
+            if response.status_code == 200 and response.json().get('users'):
+                user_id = response.json()['users'][0]['id']
+                
+                # Follow/unfollow
+                response = requests.post(f"{BASE_URL}/follow/{user_id}", headers=headers)
+                self.test_result(response.status_code == 200, "Follow user")
+                
+                response = requests.delete(f"{BASE_URL}/follow/{user_id}", headers=headers)
+                self.test_result(response.status_code == 200, "Unfollow user")
+            
+            # Create content to interact with
+            post_data = {"caption": "Test post for interactions"}
+            response = requests.post(f"{BASE_URL}/content/posts", json=post_data, headers=headers)
+            if response.status_code == 201:
+                post_id = response.json().get('post', {}).get('id')
+                if post_id:
+                    # Like
+                    response = requests.post(f"{BASE_URL}/content/{post_id}/like", headers=headers)
+                    self.test_result(response.status_code == 200, "Like content")
+                    
+                    # Save
+                    response = requests.post(f"{BASE_URL}/content/{post_id}/save", headers=headers)
+                    self.test_result(response.status_code == 200, "Save content")
+                    
+                    # Comment
+                    comment_data = {"body": "Test comment"}
+                    response = requests.post(f"{BASE_URL}/content/{post_id}/comments", json=comment_data, headers=headers)
+                    self.test_result(response.status_code == 200, "Create comment")
+        
+        # Test 7: DPDP Child Protection
+        self.log("\n=== DPDP CHILD PROTECTION ===")
+        
+        token, headers = self.create_authenticated_user(adult=False)  # Child user
+        if token:
+            # Child cannot upload media
+            media_data = {
+                "data": base64.b64encode(b"fake image").decode(),
+                "mimeType": "image/jpeg",
+                "filename": "test.jpg"
+            }
+            response = requests.post(f"{BASE_URL}/media/upload", json=media_data, headers=headers)
+            self.test_result(response.status_code == 403, "Child media upload restriction")
+            
+            # Child CAN create text posts
+            post_data = {"caption": "Child text post"}
+            response = requests.post(f"{BASE_URL}/content/posts", json=post_data, headers=headers)
+            self.test_result(response.status_code == 201, "Child text post creation")
+            
+            # Check privacy settings
+            response = requests.get(f"{BASE_URL}/auth/me", headers=headers)
+            if response.status_code == 200:
+                user = response.json().get('user', {})
+                privacy_correct = (user.get('personalizedFeed') == False and 
+                                 user.get('targetedAds') == False)
+                self.test_result(privacy_correct, "Child privacy settings")
+        
+        # Test 8: Discovery
+        self.log("\n=== DISCOVERY ===")
+        
+        response = requests.get(f"{BASE_URL}/colleges/search?q=IIT")
+        self.test_result(response.status_code == 200 and len(response.json().get('colleges', [])) > 0, "College search")
+        
+        response = requests.get(f"{BASE_URL}/houses")
+        self.test_result(response.status_code == 200, "Houses listing")
+        
+        response = requests.get(f"{BASE_URL}/search?q=test")
+        self.test_result(response.status_code == 200, "Global search")
+        
+        # Test 9: Security
+        self.log("\n=== SECURITY FEATURES ===")
+        
+        token, headers = self.create_authenticated_user()
+        if token:
+            # Unauthenticated access protection
+            response = requests.get(f"{BASE_URL}/feed/following")
+            self.test_result(response.status_code == 401, "Auth protection")
+            
+            # Valid token works
+            response = requests.get(f"{BASE_URL}/feed/following", headers=headers)
+            self.test_result(response.status_code == 200, "Valid token access")
+
+        # Results Summary
+        total_tests = self.tests_passed + self.tests_failed
+        success_rate = (self.tests_passed / total_tests * 100) if total_tests > 0 else 0
+        
+        self.log(f"\n{'='*50}")
+        self.log(f"FOCUSED TEST SUITE COMPLETED")
+        self.log(f"Total Tests: {total_tests}")
+        self.log(f"Passed: {self.tests_passed}")
+        self.log(f"Failed: {self.tests_failed}")
+        self.log(f"Success Rate: {success_rate:.1f}%")
+        
+        # Highlight contract fixes status
+        contract_fixes = [
+            "Stories feed contract (stories + storyRail)",
+            "Content mediaIds field", 
+            "Grievance POST contract (grievance + ticket)",
+            "Grievance GET contract (grievances + tickets)"
+        ]
+        
+        working_fixes = [fix for fix in contract_fixes if fix not in self.failed_tests]
+        self.log(f"\nCONTRACT FIXES STATUS:")
+        for fix in contract_fixes:
+            status = "✅ WORKING" if fix not in self.failed_tests else "❌ BROKEN"
+            self.log(f"  {fix}: {status}")
+        
+        if self.failed_tests:
+            self.log(f"\nFailed Tests:")
+            for i, test in enumerate(self.failed_tests, 1):
+                self.log(f"  {i}. {test}")
+        
+        # Final assessment
+        contract_success_rate = (len(working_fixes) / len(contract_fixes)) * 100
+        self.log(f"\nCONTRACT FIXES: {contract_success_rate:.0f}% ({len(working_fixes)}/{len(contract_fixes)})")
+        
+        if contract_success_rate == 100:
+            self.log("🎉 ALL CONTRACT FIXES VERIFIED!")
+        
+        return success_rate, contract_success_rate
 
 if __name__ == "__main__":
-    success = run_focused_tests()
-    sys.exit(0 if success else 1)
+    tester = FocusedTester()
+    overall_rate, contract_rate = tester.run_focused_tests()

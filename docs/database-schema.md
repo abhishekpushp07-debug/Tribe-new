@@ -239,6 +239,20 @@
 | `consent_acceptances` | User consent records | userId+noticeVersion |
 | `feature_flags` | Feature toggles | key UNIQUE |
 
+## Collection Reconciliation (25 planned → 22 deployed)
+
+The original PRD planned 25+ collections. The deployed schema has **22 collections**. The delta is intentional:
+
+| Planned Collection | Status | Rationale |
+|---|---|---|
+| `otp_challenges` | **Removed** | Auth uses PIN-based login (no OTP). Brute-force protection is handled via `lockouts` field logic in `sessions`/`users`, not a separate OTP challenge collection. |
+| `board_seats` | **Deferred to P1** | Board Governance is a P1 feature. Will be created when the governance module is implemented. |
+| `board_applications` | **Deferred to P1** | Same as above — part of the Board Governance module. |
+| `board_proposals` | **Deferred to P1** | Same as above — part of the Board Governance module. |
+| `lockouts` | **Consolidated** | Brute-force lockout state is tracked inline in the auth handler's in-memory store + `sessions` collection, avoiding an extra collection for a simple counter. |
+
+**Net accounting**: 22 deployed + 3 deferred (board_*) + 2 consolidated/removed = 27 originally scoped. The 22 active collections cover all currently shipped features. The remaining 3 will be added when Board Governance ships.
+
 ## TTL Indexes
 
 | Collection | Field | Behavior |
