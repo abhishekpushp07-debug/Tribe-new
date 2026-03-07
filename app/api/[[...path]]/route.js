@@ -11,8 +11,8 @@ import { handleMedia } from '@/lib/handlers/media'
 import { handleAdmin } from '@/lib/handlers/admin'
 import { handleHousePoints } from '@/lib/handlers/house-points'
 import { handleGovernance } from '@/lib/handlers/governance'
+import { handleModerationRoutes } from '@/lib/moderation/routes/moderation.routes'
 import { cache } from '@/lib/cache'
-import { moderateContent, getModerationConfig } from '@/lib/moderation'
 
 // ========== CORS ==========
 function cors(response) {
@@ -128,17 +128,18 @@ async function handleRoute(request, { params }) {
     }
 
     if (route === '/moderation/config' && method === 'GET') {
-      return jsonOk(await getModerationConfig())
+      const modResult = await handleModerationRoutes(path, method, request, db)
+      if (modResult) {
+        if (modResult.error) return jsonErr(modResult.error, modResult.code || 'ERROR', modResult.status || 400)
+        return jsonOk(modResult.data, modResult.status || 200)
+      }
     }
 
     if (route === '/moderation/check' && method === 'POST') {
-      try {
-        const body = await request.json()
-        if (!body.text) return jsonErr('text is required', 'VALIDATION', 400)
-        const result = await moderateContent(body.text)
-        return jsonOk(result)
-      } catch (err) {
-        return jsonErr(err.message, 'INTERNAL', 500)
+      const modResult = await handleModerationRoutes(path, method, request, db)
+      if (modResult) {
+        if (modResult.error) return jsonErr(modResult.error, modResult.code || 'ERROR', modResult.status || 400)
+        return jsonOk(modResult.data, modResult.status || 200)
       }
     }
 
@@ -159,11 +160,12 @@ async function handleRoute(request, { params }) {
       const cacheStats = await cache.getStats()
       checks.redis = { status: cacheStats.redis.status, keys: cacheStats.redis.keys, hitRate: cacheStats.hitRate }
 
-      // Moderation service
+      // Moderation provider (adapter-based)
       try {
-        const modRes = await fetch('http://localhost:8002/health', { signal: AbortSignal.timeout(2000) })
-        checks.moderation = modRes.ok ? { status: 'ok' } : { status: 'error' }
-      } catch { checks.moderation = { status: 'unreachable' } }
+        const { getModerationServiceConfig } = await import('@/lib/moderation/middleware/moderate-create-content')
+        const modConfig = getModerationServiceConfig(db)
+        checks.moderation = { status: 'ok', provider: modConfig.activeProvider, providerChain: modConfig.providerChain }
+      } catch (e) { checks.moderation = { status: 'error', error: e.message } }
 
       // Object storage
       try {

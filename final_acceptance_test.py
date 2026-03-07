@@ -2,7 +2,7 @@
 """
 COMPREHENSIVE FINAL ACCEPTANCE TEST
 Tribe Social Platform Backend API - Security Hardening Focus
-Base URL: https://tribe-backend.preview.emergentagent.com/api
+Base URL: https://tribe-adapter-v2.preview.emergentagent.com/api
 
 This test covers all 63 test cases for final acceptance with focus on:
 - Auth security (brute force, session management, PIN change)
@@ -25,7 +25,7 @@ import time
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://tribe-backend.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-adapter-v2.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 # Test credentials as specified in requirements
