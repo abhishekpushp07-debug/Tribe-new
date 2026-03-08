@@ -1,5 +1,58 @@
 # Tribe — Changelog
 
+## Mar 8, 2026 — Stage 5 Notes/PYQs Library (WORLD-CLASS REWRITE)
+
+### What Changed
+- **Complete rewrite** of Notes/PYQs Library from 5 basic endpoints to 12 world-class endpoints
+- **Vote system**: UP/DOWN helpfulness votes with self-vote prevention, vote switching, atomic score updates
+- **Download tracking**: Dedicated endpoint with per-user 24h dedup (prevents bot inflation)
+- **Redis caching**: Search results (30s) and detail views (60s) cached with stampede protection + event-driven invalidation
+- **College membership guard**: Users can only upload resources to their own college
+- **Admin moderation**: Full review queue with APPROVE/HOLD/REMOVE actions and audit trails
+- **My uploads**: Dedicated endpoint for users to manage their uploaded resources
+- **Report dedup**: Duplicate report prevention (409), atomically incremented reportCount, auto-hold at 3+ reports
+- **Faceted search**: Returns kind/semester/branch counts when filtering by college
+- **Multi-kind filter**: `kind=NOTE,PYQ` works
+- **Sort options**: recent (default), popular (voteScore), most_downloaded
+- **PATCH endpoint**: Owners can update resource metadata with moderation check
+- **New fields**: year (exam year for PYQs), collegeName (denormalized), voteScore, voteCount
+
+### Files Modified
+- `/app/lib/handlers/stages.js` — Complete rewrite of handleResources (~350 lines)
+- `/app/lib/constants.js` — Added ResourceKind, ResourceStatus, ResourceConfig
+- `/app/lib/cache.js` — Added RESOURCE_SEARCH/RESOURCE_DETAIL namespaces + RESOURCE_CHANGED event
+- `/app/app/api/[[...path]]/route.js` — Added routing for /me/resources and /admin/resources
+
+### Routes (12 endpoints)
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | /resources | Create resource (college guard + moderation) |
+| GET | /resources/search | Faceted search, cached, 3 sort modes |
+| GET | /resources/:id | Detail with uploader + college + tags, cached |
+| PATCH | /resources/:id | Update metadata (owner) |
+| DELETE | /resources/:id | Soft-remove (owner/mod) |
+| POST | /resources/:id/report | Report (dedup, auto-hold at 3+) |
+| POST | /resources/:id/vote | UP/DOWN vote (self-vote blocked) |
+| DELETE | /resources/:id/vote | Remove vote |
+| POST | /resources/:id/download | Track download (24h dedup) |
+| GET | /me/resources | My uploads |
+| GET | /admin/resources | Admin review queue + stats |
+| PATCH | /admin/resources/:id/moderate | APPROVE/HOLD/REMOVE |
+
+### Indexes (11 new)
+- resources: 8 indexes (search, uploader, subject, text, popular, admin_queue, downloads, id_unique)
+- resource_votes: 2 indexes (unique vote, resource lookup)
+- resource_downloads: 1 index (dedup check)
+- **ZERO COLLSCANs** confirmed via explain plans on all 5 critical query patterns
+
+### New Collections
+- `resource_votes` — Vote tracking
+- `resource_downloads` — Download dedup tracking
+
+### Test Results: 32/32 automated tests (100%) + 30 manual curl tests
+
+---
+
 ## Mar 8, 2026 — Stage 4 Distribution Ladder (WORLD-CLASS)
 
 ### What Changed

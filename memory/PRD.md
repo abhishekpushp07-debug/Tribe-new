@@ -33,7 +33,7 @@ Auth(7) + Onboarding(6) + Content(4) + Feeds(6) + Social(8) + Discovery(6) + Adm
 | 2 | College Claim Workflow | ✅ ACCEPTED (97/100) | Policy frozen: ONE ACTIVE CLAIM PER USER GLOBALLY. Race guard at DB level. |
 | 3 | Story Expiry Cleanup | ✅ COMPLETE | 100% testing agent pass, read-path + TTL + social guards proven |
 | 4 | Distribution Ladder | ✅ COMPLETE | Trust-first 3-stage ladder, quality signals, auto-eval, kill switch, 92% test pass |
-| 5 | Notes/PYQs Library | 🔧 IMPLEMENTED | Needs user acceptance |
+| 5 | Notes/PYQs Library | ✅ WORLD-CLASS REWRITE | 12 endpoints, 9 indexes, 0 COLLSCANs, Redis cache, vote system, download dedup, admin moderation. 32/32 tests pass (100%) |
 | 6 | Events + RSVP | 🔧 IMPLEMENTED | Needs user acceptance |
 | 7 | Board Notices + Authenticity | 🔧 IMPLEMENTED | Needs user acceptance |
 | 8 | OTP Challenge Flow | 📋 BACKLOG | |
@@ -78,20 +78,17 @@ PENDING → APPROVED | REJECTED | WITHDRAWN | FRAUD_REVIEW
 FRAUD_REVIEW → APPROVED | REJECTED
 ```
 
-## 33 MongoDB Collections
-users, sessions, audit_logs, content_items, follows, reactions, comments, saves, reports, appeals, moderation_events, moderation_audit_logs, moderation_review_queue, strikes, suspensions, grievance_tickets, colleges, houses, house_ledger, board_seats, board_applications, board_proposals, board_notices, media_assets, consent_notices, consent_acceptances, notifications, feature_flags, college_claims, resources, events, event_rsvps, authenticity_tags
+## 35 MongoDB Collections
+users, sessions, audit_logs, content_items, follows, reactions, comments, saves, reports, appeals, moderation_events, moderation_audit_logs, moderation_review_queue, strikes, suspensions, grievance_tickets, colleges, houses, house_ledger, board_seats, board_applications, board_proposals, board_notices, media_assets, consent_notices, consent_acceptances, notifications, feature_flags, college_claims, resources, resource_votes, resource_downloads, events, event_rsvps, authenticity_tags
 
 ## Remaining Backlog
 
 ### P0 — Awaiting User Acceptance
-- Stage 2 proof pack delivered → awaiting "Stage 2 = DONE / ACCEPTED"
+- Stage 5 Notes/PYQs proof pack delivered → awaiting user verdict
 
 ### P1 — Upcoming (strict order)
-- [ ] Stage 3: Story Expiry Cleanup
-- [ ] Stage 4: Distribution Ladder (acceptance testing)
-- [ ] Stage 5: Notes/PYQs Library (acceptance testing)
-- [ ] Stage 6: Events + RSVP (acceptance testing)
-- [ ] Stage 7: Board Notices + Authenticity (acceptance testing)
+- [ ] Stage 6: Events + RSVP (world-class rewrite needed)
+- [ ] Stage 7: Board Notices + Authenticity (world-class rewrite needed)
 
 ### P2 — Future
 - [ ] Stage 8: OTP Challenge Flow
