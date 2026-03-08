@@ -1,32 +1,33 @@
-# Tribe Roadmap
+# Tribe — Roadmap
 
-## P0 — Critical / Next Sprint
-- [ ] Video upload pipeline (chunked upload, video processing)
-- [ ] Object storage integration (move from base64-in-MongoDB)
-- [ ] PWA manifest + service worker for installability
+## Completed
+- Stage 1: Appeal Decision Workflow
+- Stage 2: College Claim Workflow
+- Stage 3: Story Expiry Cleanup
+- Stage 4: Distribution Ladder
+- Stage 5: Notes/PYQs Library (hardened)
+- Stage 9: World's Best Stories (hardened + audited)
+- Stage 10: World's Best Reels (39 endpoints, 12 collections)
 
-## P1 — High Priority
-- [ ] OpenAI omni-moderation integration for content safety
-- [ ] Board Governance (11-member college boards, proposals)
-- [ ] House Points system (earning mechanics, ledger, deductions)
-- [ ] Notes/PYQs Library (upload, search, download, tags)
-- [ ] Events section (create, RSVP, college events)
-- [ ] Distribution ladder (Stage 0→1→2)
+## Pending User Approval
+- Stage 9: Awaiting final PASS from user
+- Stage 10: Awaiting user review of proof pack
 
-## P2 — Medium Priority
-- [ ] College claim/verification workflow (admin approval)
-- [ ] Synthetic content declaration enforcement
-- [ ] Push notifications
-- [ ] Real-time WebSocket feeds
-- [ ] User blocking and muting
-- [ ] Content sharing (internal shares)
+## Upcoming (P1)
+- Stage 6: Events + RSVP (world-class rewrite)
+- Stage 7: Board Notices + Authenticity (world-class rewrite)
+- Stage 8: OTP Challenge Flow
 
-## P3 — Future / Nice-to-Have
-- [ ] Native Android app (React Native or Flutter shell)
-- [ ] Analytics dashboard for admins
-- [ ] College vs College challenges
-- [ ] House vs House events
-- [ ] Trending content algorithm
-- [ ] DM / Messaging system
-- [ ] Profile verification badges
-- [ ] Content recommendations AI
+## Future (P2)
+- Stage 11: Scale/Reliability/Disaster Excellence
+- Stage 12: Final Launch Readiness Gate
+
+## Backlog
+- Fix 2 remaining Stage 4 test failures
+- Stage 5 formal PASS
+- Redis installation for production Pub/Sub
+- Video transcoding pipeline (actual FFmpeg/CDN integration)
+- Recommendation engine / ML ranking
+- Push notifications
+- Content recommendations AI
+- Native Android app shell
