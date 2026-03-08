@@ -2,7 +2,7 @@
 """
 FINAL 5-GATE COMPREHENSIVE TEST
 Tribe Social Platform Backend API - All Gates Validation
-Base URL: https://college-verify-tribe.preview.emergentagent.com/api
+Base URL: https://tribe-notes.preview.emergentagent.com/api
 
 Target: 81/81 tests passing for all 5 gates
 Test user: phone 9000000001, pin 1234 (fully onboarded)
@@ -15,7 +15,7 @@ import time
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://college-verify-tribe.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-notes.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 # Test credentials
@@ -1109,7 +1109,7 @@ def test_gate_e_ops():
 def run_all_5_gates():
     """Run comprehensive 5-gate test"""
     print("🎯 FINAL 5-GATE COMPREHENSIVE TEST")
-    print("Base URL: https://college-verify-tribe.preview.emergentagent.com/api")
+    print("Base URL: https://tribe-notes.preview.emergentagent.com/api")
     print("Target: 81/81 tests (100% success rate)")
     print("="*80)
     

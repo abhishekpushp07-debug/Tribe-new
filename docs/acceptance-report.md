@@ -1,7 +1,7 @@
 # Tribe Backend — Proof-Based Acceptance Report
 
 **Date**: 2026-03-07
-**API URL**: https://college-verify-tribe.preview.emergentagent.com
+**API URL**: https://tribe-notes.preview.emergentagent.com
 
 ---
 
