@@ -33,7 +33,7 @@ Auth(7) + Onboarding(6) + Content(4) + Feeds(6) + Social(8) + Discovery(6) + Adm
 | 2 | College Claim Workflow | ✅ ACCEPTED (97/100) | Policy frozen: ONE ACTIVE CLAIM PER USER GLOBALLY. Race guard at DB level. |
 | 3 | Story Expiry Cleanup | ✅ COMPLETE | 100% testing agent pass, read-path + TTL + social guards proven |
 | 4 | Distribution Ladder | ✅ COMPLETE | Trust-first 3-stage ladder, quality signals, auto-eval, kill switch, 92% test pass |
-| 5 | Notes/PYQs Library | ✅ WORLD-CLASS + HARDENED | 14 endpoints, trust-weighted votes, counter recomputation, HELD visibility tightening, download rate limiting, cache safety. 68/69 tests pass. |
+| 5 | Notes/PYQs Library | ✅ 3-LAYER AUDITED | 14 endpoints, trust-weighted votes, counter recomputation, HELD visibility, download+upload rate limits, atomic report dedup, 12/12 zero COLLSCANs. Score: 94/100 |
 | 6 | Events + RSVP | 🔧 IMPLEMENTED | Needs user acceptance |
 | 7 | Board Notices + Authenticity | 🔧 IMPLEMENTED | Needs user acceptance |
 | 8 | OTP Challenge Flow | 📋 BACKLOG | |
