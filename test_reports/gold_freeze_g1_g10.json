@@ -315,7 +315,7 @@
     {
       "gate": "G10.hp.create",
       "passed": true,
-      "detail": "id=d53a36b0-3286-462f-9180-ffceea6ee442"
+      "detail": "id=realtime-standings-1"
     },
     {
       "gate": "G10.hp.publish",

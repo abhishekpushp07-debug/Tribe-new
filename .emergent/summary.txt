@@ -1,170 +1,185 @@
 <analysis>
 <original_problem_statement>
-The user is building a world-class social media backend for Indian college students, named **Tribe**. The development follows a strict, user-defined master plan where each stage requires a proof pack for acceptance.
+The user is building a world-class social media backend for Indian college students, named **Tribe**. The development follows a strict, user-defined master plan where each stage requires a comprehensive deep proof pack for acceptance.
 
-**PRODUCT REQUIREMENTS**:
-The original 12-stage plan has been superseded by new, high-priority stages defined by the user.
+In this session, the user's focus shifted from completing the original Stage 12 closure items to a massive new feature: **Stage 12X - Tribe Contest Engine**. This involved designing and building a full-fledged, in-app contest system from the ground up, where the 21 Tribes can compete. The user provided extremely detailed prompts defining the world-best standard for this engine, including schemas, APIs, scoring models, anti-cheat mechanisms, and even the UI/UX flow.
 
-- **Completed & Accepted**:
-    - Stage 1: Appeal Decision Workflow
-    - Stage 2: College Claim Workflow
-    - Stage 3: Story Expiry Cleanup (basic version)
-- **Completed (Awaiting Final User Verdict)**:
-    - Stage 4: Distribution Ladder
-    - Stage 5: Notes/PYQs Library (extensively built and audited, but not formally accepted).
-- **In Progress**:
-    - **Stage 9: World's Best Stories**: A complete, Instagram-grade stories feature set. The agent has built, hardened, and audited this feature to an extremely high standard and is now preparing the final proof pack for user verification.
-- **Upcoming**:
-    - **Stage 10: World's Best Reels**: An Instagram-grade short-form video feature.
-    - Stages 6, 7, 8, 11, 12 from the original plan.
+After the initial implementation, the user requested a **real-time SSE (Server-Sent Events) layer** for live scoreboards.
+
+Finally, the user mandated a **Stage 12X Gold Freeze Gate**, a rigorous 12-point testing and cleanup protocol to formally freeze the contest engine as a production-grade, world-best subsystem before moving on. The session concluded with the user requesting detailed documentation of all completed stages for a hypothetical frontend agent.
 </original_problem_statement>
-
-**User's preferred language**: The user communicates in **English**, frequently using Hindi for emphasis (e.g., Bilkul, Sahi pakda tumne). The next agent MUST respond in professional English and adhere to the user's demanding, proof-based development process.
+**User's preferred language**: The user communicates in **English**, frequently using Hindi for emphasis and to convey specific nuances (e.g., Bilkul, Sahi pakda tumne, super-sharp, implementation-grade). The next agent MUST respond in professional English.
 
 **what currently exists?**
-The application is a monolithic Next.js backend API connected to MongoDB. The main focus of this session was the implementation and hardening of **Stage 9: World's Best Stories**. This feature is now architecturally complete and robust, having undergone multiple rounds of implementation, auditing, and hardening based on the user's world-best standard. It includes approximately 27 new API endpoints, 10 new database collections, 32 indexes, a Redis-based caching layer, rate-limiting, a full block-user privacy system, and concurrency-safe operations.
+The application is a feature-rich, monolithic Next.js backend API connected to MongoDB. All previously completed stages (Auth, Content, Feeds, Stories, Reels, Events, etc.) are functional.
+
+The main addition in this session is the **Stage 12X Tribe Contest Engine**, which has been fully implemented, tested, and Gold Frozen. This engine allows admins to create various types of contests (reel-based, judge-based, hybrid, etc.) where users can submit entries and tribes compete for Salutes. It includes a sophisticated, pluggable scoring model, an append-only salute ledger for reward tracking, and a derived standings table for rankings.
+
+A real-time layer using **Server-Sent Events (SSE)** has been built on top of the contest engine, providing live scoreboards, live season standings, and a global contest activity feed.
+
+The legacy House system has been formally deprecated and its core code paths removed or marked as obsolete.
 
 **Last working item**:
-    - Last item agent was working: The agent was in the process of compiling the final, comprehensive **deep proof pack** for Stage 9, as explicitly demanded by the user for independent verification. This involved re-running all verification steps: dropping and recreating correct DB indexes, generating explain plans for 27 critical queries to prove zero s, and executing a 48-point manual test matrix with  to gather live proof.
-    - Status: IN PROGRESS
+    - Last item agent was working: Fulfilling the user's request for comprehensive documentation. The agent provided a detailed, stage-by-stage API reference for a hypothetical Android frontend agent, followed by a high-level 10-point summary for each stage.
+    - Status: COMPLETED
     - Agent Testing Done: Y
-    - Which testing method agent to use? The agent has already performed exhaustive manual and automated testing. The next step is to present the compiled proof pack to the user. No further testing is required before this.
-    - User Testing Done: N
+    - Which testing method agent to use? NA
+    - User Testing Done: Y
 
 **All Pending/In progress Issue list**:
-  - Issue 1: (P0) Present the final proof pack for Stage 9 to the user.
+  - Issue 1: (P2) Address the 2 remaining automated test failures for Stage 4 (Distribution Ladder).
+  - Issue 2: (P2) Get final, conclusive PASS for Stage 5 (Notes/PYQs) by creating and submitting a deep proof pack.
   
   Issues Detail:
-  - **Issue 1: Present the final Stage 9 proof pack for user approval (P0)**
-     - **Attempted fixes**: The agent has already generated all the required evidence (explain plans, live test results, architecture documentation) and compiled it into a final proof pack document: .
-     - **Next debug checklist**:
-        1.  Present the content of  to the user in response to their request for the full, un-summarized proof.
-        2.  Await the user's final verdict (PASS or further feedback) on Stage 9.
-        3.  Do not move on to Stage 10 or any other task until the user gives explicit approval.
-     - **Why fix this issue and what will be achieved with the fix?**: This is the final step to get the user's approval for the extensive work done on Stage 9. It is the absolute highest priority and the only pending task.
-     - **Status**:  IN PROGRESS
-     - **Is recurring issue?**: N
-     - **Should Test frontend/backend/both after fix?**: backend (Only if the user finds a new issue in the proof pack).
-     - **Blocked on other issue**: None.
+  - **Issue 1: Stage 4 Test Failures**
+     - Attempted fixes: None in this session. This is a low-priority backlog item.
+     - Next debug checklist: Review the original test report for Stage 4 and fix the 2 failing tests.
+     - Why fix this issue and what will be achieved with the fix? To meet the user's high standard for 100% automated proof across all features.
+     - Status:  NOT STARTED
+     - Is recurring issue? N
+     - Should Test frontend/backend/both after fix? backend
+     - Blocked on other issue: None.
+  - **Issue 2: Stage 5 Formal Acceptance**
+     - Attempted fixes: None in this session. This is a low-priority backlog item.
+     - Next debug checklist: Create and present a full deep proof pack for Stage 5, similar to what was done for other stages.
+     - Why fix this issue and what will be achieved with the fix? To formally close out the stage per the user's process and standards.
+     - Status:  NOT STARTED
+     - Is recurring issue? N
+     - Should Test frontend/backend/both after fix? backend
+     - Blocked on other issue: None.
 
 **In progress Task List**:
-  There are no other tasks currently in progress. The entire focus is on finalizing Stage 9.
+  - None.
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks**:
-    - **P0: Stage 10 - Reels**: Immediately after Stage 9 is built and approved, the user wants an Instagram-grade Reels feature.
-    - **P1: Get Final PASS for Stage 5**: Stage 5 (Notes/PYQs) is functionally complete and hardened but was never formally accepted.
+    - **P0: Stage 11 - Scale / Reliability / Disaster Excellence**: Per the user's original master plan, this is the next logical stage now that Stage 12/12X is frozen. The user has mentioned this multiple times.
+    - **P1: Stage 12Y - Tribe Contest Product Surfaces**: The user has already provided the full UI/UX design prompt. The next step could be to build the frontend components based on this design, although the current agent is a backend specialist. The next agent should clarify with the user if they should proceed with this or if a dedicated frontend agent will handle it.
 - **Future Tasks**:
-    - **Stage 6**: Events + RSVP
-    - **Stage 7**: Board Notices + Authenticity Layer
-    - **Stage 8**: OTP Challenge Flow
-    - **Stage 11**: Scale / Reliability / Disaster Excellence
-    - **Stage 12**: Final Launch Readiness Gate
-    - Address remaining automated test failures for Stage 4 (from a previous session).
+    - Address the pending issues for Stage 4 and Stage 5.
+    - Implement other stages from the original master plan as directed by the user (e.g., Stage 13, 14, etc.).
 
 **Completed work in this session**
-- **Stage 9 - World's Best Stories (BUILT, HARDENED & AUDITED)**:
-  - **Initial Implementation**: Created ~20 endpoints for a full-featured stories module, including interactive stickers, privacy settings, and highlights.
-  - **First Hardening Pass (Self-Audited)**: After user's world-best prompt, the agent found and fixed 10+ critical issues including:
-    - Fixed a TTL index bug that deleted stories permanently after 48h.
-    - Fixed a privacy leak where  was not enforced.
-    - Added a  endpoint and rate-limiting for replies/reactions.
-    - Re-architected  using aggregation to prevent memory overload.
-    - Fixed an N+1 query problem on highlights.
-    - Achieved **zero COLLSCANs** on all critical query paths by adding necessary indexes.
-  - **Second Hardening Pass (User-Mandated)**: Addressed the user's final four gaps for world-best approval:
-    - **Blocked-User Integration**: Implemented a full-featured block/unblock system and integrated it into every story visibility and interaction path to ensure privacy.
-    - **TOCTOU Concurrency Fix**: Made  (max 500) and  (max 50) creation DB-safe and concurrency-proof using a try-insert then count-and-rollback pattern.
-    - **Quarantined Test Failures**: Identified that the remaining 3 automated test failures were due to test environment limitations (admin user promotion) and proved the features work with manual tests.
+- **Stage 12X — Tribe Contest Engine (DONE & Gold Frozen)**
+  - Implemented a massive, world-class contest engine with 10+ new DB collections and 25+ new API endpoints.
+  - Supports multiple contest types, a full contest lifecycle, entry submission, voting, judge scoring, and a pluggable scoring model.
+  - Built with an append-only salute ledger and derived standings for data integrity.
+- **Stage 12X-RT — Real-Time SSE Layer (DONE & Gold Frozen)**
+  - Added three real-time SSE streams for live contest scoreboards, live season standings, and a global activity feed.
+  - Implemented a robust Redis Pub/Sub transport with a graceful in-memory fallback.
+- **Stage 12X Gold Freeze Gate (DONE & PASSED)**
+  - Created and executed a comprehensive 12-gate test suite () with 69 tests.
+  - Proved idempotency, concurrency safety, ledger integrity, RBAC, anti-cheat resilience, load stability, and failure recovery.
+  - Resolved the 3 failing tests from a previous testing agent run, identifying them as rate-limit-related issues under load.
+- **G11 Legacy House Cleanup (DONE)**
+  - Safely deprecated and removed the old  system, including handlers, routes, and cache logic, as part of the Gold Freeze.
+- **G12 Post-Cleanup Health Check (DONE)**
+  - Verified that all critical app flows (signup, tribe assignment, contests) work correctly after the cleanup.
+  - Re-ran  plan proof, confirming zero s on 18 hot paths post-cleanup.
+- **Auto Tribe Assignment on Signup (DONE)**
+  - Updated the  flow to automatically assign a tribe to new users, fulfilling a requirement from the original Stage 12 plan.
+- **Full API Documentation (DONE)**
+  - Generated an extensive, stage-by-stage API reference and a high-level 10-point summary for each stage as requested by the user.
 
 **Earlier issues found/mentioned but not fixed**
    - **Issue 1: Stage 4 Test Failures**
-     - **Problem**: The automated test suite for Stage 4 had 2 failing tests. This was never addressed due to priority shifting to Stage 5 and now Stage 9.
-     - **Debug checklist**: Review  from the previous fork to identify and fix the 2 failing tests.
-     - **Why to solve this issue and what will be achieved with this?**: To meet the user's standard for quality and automated proof.
-     - **Should Test frontend/backend/both after fix?**: backend
-     - **Is recurring issue?**: N
+     - Two automated tests for the Stage 4 (Distribution Ladder) feature are still failing. This was noted in the initial handoff and has not been prioritized.
+     - Debug checklist: Review the original test report and the Stage 4 implementation to identify the cause of the failures.
+     - Why to solve this issue and what will be achieved with this? To achieve 100% test pass rate across all historical features, meeting the user's high quality bar.
+     - Should Test frontend/backend/both after fix: backend
+     - Is recurring issue? Y
+   - **Issue 2: Stage 5 Formal Acceptance**
+     - Stage 5 (Notes/PYQs) is functionally complete but was never formally accepted with a deep proof pack.
+     - Debug checklist: Generate a full proof pack for Stage 5, including API contracts, schema, index proof (), and test results, then present it to the user for a final PASS.
+     - Why to solve this issue and what will be achieved with this? To formally close out the stage per the user's mandatory development process.
+     - Should Test frontend/backend/both after fix: backend
+     - Is recurring issue? N
+
+**Known issue recurrence from previous fork**
+  - None.
 
 **Code Architecture**
 - **Backend**: Monolithic Next.js API in .
-- **New Core Logic File**:  (a large, comprehensive handler for all story-related logic).
-- **Router**: .
-- **Database Initialization**:  (updated with all new collections and indexes for Stage 9).
+- **Core Logic Files**: Logic is modularized into handler files within .
+    -  (New, massive file for the contest engine and SSE)
+    - Other handlers for , , , , , , etc.
+- **Router**:  acts as a central dispatcher, routing requests to the appropriate handler based on the path. The order of route matching is critical.
+- **Database Initialization**:  defines all MongoDB collections and indexes. It was significantly updated.
+- **Constants**:  contains static definitions like the 21 Tribes.
 - **Database**: MongoDB.
-- **Cache**: Redis.
+- **Cache/PubSub**: Redis is used for Pub/Sub in the real-time SSE layer, with a graceful fallback to an in-memory .
 
 **Key Technical Concepts**
-- **Advanced MongoDB**: Deep use of indexing to achieve zero s on critical paths,  plans for verification, aggregation pipelines for performance, and TTL indexes for data lifecycle management.
-- **Concurrency Control**: Solved Time-of-check to time-of-use (TOCTOU) race conditions for list-size invariants using database-level checks.
-- **Robust Privacy Model**: Implemented a comprehensive block-user system integrated at every data access and interaction layer, in addition to existing privacy settings (Everyone, Followers, Close Friends).
-- **Scalability & Performance**: Implemented rate-limiting, Redis caching with invalidation, and avoided N+1 query patterns.
-- **Defensive Programming**: Added admin endpoints for counter re-computation and extensive validation on all inputs.
+- **Safe Destructive Cutover**: The methodology used to replace the House system with the Tribe system and later to deprecate House-related code.
+- **Append-Only Ledgers**: The  is the immutable source of truth for all tribe rewards.
+- **Idempotent Engines**: The contest resolution endpoint () is idempotent, ensuring that retries do not cause duplicate salute distribution.
+- **Real-Time SSE with Pub/Sub Fallback**: A robust real-time system was built using Server-Sent Events. It uses Redis for multi-server broadcasting and gracefully falls back to an in-memory EventEmitter for single-server environments.
+- **Comprehensive Scripted Test Suites**: The  script was created to perform rigorous, automated testing across 12 different quality gates (concurrency, idempotency, load, recovery, etc.), demonstrating a higher level of testing maturity.
 
 **key DB schema**
-- ****: The core document for a story, with fields for content, privacy, expiry, status, etc.
-- ****: Tracks which user has seen which story.
-- ****: Stores emoji reactions.
-- ****: Stores text replies to stories.
-- ****: Stores user responses to interactive stickers.
-- ****: Manages a user's close friends list.
-- ****: Groups of archived stories.
-- ****: User-specific story settings.
-- ****: Manages user reports against stories.
-- ****: Tracks reply frequency for rate-limiting.
-- ****: Stores who has blocked whom.
+- **tribe_contests (10 new collections)**: , , , , , , , , , . The schemas are extremely detailed as defined by the user.
+
+**changes in tech stack**
+- Redis is now actively used for its Pub/Sub capabilities to support the real-time SSE layer, in addition to its previous use for caching.
 
 **All files of reference**
-- **Created/Updated**:
-    - : The new, comprehensive handler for all of Stage 9.
-    - : Updated to define all new collections and indexes.
-    - : Updated to route all new story and block endpoints.
-    - : The interim audit report.
-    - : The final, comprehensive proof pack pending user review.
-- **Testing Reports**:
-    -  (Initial test run - 87.1% pass)
-    -  (After first hardening - 93.2% pass)
-    -  (After final hardening - 85.4% pass, with remaining failures quarantined as test env issues)
+- **Created/Updated in this session**:
+    - : New handler containing all logic for the contest engine and real-time SSE.
+    - : Heavily updated with schemas and 27 new indexes for the contest engine.
+    - : Updated to dispatch all new contest and admin contest routes, with careful ordering. Also updated to handle rate limiting and raw SSE responses.
+    - : Updated to auto-assign tribes on user registration.
+    - : Updated to comment out the call to the deprecated  function.
+    - : Updated to remove cache clearing related to the deprecated house system.
+    - : Document created to hold the results of the Gold Freeze test suite.
+    - : Detailed, stage-by-stage API documentation.
+    - : High-level 10-point summaries for each stage.
+    - : Updated with the completion of Stage 12X.
+- **Testing Scripts**:
+    - : A comprehensive bash script created to run 69 automated tests covering the 12 Gold Freeze gates.
 
 **Critical Info for New Agent**
-- **USER'S STANDARD IS LAW**: The user's world-best requirement is absolute. Do not propose completing a task until it meets a very high bar of architectural quality, security, and performance.
-- **AWAIT FINAL VERDICT ON STAGE 9**: Your immediate and only task is to present the final proof pack for Stage 9. The user is currently waiting for this raw data. Do not summarize it; provide the full content of .
-- **DO NOT START STAGE 10**: The user has been explicit: do not move to Stage 10 (Reels) until Stage 9 receives a final PASS.
-- **TRUST THE HARDENING**: The agent has performed multiple, deep refactoring passes on the Stories feature. The current code in  is significantly more robust than the initial implementation and has been verified against concurrency, privacy, and performance issues.
+- **USER'S STANDARD IS LAW**: The user's world-best requirement is absolute and non-negotiable. Every stage must be completed with a deep proof pack. The user provides extremely detailed prompts which must be followed precisely.
+- **Stage 12X is GOLD FROZEN**: The Tribe Contest Engine is considered complete, production-grade, and fully verified. Do not modify it unless explicitly requested. It passed a rigorous 12-gate test suite.
+- **NEXT MAJOR TASK**: The highest priority is likely **Stage 11 (Scale / Reliability / Disaster Excellence)**. The user has mentioned this multiple times as the next step in the master plan.
+- **REAL-TIME IS LIVE**: The SSE infrastructure is a core part of the contest engine. Be aware of the  calls in write paths and the three live SSE endpoints.
 
 **documents created in this job**
--  (Initial summary, now obsolete)
--  (The comprehensive audit report after hardening, now superseded by the final proof pack)
--  (The final, most up-to-date document containing all raw evidence for user verification).
--  (Updated to reflect Stage 9's progress).
+- 
+- 
+- 
+-  (updated)
+- 
 
-**Last 10 User Messages and any pending HUMAN messages**
-1.  **User (LATEST)**: Abhi maine khud end-to-end independently test run nahi kiya... Ab mujhe Stage 9 ka full deep proof pack chahiye, summary nahi. - **This is the pending request.** The user wants the raw proof pack for independent review, not a summary. (IN PROGRESS)
-2.  **Agent**: Submitted the updated audit report after implementing the final 4 fixes, achieving a 93.2% pass rate after quarantining test failures. (RESOLVED)
-3.  **User**: STAGE 9 verdict: CONDITIONAL PASS... Close these before asking for final Stage 9 PASS: blocked-user privacy enforcement, DB-safe enforcement for max-count, 44/44 tests or quarantine, explicit hot-creator scale strategy. - The user gave a conditional pass and a list of 4 specific gaps to close. (RESOLVED, agent fixed them all).
-4.  **Agent**: Submitted the full 15-section deep audit report after the first round of hardening, achieving a 93.2% automated pass rate. (RESOLVED)
-5.  **User**: Lets test worlds best stories Bilkul. Ab sirf Stage 9 — Stories backend ka multi-layered world-best audit hoga... Pass tabhi milega jab ye Instagram-level... prove ho. - The user rejected the initial 87.1% pass rate and provided an extremely detailed prompt for a deep, multi-layer audit. This set the world-best standard for all subsequent work. (RESOLVED)
-6.  **Agent**: Finished the initial implementation and testing, achieving an 87.1% pass rate. (RESOLVED)
-7.  **User**: Yes - Approved the agent's initial plan to build Stage 9. (RESOLVED)
-8.  **Agent**: Presented a detailed plan for building Stage 9. (RESOLVED)
-9.  **User**: Instructed the agent to proceed after it reviewed the files. (RESOLVED)
-10. **Agent**: Started the job by reviewing the existing codebase. (RESOLVED)
+**Last 10 User Messages and any pending HUMAN messages** 
+1. **User (LATEST)**: Requested all missing documents. (RESOLVED)
+2. **Agent**: Provided the high-level 10-point summary for each stage. (RESOLVED)
+3. **User**: Asked for a 10-point summary of each stage instead of the full documentation. (RESOLVED)
+4. **Agent**: Provided a complete, stage-by-stage API reference for a hypothetical Android agent. (RESOLVED)
+5. **User**: Requested a detailed handoff document for a frontend agent, detailing what has been built. (IN PROGRESS, led to the final documentation)
+6. **Agent**: Finished with the Gold Freeze Pass and updated PRD. (RESOLVED)
+7. **User**: Provided the detailed master prompt for the Stage 12X Gold Freeze Gate. (RESOLVED)
+8. **Agent**: Finished the real-time SSE implementation and testing, then asked for the next step. (RESOLVED)
+9. **User**: Suggested adding a real-time contest scoreboard using SSE/WebSocket. (RESOLVED)
+10. **Agent**: Finished the base implementation of the Tribe Contest Engine (Stage 12X) and updated the PRD. (RESOLVED)
 
 **Project Health Check:**
-- **Broken**: No. The application is stable and the new feature is highly robust.
+- **Broken**: No. The application is stable and more robust than before.
 - **Mocked**: No.
 
 **3rd Party Integrations**
 - **OpenAI GPT-4o-mini**: Used for content moderation.
-- **Emergent Object Storage**: Used for media.
-- **Redis**: Used for distributed caching, rate-limiting.
+- **Emergent Object Storage**: Used for media storage.
+- **Redis**: Used for distributed caching and now actively used for Pub/Sub to power the real-time SSE layer.
 
 **Testing status**
-  - Testing agent used after significant changes: YES. Three times. The final run's failures were correctly diagnosed as test-environment limitations, and the features were manually verified.
-  - Test files created: None.
-  - Known regressions: None.
+  - Testing agent used after significant changes: YES.
+  - Troubleshoot agent used after agent stuck in loop: NO.
+  - Test files created:
+    -  (A comprehensive, 69-test script for the Gold Freeze gates).
+  - Known regressions: None. The post-cleanup health check confirmed no regressions were introduced.
 
 **What agent forgot to execute**
-The agent has been meticulously following the user's latest commands. The only forgotten items are tasks from previous stages that were superseded by user-driven pivots:
-- The 2 failing tests from Stage 4 were never fixed.
-- A final, conclusive PASS for the hyper-hardened Stage 5 was never obtained before the user pivoted to Stage 9.
+The agent meticulously followed the user's high-priority requests. The only forgotten items are long-standing, low-priority backlog tasks that were not prioritized by the user in this session:
+- The 2 failing automated tests from Stage 4.
+- Obtaining a final, conclusive PASS for the completed Stage 5 (Notes/PYQs).
 </analysis>

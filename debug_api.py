@@ -6,7 +6,7 @@ import asyncio
 import aiohttp
 import json
 
-BASE_URL = "https://tribe-proof-pack.preview.emergentagent.com/api"
+BASE_URL = "https://realtime-standings-1.preview.emergentagent.com/api"
 TEST_USER_PHONE = "9000000001"
 TEST_USER_PIN = "1234"
 

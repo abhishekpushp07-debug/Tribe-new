@@ -1,7 +1,7 @@
 # Tribe Backend — Proof-Based Acceptance Report
 
 **Date**: 2026-03-07
-**API URL**: https://tribe-proof-pack.preview.emergentagent.com
+**API URL**: https://realtime-standings-1.preview.emergentagent.com
 
 ---
 

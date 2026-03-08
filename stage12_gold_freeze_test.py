@@ -6,7 +6,7 @@ Covers: 100% test closure, RBAC proof, replay/idempotency, E2E, legacy cleanup r
 import requests, json, time, subprocess, sys
 from datetime import datetime
 
-BASE = "https://tribe-proof-pack.preview.emergentagent.com/api"
+BASE = "https://realtime-standings-1.preview.emergentagent.com/api"
 results = []
 n = 0
 

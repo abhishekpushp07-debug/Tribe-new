@@ -11,7 +11,7 @@ import time
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://tribe-proof-pack.preview.emergentagent.com/api"
+BASE_URL = "https://realtime-standings-1.preview.emergentagent.com/api"
 timeout = 10
 
 # Test users as specified in requirements
