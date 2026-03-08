@@ -30,7 +30,7 @@ Auth(7) + Onboarding(6) + Content(4) + Feeds(6) + Social(8) + Discovery(6) + Adm
 |-------|------|--------|-------|
 | 0 | Foundation Freeze | ✅ FROZEN | Contracts, collections, indexes documented |
 | 1 | Appeal Decision Workflow | ✅ ACCEPTED | User accepted with proof pack |
-| 2 | College Claim Workflow | ✅ COMPLETE | 25-test proof pack, 94.1% testing agent pass, world-class trust-backend | 
+| 2 | College Claim Workflow | ✅ ACCEPTED (97/100) | Policy frozen: ONE ACTIVE CLAIM PER USER GLOBALLY. Race guard at DB level. |
 | 3 | Story Expiry Cleanup | ⏳ UPCOMING | TTL index + feed filter |
 | 4 | Distribution Ladder | 🔧 IMPLEMENTED | Needs user acceptance |
 | 5 | Notes/PYQs Library | 🔧 IMPLEMENTED | Needs user acceptance |
