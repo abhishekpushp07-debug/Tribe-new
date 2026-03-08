@@ -7,7 +7,7 @@ Comprehensive acceptance test results with corrected field validations
 import requests
 import json
 
-BASE_URL = "https://tribe-adapter-v2.preview.emergentagent.com/api"
+BASE_URL = "https://college-verify-tribe.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 def get_auth_token():

@@ -10,7 +10,7 @@ import json
 import time
 from datetime import datetime, timedelta
 
-BASE_URL = "https://tribe-adapter-v2.preview.emergentagent.com/api"
+BASE_URL = "https://college-verify-tribe.preview.emergentagent.com/api"
 TEST_USERS = [
     {"phone": "9000000001", "pin": "1234", "role": "regular"},  # Pre-configured user
     {"phone": "9000000002", "pin": "1234", "role": "regular"}, 

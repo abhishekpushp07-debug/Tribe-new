@@ -9,7 +9,7 @@ import aiohttp
 import json
 import time
 
-BASE_URL = "https://tribe-adapter-v2.preview.emergentagent.com/api"
+BASE_URL = "https://college-verify-tribe.preview.emergentagent.com/api"
 EXISTING_USER = {"phone": "9000000001", "pin": "1234"}
 
 class TribeModerationValidator:
