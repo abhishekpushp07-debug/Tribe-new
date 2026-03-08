@@ -8,7 +8,7 @@ import aiohttp
 import json
 import os
 
-BASE_URL = os.getenv("NEXT_PUBLIC_BASE_URL", "https://tribe-backend-verify.preview.emergentagent.com") + "/api"
+BASE_URL = os.getenv("NEXT_PUBLIC_BASE_URL", "https://tribe-proof-pack.preview.emergentagent.com") + "/api"
 
 async def debug_age_verification():
     connector = aiohttp.TCPConnector(ssl=False)

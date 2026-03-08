@@ -7,7 +7,7 @@ import asyncio
 import aiohttp
 import json
 
-BASE_URL = "https://tribe-backend-verify.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-proof-pack.preview.emergentagent.com/api"
 EXISTING_USER = {"phone": "9000000001", "pin": "1234"}
 
 async def debug_content_creation():

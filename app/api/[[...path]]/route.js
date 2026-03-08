@@ -18,6 +18,7 @@ import { handleBoardNotices, handleAuthenticityTags } from '@/lib/handlers/board
 import { handleStories } from '@/lib/handlers/stories'
 import { handleReels } from '@/lib/handlers/reels'
 import { handleTribes, handleTribeAdmin } from '@/lib/handlers/tribes'
+import { handleTribeContests, handleTribeContestAdmin } from '@/lib/handlers/tribe-contests'
 import { cache } from '@/lib/cache'
 
 // ========== CORS ==========
@@ -389,13 +390,13 @@ async function handleRoute(request, { params }) {
       else if (path[0] === 'admin' && path[1] === 'tribe-seasons') {
         result = await handleTribeAdmin(path, method, request, db)
       }
-      // Stage 12: Admin tribe contests
+      // Stage 12: Admin tribe contests (upgraded contest engine)
       else if (path[0] === 'admin' && path[1] === 'tribe-contests') {
-        result = await handleTribeAdmin(path, method, request, db)
+        result = await handleTribeContestAdmin(path, method, request, db)
       }
-      // Stage 12: Admin tribe salutes
+      // Stage 12: Admin tribe salutes (upgraded)
       else if (path[0] === 'admin' && path[1] === 'tribe-salutes') {
-        result = await handleTribeAdmin(path, method, request, db)
+        result = await handleTribeContestAdmin(path, method, request, db)
       }
       // Stage 12: Admin tribe awards
       else if (path[0] === 'admin' && path[1] === 'tribe-awards') {
@@ -417,6 +418,8 @@ async function handleRoute(request, { params }) {
       result = await handleBoardNotices(path, method, request, db)
     } else if (path[0] === 'authenticity') {
       result = await handleAuthenticityTags(path, method, request, db)
+    } else if (path[0] === 'tribe-contests') {
+      result = await handleTribeContests(path, method, request, db)
     } else if (path[0] === 'tribes') {
       result = await handleTribes(path, method, request, db)
     }

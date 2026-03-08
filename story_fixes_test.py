@@ -9,7 +9,7 @@ Focus on testing these 4 new fixes:
 3. Fix 3: Real-time SSE (Server-Sent Events) for story events
 4. Fix 4: Story expiry worker + TTL cleanup
 
-Base URL: https://tribe-backend-verify.preview.emergentagent.com/api
+Base URL: https://tribe-proof-pack.preview.emergentagent.com/api
 """
 
 import requests
@@ -22,7 +22,7 @@ import subprocess
 import sys
 
 # Configuration
-BASE_URL = "https://tribe-backend-verify.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-proof-pack.preview.emergentagent.com/api"
 TIMEOUT = 30
 
 class TestResult:

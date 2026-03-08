@@ -1,7 +1,7 @@
 {
   "test_suite": "Stage 5: Notes/PYQs Library",
   "timestamp": "2026-03-08T13:53:37.763354",
-  "base_url": "https://tribe-backend-verify.preview.emergentagent.com/api",
+  "base_url": "https://tribe-proof-pack.preview.emergentagent.com/api",
   "college_id": "7b61691b-5a7c-48dd-a221-464d04e48e11",
   "summary": {
     "total_tests": 32,
