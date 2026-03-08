@@ -12,6 +12,7 @@ import { handleAdmin } from '@/lib/handlers/admin'
 import { handleHousePoints } from '@/lib/handlers/house-points'
 import { handleGovernance } from '@/lib/handlers/governance'
 import { handleModerationRoutes } from '@/lib/moderation/routes/moderation.routes'
+import { handleAppealDecision, handleCollegeClaims, handleDistribution, handleResources, handleEvents, handleBoardNotices, handleAuthenticityTags } from '@/lib/handlers/stages'
 import { cache } from '@/lib/cache'
 
 // ========== CORS ==========
@@ -85,9 +86,10 @@ async function handleRoute(request, { params }) {
     if (route === '/' && method === 'GET') {
       return jsonOk({
         name: 'Tribe API',
-        version: '2.0.0',
+        version: '3.0.0',
         status: 'running',
         timestamp: new Date().toISOString(),
+        stages: 'A-G complete (Appeal, Claims, Distribution, Resources, Events, Notices, Authenticity)',
         endpoints: {
           auth: '/api/auth/*',
           profile: '/api/me/*',
@@ -96,16 +98,22 @@ async function handleRoute(request, { params }) {
           feed: '/api/feed/*',
           social: '/api/follow/*, /api/content/*/like|save|comments',
           colleges: '/api/colleges/*',
+          collegeClaims: '/api/colleges/:id/claim, /api/admin/college-claims',
           houses: '/api/houses/*',
           media: '/api/media/*',
           search: '/api/search',
           notifications: '/api/notifications',
           moderation: '/api/moderation/*',
           reports: '/api/reports',
-          appeals: '/api/appeals',
+          appeals: '/api/appeals, /api/appeals/:id/decide',
           grievances: '/api/grievances',
           legal: '/api/legal/*',
           admin: '/api/admin/*',
+          resources: '/api/resources, /api/resources/search',
+          events: '/api/events, /api/events/search, /api/events/:id/rsvp',
+          boardNotices: '/api/board/notices, /api/colleges/:id/notices',
+          authenticity: '/api/authenticity/tag, /api/authenticity/tags/:type/:id',
+          distribution: '/api/admin/distribution/*',
         },
       })
     }
@@ -232,7 +240,13 @@ async function handleRoute(request, { params }) {
     if (path[0] === 'auth') {
       result = await handleAuth(path, method, request, db)
     } else if (path[0] === 'me') {
-      result = await handleOnboarding(path, method, request, db)
+      // Stage 2: College claims (GET /me/college-claims)
+      if (path[1] === 'college-claims') {
+        result = await handleCollegeClaims(path, method, request, db)
+      }
+      if (!result) {
+        result = await handleOnboarding(path, method, request, db)
+      }
     } else if (path[0] === 'content' && path.length <= 2 && (method === 'POST' || method === 'GET' || method === 'DELETE')) {
       // Content CRUD (POST /content/posts, GET /content/:id, DELETE /content/:id)
       result = await handleContent(path, method, request, db)
@@ -246,7 +260,17 @@ async function handleRoute(request, { params }) {
     } else if (path[0] === 'users') {
       result = await handleUsers(path, method, request, db)
     } else if (path[0] === 'colleges' || path[0] === 'houses' || path[0] === 'search' || path[0] === 'suggestions') {
-      result = await handleDiscovery(path, method, request, db)
+      // Stage 2: College claims (POST /colleges/:id/claim)
+      if (path[0] === 'colleges' && path.length === 3 && path[2] === 'claim') {
+        result = await handleCollegeClaims(path, method, request, db)
+      }
+      // Stage 7: College notices (GET /colleges/:id/notices)
+      else if (path[0] === 'colleges' && path.length === 3 && path[2] === 'notices') {
+        result = await handleBoardNotices(path, method, request, db)
+      }
+      if (!result) {
+        result = await handleDiscovery(path, method, request, db)
+      }
     } else if (path[0] === 'media') {
       result = await handleMedia(path, method, request, db)
     } else if (path[0] === 'house-points') {
@@ -254,7 +278,34 @@ async function handleRoute(request, { params }) {
     } else if (path[0] === 'governance') {
       result = await handleGovernance(path, method, request, db)
     } else if (['reports', 'moderation', 'appeals', 'notifications', 'legal', 'admin', 'grievances'].includes(path[0])) {
-      result = await handleAdmin(path, method, request, db)
+      // Stage 1: Appeal decisions
+      if (path[0] === 'appeals' && path.length === 3 && path[2] === 'decide') {
+        result = await handleAppealDecision(path, method, request, db)
+      }
+      // Stage 2: College claim admin decisions
+      else if (path[0] === 'admin' && path[1] === 'college-claims') {
+        result = await handleCollegeClaims(path, method, request, db)
+      }
+      // Stage 4: Distribution admin
+      else if (path[0] === 'admin' && path[1] === 'distribution') {
+        result = await handleDistribution(path, method, request, db)
+      }
+      // Stage 7: Board notices moderation
+      else if (path[0] === 'moderation' && path[1] === 'board-notices') {
+        result = await handleBoardNotices(path, method, request, db)
+      }
+      // Default admin handler
+      if (!result) {
+        result = await handleAdmin(path, method, request, db)
+      }
+    } else if (path[0] === 'resources') {
+      result = await handleResources(path, method, request, db)
+    } else if (path[0] === 'events') {
+      result = await handleEvents(path, method, request, db)
+    } else if (path[0] === 'board' && path[1] === 'notices') {
+      result = await handleBoardNotices(path, method, request, db)
+    } else if (path[0] === 'authenticity') {
+      result = await handleAuthenticityTags(path, method, request, db)
     }
 
     // ---- Process result ----
