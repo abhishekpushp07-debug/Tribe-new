@@ -32,7 +32,7 @@ Auth(7) + Onboarding(6) + Content(4) + Feeds(6) + Social(8) + Discovery(6) + Adm
 | 1 | Appeal Decision Workflow | ✅ ACCEPTED | User accepted with proof pack |
 | 2 | College Claim Workflow | ✅ ACCEPTED (97/100) | Policy frozen: ONE ACTIVE CLAIM PER USER GLOBALLY. Race guard at DB level. |
 | 3 | Story Expiry Cleanup | ✅ COMPLETE | 100% testing agent pass, read-path + TTL + social guards proven |
-| 4 | Distribution Ladder | ✅ COMPLETE | Trust-first 3-stage ladder, feed integration, override protection, 81%+ testing agent |
+| 4 | Distribution Ladder | ✅ COMPLETE | Trust-first 3-stage ladder, quality signals, auto-eval, kill switch, 92% test pass |
 | 5 | Notes/PYQs Library | 🔧 IMPLEMENTED | Needs user acceptance |
 | 6 | Events + RSVP | 🔧 IMPLEMENTED | Needs user acceptance |
 | 7 | Board Notices + Authenticity | 🔧 IMPLEMENTED | Needs user acceptance |
