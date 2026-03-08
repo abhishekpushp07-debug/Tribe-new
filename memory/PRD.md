@@ -25,8 +25,8 @@ World-class social media backend for Indian college students, built stage-by-sta
 | 6 | World's Best Events + RSVP | PROOF DELIVERED | 43/43 auto + 32/32 IXSCAN |
 | 7 | Board Notices + Authenticity | PROOF DELIVERED | 43/43 auto + 32/32 IXSCAN |
 | **12** | **21-Tribe System (Safe Cutover)** | **STRONG PASS (89/100)** | **19/21 auto + 28/28 IXSCAN** |
-| **12X** | **Tribe Contest Engine** | **IMPLEMENTED + TESTED** | **12/15 auto + 15/15 IXSCAN + Ledger 100%** |
-| **12X-RT** | **Real-Time Contest Scoreboard** | **IMPLEMENTED + TESTED** | **13/13 auto (100%)** |
+| **12X** | **Tribe Contest Engine** | **🏆 GOLD FREEZE (12/12)** | **69/69 auto + 18/18 IXSCAN + Ledger 0 drift** |
+| **12X-RT** | **Real-Time Contest Scoreboard** | **🏆 GOLD FREEZE (included)** | **13/13 auto (100%)** |
 | 8 | OTP Challenge Flow | REMOVED | User request |
 | 11 | Scale/Reliability Excellence | UPCOMING | — |
 
@@ -178,7 +178,7 @@ All contest mutations automatically publish to SSE channels:
 - Updated: `/app/lib/handlers/tribe-contests.js` — RT publish hooks on all write paths
 
 ## Next Tasks
-1. Stage 12 Gold Freeze closure items (remaining: legacy House cleanup, post-cleanup health proof)
-2. Stage 11: Scale / Reliability / Disaster Excellence
+1. Stage 11: Scale / Reliability / Disaster Excellence
+2. Stage 12Y: Tribe Contest Product Surfaces (frontend UI)
 3. Stage 5 formal proof pack
 4. Stage 4 test failures fix

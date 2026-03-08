@@ -26,6 +26,26 @@
 - Salute ledger integrity: 100% (standings match ledger for all tribes)
 - Idempotent resolution: verified (double resolve returns same result)
 
+## 2026-03-08: Stage 12X — Gold Freeze Gate PASSED (12/12)
+
+### Gold Freeze Validation
+- Built and ran comprehensive 69-test Gold Freeze proof suite
+- All 12 gates passed: Timeout Closure, Replay/Idempotency, Concurrency, Ledger Integrity, Lifecycle State Machine, RBAC, Anti-Cheat, Load/Performance, Failure Recovery, Manual E2E, Legacy Cleanup, Post-Cleanup Health
+- 18/18 explain plans IXSCAN post-cleanup (zero COLLSCAN)
+- Ledger integrity: 11 checks, 0 drifts
+
+### Legacy Cleanup (G11)
+- Removed awardHousePoints from content.js
+- Deprecated /api/house-points route (410 DEPRECATED)
+- Removed handleHousePoints import from route.js
+- Zero regression after cleanup
+
+### Files Modified
+- `/app/lib/handlers/content.js` — Removed house points call
+- `/app/app/api/[[...path]]/route.js` — Deprecated house-points route
+- `/app/tests/gold_freeze_gate.py` — Comprehensive 69-test proof suite
+- `/app/memory/stage_12x_gold_freeze_proof_pack.md` — Full proof pack
+
 ## 2026-03-08: Stage 12X-RT — Real-Time Contest Scoreboard
 
 ### Built

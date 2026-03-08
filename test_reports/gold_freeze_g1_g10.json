@@ -1,0 +1,396 @@
+{
+  "suite": "Stage 12X Gold Freeze Gate",
+  "timestamp": "2026-03-08T21:14:26.681236",
+  "gates": {
+    "G1": {
+      "pass": 10,
+      "fail": 0
+    },
+    "G2": {
+      "pass": 6,
+      "fail": 0
+    },
+    "G3": {
+      "pass": 5,
+      "fail": 0
+    },
+    "G4": {
+      "pass": 2,
+      "fail": 0
+    },
+    "G5": {
+      "pass": 9,
+      "fail": 0
+    },
+    "G6": {
+      "pass": 8,
+      "fail": 0
+    },
+    "G7": {
+      "pass": 4,
+      "fail": 0
+    },
+    "G8": {
+      "pass": 5,
+      "fail": 0
+    },
+    "G9": {
+      "pass": 4,
+      "fail": 0
+    },
+    "G10": {
+      "pass": 16,
+      "fail": 0
+    }
+  },
+  "total_pass": 69,
+  "total_fail": 0,
+  "verdict": "GOLD_FREEZE_PASS",
+  "details": [
+    {
+      "gate": "G1.tribe-contests",
+      "passed": true,
+      "detail": "11ms status=200"
+    },
+    {
+      "gate": "G1.seasons",
+      "passed": true,
+      "detail": "7ms status=200"
+    },
+    {
+      "gate": "G1.standings",
+      "passed": true,
+      "detail": "43ms status=200"
+    },
+    {
+      "gate": "G1.dashboard",
+      "passed": true,
+      "detail": "43ms status=200"
+    },
+    {
+      "gate": "G1.tribe-contests",
+      "passed": true,
+      "detail": "22ms status=200"
+    },
+    {
+      "gate": "G1.tribe-contests",
+      "passed": true,
+      "detail": "38ms status=201"
+    },
+    {
+      "gate": "G1.lifecycle.publish",
+      "passed": true,
+      "detail": "9ms"
+    },
+    {
+      "gate": "G1.lifecycle.open-entries",
+      "passed": true,
+      "detail": "43ms"
+    },
+    {
+      "gate": "G1.entry_submit_speed",
+      "passed": true,
+      "detail": "10ms"
+    },
+    {
+      "gate": "G1.SUMMARY",
+      "passed": true,
+      "detail": "0 timeouts found"
+    },
+    {
+      "gate": "G2.duplicate_entry_blocked",
+      "passed": true,
+      "detail": "status=400 code=MAX_ENTRIES_REACHED"
+    },
+    {
+      "gate": "G2.duplicate_vote_blocked",
+      "passed": true,
+      "detail": "first=201 retry=409"
+    },
+    {
+      "gate": "G2.resolve_idempotent",
+      "passed": true,
+      "detail": "first_salutes=1 idempotent=True"
+    },
+    {
+      "gate": "G2.no_double_ledger",
+      "passed": true,
+      "detail": "ledger_entries=1 expected=1"
+    },
+    {
+      "gate": "G2.salute_adjust_both_recorded",
+      "passed": true,
+      "detail": "Manual adjustments are append-only (both recorded as separate entries)"
+    },
+    {
+      "gate": "G2.SUMMARY",
+      "passed": true,
+      "detail": "Resolution replay safe, no double salutes"
+    },
+    {
+      "gate": "G3.concurrent_entries",
+      "passed": true,
+      "detail": "10/10 entries succeeded"
+    },
+    {
+      "gate": "G3.concurrent_votes",
+      "passed": true,
+      "detail": "accepted=19 rejected(self/dup)=1 total=20"
+    },
+    {
+      "gate": "G3.concurrent_resolve_safe",
+      "passed": true,
+      "detail": "resolve1=200 idem=True | resolve2=200 idem=False"
+    },
+    {
+      "gate": "G3.no_double_salutes",
+      "passed": true,
+      "detail": "ledger_entries=5 (should be <=5 for top positions)"
+    },
+    {
+      "gate": "G3.SUMMARY",
+      "passed": true,
+      "detail": "Concurrent entries/votes/resolve safe"
+    },
+    {
+      "gate": "G4.ledger_equals_standings",
+      "passed": true,
+      "detail": "checked=11 drifts=0"
+    },
+    {
+      "gate": "G4.SUMMARY",
+      "passed": true,
+      "detail": "Zero drift across 11 tribe-season pairs"
+    },
+    {
+      "gate": "G5.draft_to_resolve_blocked",
+      "passed": true,
+      "detail": "status=400 code=INVALID_TRANSITION"
+    },
+    {
+      "gate": "G5.draft_to_lock_blocked",
+      "passed": true,
+      "detail": "status=400"
+    },
+    {
+      "gate": "G5.draft_to_published",
+      "passed": true,
+      "detail": "status=200"
+    },
+    {
+      "gate": "G5.double_publish_blocked",
+      "passed": true,
+      "detail": "status=400"
+    },
+    {
+      "gate": "G5.published_to_entry_open",
+      "passed": true,
+      "detail": "status=200"
+    },
+    {
+      "gate": "G5.entry_to_cancelled_blocked",
+      "passed": true,
+      "detail": "status=400"
+    },
+    {
+      "gate": "G5.resolve_cancelled_blocked",
+      "passed": true,
+      "detail": "status=400"
+    },
+    {
+      "gate": "G5.publish_resolved_blocked",
+      "passed": true,
+      "detail": "status=400"
+    },
+    {
+      "gate": "G5.SUMMARY",
+      "passed": true,
+      "detail": "All invalid transitions blocked, valid transitions accepted"
+    },
+    {
+      "gate": "G6.user_cannot_create",
+      "passed": true,
+      "detail": "status=403"
+    },
+    {
+      "gate": "G6.user_cannot_resolve",
+      "passed": true,
+      "detail": "status=403"
+    },
+    {
+      "gate": "G6.user_cannot_adjust_salutes",
+      "passed": true,
+      "detail": "status=403"
+    },
+    {
+      "gate": "G6.user_cannot_disqualify",
+      "passed": true,
+      "detail": "status=403"
+    },
+    {
+      "gate": "G6.user_cannot_publish",
+      "passed": true,
+      "detail": "status=403"
+    },
+    {
+      "gate": "G6.user_cannot_admin_dashboard",
+      "passed": true,
+      "detail": "status=403"
+    },
+    {
+      "gate": "G6.unauth_blocked",
+      "passed": true,
+      "detail": "status=401"
+    },
+    {
+      "gate": "G6.SUMMARY",
+      "passed": true,
+      "detail": "All unauthorized actions blocked"
+    },
+    {
+      "gate": "G7.self_vote_blocked",
+      "passed": true,
+      "detail": "status=403 code=SELF_VOTE_BLOCKED"
+    },
+    {
+      "gate": "G7.duplicate_vote_blocked",
+      "passed": true,
+      "detail": "first=201 dup=409"
+    },
+    {
+      "gate": "G7.max_entries_enforced",
+      "passed": true,
+      "detail": "status=400 code=MAX_ENTRIES_REACHED"
+    },
+    {
+      "gate": "G7.SUMMARY",
+      "passed": true,
+      "detail": "Self-vote, duplicate vote, max entries all enforced"
+    },
+    {
+      "gate": "G8.burst_contest_list",
+      "passed": true,
+      "detail": "p50=10ms p95=54ms"
+    },
+    {
+      "gate": "G8.burst_leaderboard",
+      "passed": true,
+      "detail": "p50=35ms p95=53ms"
+    },
+    {
+      "gate": "G8.burst_standings",
+      "passed": true,
+      "detail": "p50=8ms p95=43ms"
+    },
+    {
+      "gate": "G8.zero_collscan",
+      "passed": true,
+      "detail": "IXSCAN_RESULT: 15/15 collscans=0"
+    },
+    {
+      "gate": "G8.SUMMARY",
+      "passed": true,
+      "detail": "contest_list p95=54ms | leaderboard p95=53ms | standings p95=43ms | IXSCAN clean"
+    },
+    {
+      "gate": "G9.standings_recompute_safe",
+      "passed": true,
+      "detail": "RECOMPUTE: checked=11 fixed=11"
+    },
+    {
+      "gate": "G9.retry_after_resolve_safe",
+      "passed": true,
+      "detail": "idempotent=True"
+    },
+    {
+      "gate": "G9.recompute_scores_safe",
+      "passed": true,
+      "detail": "status=200"
+    },
+    {
+      "gate": "G9.SUMMARY",
+      "passed": true,
+      "detail": "Recovery operations safe \u2014 no duplicate effects"
+    },
+    {
+      "gate": "G10.hp.create",
+      "passed": true,
+      "detail": "id=d53a36b0-3286-462f-9180-ffceea6ee442"
+    },
+    {
+      "gate": "G10.hp.publish",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "gate": "G10.hp.open_entries",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "gate": "G10.hp.entries",
+      "passed": true,
+      "detail": "submitted=3"
+    },
+    {
+      "gate": "G10.hp.judge_scoring",
+      "passed": true,
+      "detail": "3 entries judged"
+    },
+    {
+      "gate": "G10.hp.close_entries",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "gate": "G10.hp.compute_scores",
+      "passed": true,
+      "detail": "Scores computed for 3 entries"
+    },
+    {
+      "gate": "G10.hp.leaderboard",
+      "passed": true,
+      "detail": "entries=3 top_score=16.2"
+    },
+    {
+      "gate": "G10.hp.lock",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "gate": "G10.hp.resolve",
+      "passed": true,
+      "detail": "salutes_distributed=3"
+    },
+    {
+      "gate": "G10.hp.results_visible",
+      "passed": true,
+      "detail": "winner=facff62c-cdf"
+    },
+    {
+      "gate": "G10.hp.standings_updated",
+      "passed": true,
+      "detail": "tribes_ranked=21"
+    },
+    {
+      "gate": "G10.up.replay_resolve",
+      "passed": true,
+      "detail": "Replay safe"
+    },
+    {
+      "gate": "G10.up.invalid_transition",
+      "passed": true,
+      "detail": "status=400"
+    },
+    {
+      "gate": "G10.up.unauthorized_resolve",
+      "passed": true,
+      "detail": "status=403"
+    },
+    {
+      "gate": "G10.SUMMARY",
+      "passed": true,
+      "detail": "Full happy + unhappy path proven"
+    }
+  ]
+}

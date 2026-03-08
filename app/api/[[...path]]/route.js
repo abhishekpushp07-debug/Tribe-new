@@ -9,7 +9,7 @@ import { handleUsers } from '@/lib/handlers/users'
 import { handleDiscovery } from '@/lib/handlers/discovery'
 import { handleMedia } from '@/lib/handlers/media'
 import { handleAdmin } from '@/lib/handlers/admin'
-import { handleHousePoints } from '@/lib/handlers/house-points'
+// Legacy house-points import removed (Stage 12X cleanup)
 import { handleGovernance } from '@/lib/handlers/governance'
 import { handleModerationRoutes } from '@/lib/moderation/routes/moderation.routes'
 import { handleAppealDecision, handleCollegeClaims, handleDistribution, handleResources } from '@/lib/handlers/stages'
@@ -42,7 +42,7 @@ function jsonErr(message, code, status = 400) {
 // ========== RATE LIMITER (in-memory, per IP) ==========
 const rateLimitStore = new Map()
 const RATE_LIMIT_WINDOW_MS = 60 * 1000 // 1 minute
-const RATE_LIMIT_MAX = 120 // requests per window (production level)
+const RATE_LIMIT_MAX = 500 // requests per window (production: adjust based on expected traffic)
 
 function checkRateLimit(request) {
   const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
@@ -341,8 +341,9 @@ async function handleRoute(request, { params }) {
       }
     } else if (path[0] === 'media') {
       result = await handleMedia(path, method, request, db)
+    // Legacy house-points route deprecated (Stage 12X: tribe salutes replace this)
     } else if (path[0] === 'house-points') {
-      result = await handleHousePoints(path, method, request, db)
+      result = { error: 'House points system deprecated. Use tribe salutes via /tribe-contests', code: 'DEPRECATED', status: 410 }
     } else if (path[0] === 'governance') {
       result = await handleGovernance(path, method, request, db)
     } else if (['reports', 'moderation', 'appeals', 'notifications', 'legal', 'admin', 'grievances'].includes(path[0])) {
