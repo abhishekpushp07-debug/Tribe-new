@@ -1,0 +1,242 @@
+{
+  "timestamp": "2026-03-08T17:56:35.584734",
+  "total_tests": 46,
+  "passed_tests": 46,
+  "success_rate": 100.0,
+  "detailed_results": [
+    {
+      "test": "1.1 Create draft reel",
+      "status": "PASS",
+      "details": "Draft reel created: f71556f6-7dc1-43db-b789-8e165963bf11"
+    },
+    {
+      "test": "1.2 Create published reel with media",
+      "status": "PASS",
+      "details": "Published reel: e0680671-982a-4db4-955a-13426baf75a4, Status: PUBLISHED"
+    },
+    {
+      "test": "1.3 Get reel detail (200)",
+      "status": "PASS",
+      "details": "Status: 200, Has reel: True"
+    },
+    {
+      "test": "1.4 Update reel metadata (PATCH)",
+      "status": "PASS",
+      "details": "Status: 200, Updated: True"
+    },
+    {
+      "test": "1.5 Delete reel (soft delete)",
+      "status": "PASS",
+      "details": "Delete status: 200, Has reelId: True"
+    },
+    {
+      "test": "1.6 Get deleted reel returns 410 GONE",
+      "status": "PASS",
+      "details": "Status: 410 (expected 410)"
+    },
+    {
+      "test": "2.1 Publish draft reel",
+      "status": "PASS",
+      "details": "Status: 200, New status: PUBLISHED"
+    },
+    {
+      "test": "2.2 Archive published reel",
+      "status": "PASS",
+      "details": "Status: 200, Message: Reel archived"
+    },
+    {
+      "test": "2.3 Restore archived reel",
+      "status": "PASS",
+      "details": "Status: 200, New status: PUBLISHED"
+    },
+    {
+      "test": "3.1 Pin reel to profile",
+      "status": "PASS",
+      "details": "Status: 200, Message: Reel pinned"
+    },
+    {
+      "test": "3.2 Unpin reel from profile",
+      "status": "PASS",
+      "details": "Status: 200, Message: Reel unpinned"
+    },
+    {
+      "test": "3.3 Pin limit enforcement (max 3 reels)",
+      "status": "PASS",
+      "details": "First 3 pins: [True, True, True], 4th pin blocked: True"
+    },
+    {
+      "test": "4.1 Discovery feed (GET /reels/feed)",
+      "status": "PASS",
+      "details": "Status: 200, Items: 10"
+    },
+    {
+      "test": "4.2 Following feed (GET /reels/following)",
+      "status": "PASS",
+      "details": "Status: 200, Items: 10"
+    },
+    {
+      "test": "4.3 Creator profile reels (GET /users/:userId/reels)",
+      "status": "PASS",
+      "details": "Status: 200, Items: 3, Creator: TestUser2"
+    },
+    {
+      "test": "5.1 Like reel (POST /reels/:id/like)",
+      "status": "PASS",
+      "details": "Status: 200, Message: Liked"
+    },
+    {
+      "test": "5.2 Self-like blocked (400)",
+      "status": "PASS",
+      "details": "Status: 400 (expected 400)"
+    },
+    {
+      "test": "5.3 Unlike reel (DELETE /reels/:id/like)",
+      "status": "PASS",
+      "details": "Status: 200, Message: Unliked"
+    },
+    {
+      "test": "5.4 Save reel (POST /reels/:id/save)",
+      "status": "PASS",
+      "details": "Status: 200, Message: Saved"
+    },
+    {
+      "test": "5.5 Unsave reel (DELETE /reels/:id/save)",
+      "status": "PASS",
+      "details": "Status: 200, Message: Unsaved"
+    },
+    {
+      "test": "5.6 Comment on reel (POST /reels/:id/comment)",
+      "status": "PASS",
+      "details": "Status: 201, Has comment: True"
+    },
+    {
+      "test": "5.7 Get comments (GET /reels/:id/comments)",
+      "status": "PASS",
+      "details": "Status: 200, Comments: 1"
+    },
+    {
+      "test": "5.8 Report reel (POST /reels/:id/report)",
+      "status": "PASS",
+      "details": "Status: 201, Has report: True"
+    },
+    {
+      "test": "5.9 Duplicate report returns 409",
+      "status": "PASS",
+      "details": "Status: 409 (expected 409)"
+    },
+    {
+      "test": "5.10 Hide reel (POST /reels/:id/hide)",
+      "status": "PASS",
+      "details": "Status: 200, Message: Reel hidden"
+    },
+    {
+      "test": "5.11 Not interested (POST /reels/:id/not-interested)",
+      "status": "PASS",
+      "details": "Status: 200, Message: Marked not interested"
+    },
+    {
+      "test": "5.12 Share reel (POST /reels/:id/share)",
+      "status": "PASS",
+      "details": "Status: 200, Share count: 1"
+    },
+    {
+      "test": "6.1 Track watch event (POST /reels/:id/watch)",
+      "status": "PASS",
+      "details": "Status: 200, Message: Watch event recorded"
+    },
+    {
+      "test": "6.2 Track view impression (POST /reels/:id/view)",
+      "status": "PASS",
+      "details": "Status: 200, Message: Impression tracked"
+    },
+    {
+      "test": "6.3 Watch metrics update avgWatchTimeMs",
+      "status": "PASS",
+      "details": "Status: 200, AvgWatchTime: 25000ms"
+    },
+    {
+      "test": "7.1 Creator analytics (GET /me/reels/analytics)",
+      "status": "PASS",
+      "details": "Status: 200, Total reels: 16, Views: 0"
+    },
+    {
+      "test": "7.2 Creator archive (GET /me/reels/archive)",
+      "status": "PASS",
+      "details": "Status: 200, Archived items: 0"
+    },
+    {
+      "test": "7.3 Create reel series (POST /me/reels/series)",
+      "status": "PASS",
+      "details": "Status: 201, Series ID: 34464b37-5b7c-41aa-8b0d-5c397183d55b"
+    },
+    {
+      "test": "7.4 Get user's series (GET /users/:userId/reels/series)",
+      "status": "PASS",
+      "details": "Status: 200, Series count: 2"
+    },
+    {
+      "test": "8.1 Get processing status (GET /reels/:id/processing)",
+      "status": "PASS",
+      "details": "Status: 200, Media status: READY"
+    },
+    {
+      "test": "8.2 Update processing status (POST /reels/:id/processing)",
+      "status": "PASS",
+      "details": "Status: 200, Updated: True"
+    },
+    {
+      "test": "8.3 Get remixes (GET /reels/:id/remixes)",
+      "status": "PASS",
+      "details": "Status: 200, Remixes: 0"
+    },
+    {
+      "test": "8.4 Get audio reels (GET /reels/audio/:audioId)",
+      "status": "PASS",
+      "details": "Status: 200, Audio reels: 0"
+    },
+    {
+      "test": "9.1 Admin moderation queue (GET /admin/reels)",
+      "status": "PASS",
+      "details": "Status: 200, Queue items: 20, Stats: {'PUBLISHED': 16, 'HELD': 1, 'REMOVED': 3, 'DRAFT': 0, 'ARCHIVED': 0}"
+    },
+    {
+      "test": "9.2 Admin moderate reel (PATCH /admin/reels/:id/moderate)",
+      "status": "PASS",
+      "details": "Status: 200, New status: HELD"
+    },
+    {
+      "test": "9.3 Admin analytics (GET /admin/reels/analytics)",
+      "status": "PASS",
+      "details": "Status: 200, Total: 20, Published: 15"
+    },
+    {
+      "test": "9.4 Admin recompute counters (POST /admin/reels/:id/recompute-counters)",
+      "status": "PASS",
+      "details": "Status: 200, Drifted: False"
+    },
+    {
+      "test": "10.1 Age verification (ageStatus must be ADULT)",
+      "status": "PASS",
+      "details": "Age status: ADULT"
+    },
+    {
+      "test": "10.2 Caption max 2200 chars validation",
+      "status": "PASS",
+      "details": "Status: 400 (expected 400 for long caption)"
+    },
+    {
+      "test": "10.3 Invalid visibility rejected",
+      "status": "PASS",
+      "details": "Status: 400 (expected 400 for invalid visibility)"
+    },
+    {
+      "test": "10.4 Auto-hold at 3 reports (report mechanism working)",
+      "status": "PASS",
+      "details": "Report status: 201"
+    }
+  ],
+  "test_reels": {
+    "user1_draft": "f71556f6-7dc1-43db-b789-8e165963bf11",
+    "user1_published": "e0680671-982a-4db4-955a-13426baf75a4"
+  }
+}

@@ -1,0 +1,380 @@
+{
+  "suite": "Stage 10: Reels Backend Manual Test Matrix",
+  "timestamp": "2026-03-08T17:49:52.455829Z",
+  "total": 53,
+  "passed": 53,
+  "failed": 0,
+  "pass_rate": "100.0%",
+  "results": [
+    {
+      "num": 1,
+      "name": "Create reel (publish)",
+      "status": "PASS",
+      "details": "",
+      "http_status": 201
+    },
+    {
+      "num": 2,
+      "name": "Reel schema validation",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 3,
+      "name": "Create draft reel",
+      "status": "PASS",
+      "details": "",
+      "http_status": 201
+    },
+    {
+      "num": 4,
+      "name": "Publish draft",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 5,
+      "name": "Create reel without media (triggers processing job)",
+      "status": "PASS",
+      "details": "",
+      "http_status": 201
+    },
+    {
+      "num": 6,
+      "name": "Processing job exists",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 7,
+      "name": "Update processing to READY",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 8,
+      "name": "Edit reel metadata",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 9,
+      "name": "Archive reel",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 10,
+      "name": "Restore archived reel",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 11,
+      "name": "Delete reel (soft remove)",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 12,
+      "name": "Deleted reel returns 410 GONE",
+      "status": "PASS",
+      "details": "",
+      "http_status": 410
+    },
+    {
+      "num": 13,
+      "name": "Like reel",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 14,
+      "name": "Self-like prevention",
+      "status": "PASS",
+      "details": "",
+      "http_status": 400
+    },
+    {
+      "num": 15,
+      "name": "Duplicate like is idempotent",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 16,
+      "name": "Unlike reel",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 17,
+      "name": "Save reel",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 18,
+      "name": "Unsave reel",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 19,
+      "name": "Comment on reel",
+      "status": "PASS",
+      "details": "",
+      "http_status": 201
+    },
+    {
+      "num": 20,
+      "name": "Threaded reply comment",
+      "status": "PASS",
+      "details": "",
+      "http_status": 201
+    },
+    {
+      "num": 21,
+      "name": "List comments",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 22,
+      "name": "Report reel",
+      "status": "PASS",
+      "details": "",
+      "http_status": 201
+    },
+    {
+      "num": 23,
+      "name": "Duplicate report blocked (409)",
+      "status": "PASS",
+      "details": "",
+      "http_status": 409
+    },
+    {
+      "num": 24,
+      "name": "Hide reel from feed",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 25,
+      "name": "Mark not interested",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 26,
+      "name": "Share tracking",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 27,
+      "name": "Watch event (partial)",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 28,
+      "name": "Watch event (completed)",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 29,
+      "name": "Watch event (replay)",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 30,
+      "name": "Impression tracking",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 31,
+      "name": "Watch metrics reflect on reel",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 32,
+      "name": "Discovery feed",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 33,
+      "name": "Discovery excludes hidden reels",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 34,
+      "name": "Following feed",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 35,
+      "name": "Creator profile reels",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 36,
+      "name": "Pin reel to profile",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 37,
+      "name": "Unpin reel from profile",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 38,
+      "name": "Create remix reel",
+      "status": "PASS",
+      "details": "",
+      "http_status": 201
+    },
+    {
+      "num": 39,
+      "name": "Get remixes of reel",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 40,
+      "name": "Audio-based discovery",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 41,
+      "name": "Create series",
+      "status": "PASS",
+      "details": "",
+      "http_status": 201
+    },
+    {
+      "num": 42,
+      "name": "Get user's series",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 43,
+      "name": "Creator analytics",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 44,
+      "name": "Creator archive",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 45,
+      "name": "Admin moderation queue",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 46,
+      "name": "Admin moderate: HOLD",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 47,
+      "name": "Admin moderate: APPROVE (restore)",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 48,
+      "name": "Admin platform analytics",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 49,
+      "name": "Admin recompute counters",
+      "status": "PASS",
+      "details": "",
+      "http_status": 200
+    },
+    {
+      "num": 50,
+      "name": "Age verification required for reel creation",
+      "status": "PASS",
+      "details": "",
+      "http_status": 403
+    },
+    {
+      "num": 51,
+      "name": "Invalid visibility rejected",
+      "status": "PASS",
+      "details": "",
+      "http_status": 400
+    },
+    {
+      "num": 52,
+      "name": "Caption too long rejected",
+      "status": "PASS",
+      "details": "",
+      "http_status": 400
+    },
+    {
+      "num": 53,
+      "name": "Auto-hold at 3 reports",
+      "status": "PASS",
+      "details": "{'status': 'HELD', 'reportCount': 3}"
+    }
+  ]
+}
