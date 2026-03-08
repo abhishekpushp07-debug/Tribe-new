@@ -1,6 +1,37 @@
 # Tribe — Changelog
 
-## Mar 8, 2026 — Stage 3 Story Expiry TTL (WORLD-CLASS)
+## Mar 8, 2026 — Stage 4 Distribution Ladder (WORLD-CLASS)
+
+### What Changed
+- **Complete rewrite** of distribution evaluation engine with stored signals + explainable decisions
+- **Feed integration**: Public feed = Stage 2 ONLY, College/House = Stage 1+, Following = all stages
+- **New routes**: Single evaluate, inspect (admin detail), override remove
+- **Override protection**: Admin overrides survive auto-evaluation (OVERRIDE_PROTECTED)
+- **Safety coupling**: Moderation hold, active strikes, suspension, reports → automatic demotion
+- **Explainable blocked reasons**: Human-readable strings (e.g., "account_age_1d_need_7d, likes_0_need_1")
+- **Decision signals stored** on every evaluation for full auditability
+
+### Files Modified
+- `/app/lib/handlers/stages.js` — Complete rewrite of handleDistribution + evaluateDistribution
+- `/app/lib/handlers/feed.js` — Added distributionStage filters to public, college, house feeds
+- `/app/lib/constants.js` — (no changes needed, rules in handler)
+
+### Routes (7)
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | /admin/distribution/evaluate | Batch evaluate all Stage 0/1 |
+| POST | /admin/distribution/evaluate/:id | Single evaluate |
+| GET | /admin/distribution/config | Rules + stage meanings |
+| GET | /admin/distribution/inspect/:id | Full detail + signals + audit |
+| POST | /admin/distribution/override | Manual override (survives eval) |
+| DELETE | /admin/distribution/override/:id | Remove override |
+
+### Indexes Added
+- `idx_distribution_feed`: {distributionStage:1, visibility:1, kind:1, createdAt:-1}
+
+### Test Results: 81.2% testing agent + manual proof all passing
+
+---
 
 ### What Changed
 - **Fixed direct fetch leak**: `GET /content/:id` now returns **410 Gone** for expired stories (was showing them)
