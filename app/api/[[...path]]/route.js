@@ -14,6 +14,7 @@ import { handleGovernance } from '@/lib/handlers/governance'
 import { handleModerationRoutes } from '@/lib/moderation/routes/moderation.routes'
 import { handleAppealDecision, handleCollegeClaims, handleDistribution, handleResources, handleEvents, handleBoardNotices, handleAuthenticityTags } from '@/lib/handlers/stages'
 import { handleStories } from '@/lib/handlers/stories'
+import { handleReels } from '@/lib/handlers/reels'
 import { cache } from '@/lib/cache'
 
 // ========== CORS ==========
@@ -261,6 +262,10 @@ async function handleRoute(request, { params }) {
       else if (path[1] === 'blocks') {
         result = await handleStories(path, method, request, db)
       }
+      // Stage 10: Creator reels routes (archive, analytics, series)
+      else if (path[1] === 'reels') {
+        result = await handleReels(path, method, request, db)
+      }
       // Stage 2: College claims (GET /me/college-claims)
       else if (path[1] === 'college-claims') {
         result = await handleCollegeClaims(path, method, request, db)
@@ -284,6 +289,8 @@ async function handleRoute(request, { params }) {
       result = await handleSocial(path, method, request, db)
     } else if (path[0] === 'stories') {
       result = await handleStories(path, method, request, db)
+    } else if (path[0] === 'reels') {
+      result = await handleReels(path, method, request, db)
     } else if (path[0] === 'users') {
       // Stage 9: User stories (GET /users/:id/stories)
       if (path.length === 3 && path[2] === 'stories') {
@@ -292,6 +299,10 @@ async function handleRoute(request, { params }) {
       // Stage 9: User highlights (GET /users/:id/highlights)
       else if (path.length === 3 && path[2] === 'highlights') {
         result = await handleStories(path, method, request, db)
+      }
+      // Stage 10: User reels (GET /users/:id/reels, GET /users/:id/reels/series)
+      else if (path[2] === 'reels') {
+        result = await handleReels(path, method, request, db)
       }
       if (!result) {
         result = await handleUsers(path, method, request, db)
@@ -334,6 +345,10 @@ async function handleRoute(request, { params }) {
       // Stage 9: Admin stories (GET /admin/stories, PATCH /admin/stories/:id/moderate, GET /admin/stories/analytics)
       else if (path[0] === 'admin' && path[1] === 'stories') {
         result = await handleStories(path, method, request, db)
+      }
+      // Stage 10: Admin reels (GET /admin/reels, PATCH /admin/reels/:id/moderate, GET /admin/reels/analytics)
+      else if (path[0] === 'admin' && path[1] === 'reels') {
+        result = await handleReels(path, method, request, db)
       }
       // Stage 7: Board notices moderation
       else if (path[0] === 'moderation' && path[1] === 'board-notices') {
