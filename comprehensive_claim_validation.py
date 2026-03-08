@@ -8,7 +8,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://tribe-notes.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-stories-stage9.preview.emergentagent.com/api"
 
 class ComprehensiveClaimValidation:
     def __init__(self):

@@ -18,7 +18,7 @@ from pymongo import MongoClient
 from uuid import uuid4
 
 # Test Configuration
-BASE_URL = "https://tribe-notes.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-stories-stage9.preview.emergentagent.com/api"
 MONGO_URL = "mongodb://localhost:27017"
 DB_NAME = "your_database_name"
 

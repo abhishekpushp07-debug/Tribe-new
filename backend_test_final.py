@@ -20,7 +20,7 @@ import base64
 from typing import Dict, Any, Optional, Tuple
 
 # Configuration
-BASE_URL = "https://tribe-notes.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-stories-stage9.preview.emergentagent.com/api"
 TEST_USER_PHONE = "9000000001"  # Fully onboarded test user
 TEST_USER_PIN = "1234"
 
