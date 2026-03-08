@@ -12,7 +12,9 @@ import { handleAdmin } from '@/lib/handlers/admin'
 import { handleHousePoints } from '@/lib/handlers/house-points'
 import { handleGovernance } from '@/lib/handlers/governance'
 import { handleModerationRoutes } from '@/lib/moderation/routes/moderation.routes'
-import { handleAppealDecision, handleCollegeClaims, handleDistribution, handleResources, handleEvents, handleBoardNotices, handleAuthenticityTags } from '@/lib/handlers/stages'
+import { handleAppealDecision, handleCollegeClaims, handleDistribution, handleResources } from '@/lib/handlers/stages'
+import { handleEvents } from '@/lib/handlers/events'
+import { handleBoardNotices, handleAuthenticityTags } from '@/lib/handlers/board-notices'
 import { handleStories } from '@/lib/handlers/stories'
 import { handleReels } from '@/lib/handlers/reels'
 import { cache } from '@/lib/cache'
@@ -266,6 +268,14 @@ async function handleRoute(request, { params }) {
       else if (path[1] === 'reels') {
         result = await handleReels(path, method, request, db)
       }
+      // Stage 6: My events (GET /me/events, GET /me/events/rsvps)
+      else if (path[1] === 'events') {
+        result = await handleEvents(path, method, request, db)
+      }
+      // Stage 7: My board notices (GET /me/board/notices)
+      else if (path[1] === 'board') {
+        result = await handleBoardNotices(path, method, request, db)
+      }
       // Stage 2: College claims (GET /me/college-claims)
       else if (path[1] === 'college-claims') {
         result = await handleCollegeClaims(path, method, request, db)
@@ -350,6 +360,18 @@ async function handleRoute(request, { params }) {
       else if (path[0] === 'admin' && path[1] === 'reels') {
         result = await handleReels(path, method, request, db)
       }
+      // Stage 6: Admin events (GET /admin/events, PATCH /admin/events/:id/moderate, GET /admin/events/analytics, POST /admin/events/:id/recompute-counters)
+      else if (path[0] === 'admin' && path[1] === 'events') {
+        result = await handleEvents(path, method, request, db)
+      }
+      // Stage 7: Admin board-notices analytics
+      else if (path[0] === 'admin' && path[1] === 'board-notices') {
+        result = await handleBoardNotices(path, method, request, db)
+      }
+      // Stage 7: Admin authenticity stats
+      else if (path[0] === 'admin' && path[1] === 'authenticity') {
+        result = await handleAuthenticityTags(path, method, request, db)
+      }
       // Stage 7: Board notices moderation
       else if (path[0] === 'moderation' && path[1] === 'board-notices') {
         result = await handleBoardNotices(path, method, request, db)
@@ -362,7 +384,7 @@ async function handleRoute(request, { params }) {
       result = await handleResources(path, method, request, db)
     } else if (path[0] === 'events') {
       result = await handleEvents(path, method, request, db)
-    } else if (path[0] === 'board' && path[1] === 'notices') {
+    } else if (path[0] === 'board') {
       result = await handleBoardNotices(path, method, request, db)
     } else if (path[0] === 'authenticity') {
       result = await handleAuthenticityTags(path, method, request, db)

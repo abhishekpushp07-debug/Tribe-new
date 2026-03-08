@@ -1,0 +1,268 @@
+{
+  "timestamp": "2026-03-08T18:27:15.896397",
+  "base_url": "https://tribe-backend-verify.preview.emergentagent.com/api",
+  "total_tests": 43,
+  "passed": 43,
+  "failed": 0,
+  "success_rate": 100.0,
+  "results": [
+    {
+      "test": "Event Auth Setup",
+      "status": "PASS",
+      "message": "All test users logged in successfully",
+      "response_data": null
+    },
+    {
+      "test": "POST /events (Create Event)",
+      "status": "PASS",
+      "message": "Event created: c28f0ee8-3f61-4b17-9b57-d6a26faf1aab",
+      "response_data": null
+    },
+    {
+      "test": "POST /events (Second Event)",
+      "status": "PASS",
+      "message": "Second event created: 4f694b16-c2ce-47b1-a395-85bc3fa56fbf",
+      "response_data": null
+    },
+    {
+      "test": "GET /events/:id (Event Detail)",
+      "status": "PASS",
+      "message": "Event details retrieved correctly",
+      "response_data": null
+    },
+    {
+      "test": "PATCH /events/:id (Edit Event)",
+      "status": "PASS",
+      "message": "Event updated successfully",
+      "response_data": null
+    },
+    {
+      "test": "GET /events/feed (Discovery Feed)",
+      "status": "PASS",
+      "message": "Retrieved 3 events",
+      "response_data": null
+    },
+    {
+      "test": "GET /events/search (Search Events)",
+      "status": "PASS",
+      "message": "Found 1 events for 'cultural'",
+      "response_data": null
+    },
+    {
+      "test": "POST /events/:id/rsvp (RSVP Going)",
+      "status": "PASS",
+      "message": "Successfully RSVP'd as GOING",
+      "response_data": null
+    },
+    {
+      "test": "POST /events/:id/rsvp (RSVP Interested)",
+      "status": "PASS",
+      "message": "Successfully RSVP'd as INTERESTED",
+      "response_data": null
+    },
+    {
+      "test": "GET /events/:id/attendees (RSVP List)",
+      "status": "PASS",
+      "message": "Retrieved 2 attendees, total: 2",
+      "response_data": null
+    },
+    {
+      "test": "DELETE /events/:id/rsvp (Cancel RSVP)",
+      "status": "PASS",
+      "message": "Successfully cancelled RSVP",
+      "response_data": null
+    },
+    {
+      "test": "POST /events/:id/report (Report Event)",
+      "status": "PASS",
+      "message": "Event reported, count: 1",
+      "response_data": null
+    },
+    {
+      "test": "POST /events/:id/remind (Set Reminder)",
+      "status": "PASS",
+      "message": "Reminder set successfully",
+      "response_data": null
+    },
+    {
+      "test": "DELETE /events/:id/remind (Remove Reminder)",
+      "status": "PASS",
+      "message": "Reminder removed successfully",
+      "response_data": null
+    },
+    {
+      "test": "GET /me/events (My Created Events)",
+      "status": "PASS",
+      "message": "Retrieved 2 created events",
+      "response_data": null
+    },
+    {
+      "test": "GET /me/events/rsvps (My RSVPs)",
+      "status": "PASS",
+      "message": "Retrieved 1 RSVP'd events",
+      "response_data": null
+    },
+    {
+      "test": "POST /events/:id/publish (Publish Draft)",
+      "status": "PASS",
+      "message": "Draft event published successfully",
+      "response_data": null
+    },
+    {
+      "test": "POST /events/:id/cancel (Cancel Event)",
+      "status": "PASS",
+      "message": "Event cancelled successfully",
+      "response_data": null
+    },
+    {
+      "test": "POST /events/:id/archive (Archive Event)",
+      "status": "PASS",
+      "message": "Event archived successfully",
+      "response_data": null
+    },
+    {
+      "test": "GET /admin/events (Admin Queue)",
+      "status": "PASS",
+      "message": "Retrieved 6 events, stats: 5 status counts",
+      "response_data": null
+    },
+    {
+      "test": "PATCH /admin/events/:id/moderate (Moderate Event)",
+      "status": "PASS",
+      "message": "Event moderated successfully",
+      "response_data": null
+    },
+    {
+      "test": "GET /admin/events/analytics (Platform Analytics)",
+      "status": "PASS",
+      "message": "Analytics: 6 total events, 7 categories",
+      "response_data": null
+    },
+    {
+      "test": "POST /admin/events/:id/recompute-counters (Recompute Counters)",
+      "status": "PASS",
+      "message": "Counters recomputed, drifted: False",
+      "response_data": null
+    },
+    {
+      "test": "GET /events/college/:id (College Events)",
+      "status": "PASS",
+      "message": "Retrieved 0 college events",
+      "response_data": null
+    },
+    {
+      "test": "Board Notice Setup",
+      "status": "PASS",
+      "message": "Users linked to college 1020e686-afa6-4fed-8342-b194905ca8fe, User1 has board seat",
+      "response_data": null
+    },
+    {
+      "test": "POST /board/notices (Create Notice)",
+      "status": "PASS",
+      "message": "Notice created: 40ea9908-89e2-4f29-aabe-777379dd43e2",
+      "response_data": null
+    },
+    {
+      "test": "POST /board/notices (Admin Direct Publish)",
+      "status": "PASS",
+      "message": "Admin notice created: d1bc8767-3ecd-4b8d-8f04-2359701b96c0",
+      "response_data": null
+    },
+    {
+      "test": "GET /board/notices/:id (Notice Detail)",
+      "status": "PASS",
+      "message": "Notice details retrieved correctly",
+      "response_data": null
+    },
+    {
+      "test": "PATCH /board/notices/:id (Edit Notice)",
+      "status": "PASS",
+      "message": "Notice updated successfully",
+      "response_data": null
+    },
+    {
+      "test": "POST /moderation/board-notices/:id/decide (Approve Notice)",
+      "status": "PASS",
+      "message": "Notice approved successfully",
+      "response_data": null
+    },
+    {
+      "test": "POST /board/notices/:id/pin (Pin Notice)",
+      "status": "PASS",
+      "message": "Notice pinned successfully",
+      "response_data": null
+    },
+    {
+      "test": "DELETE /board/notices/:id/pin (Unpin Notice)",
+      "status": "PASS",
+      "message": "Notice unpinned successfully",
+      "response_data": null
+    },
+    {
+      "test": "POST /board/notices/:id/acknowledge (Acknowledge Notice)",
+      "status": "PASS",
+      "message": "Notice acknowledged successfully",
+      "response_data": null
+    },
+    {
+      "test": "GET /board/notices/:id/acknowledgments (Acknowledgment List)",
+      "status": "PASS",
+      "message": "Retrieved 1 acknowledgments, total: 1",
+      "response_data": null
+    },
+    {
+      "test": "GET /colleges/:id/notices (Public College Notices)",
+      "status": "PASS",
+      "message": "Retrieved 1 public notices",
+      "response_data": null
+    },
+    {
+      "test": "GET /me/board/notices (My Created Notices)",
+      "status": "PASS",
+      "message": "Retrieved 2 created notices",
+      "response_data": null
+    },
+    {
+      "test": "GET /moderation/board-notices (Review Queue)",
+      "status": "PASS",
+      "message": "Retrieved 1 notices in review",
+      "response_data": null
+    },
+    {
+      "test": "GET /admin/board-notices/analytics (Analytics)",
+      "status": "PASS",
+      "message": "Analytics: 4 total notices, 6 categories",
+      "response_data": null
+    },
+    {
+      "test": "POST /authenticity/tag (Create Tag)",
+      "status": "PASS",
+      "message": "Authenticity tag created: 834d91cc-46a9-4584-841d-d54b0d453fde",
+      "response_data": null
+    },
+    {
+      "test": "GET /authenticity/tags/:type/:id (Get Tags)",
+      "status": "PASS",
+      "message": "Retrieved 1 tags, summary: {'VERIFIED': 1, 'USEFUL': 0, 'OUTDATED': 0, 'MISLEADING': 0}",
+      "response_data": null
+    },
+    {
+      "test": "DELETE /authenticity/tags/:id (Remove Tag)",
+      "status": "PASS",
+      "message": "Tag removed successfully",
+      "response_data": null
+    },
+    {
+      "test": "GET /admin/authenticity/stats (Tag Statistics)",
+      "status": "PASS",
+      "message": "Stats: 2 total tags, 4 tag types, 3 target types",
+      "response_data": null
+    },
+    {
+      "test": "DELETE /board/notices/:id (Delete Notice)",
+      "status": "PASS",
+      "message": "Notice deleted successfully",
+      "response_data": null
+    }
+  ]
+}
