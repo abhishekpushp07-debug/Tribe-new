@@ -17,6 +17,7 @@ import { handleEvents } from '@/lib/handlers/events'
 import { handleBoardNotices, handleAuthenticityTags } from '@/lib/handlers/board-notices'
 import { handleStories } from '@/lib/handlers/stories'
 import { handleReels } from '@/lib/handlers/reels'
+import { handleTribes, handleTribeAdmin } from '@/lib/handlers/tribes'
 import { cache } from '@/lib/cache'
 
 // ========== CORS ==========
@@ -276,6 +277,10 @@ async function handleRoute(request, { params }) {
       else if (path[1] === 'board') {
         result = await handleBoardNotices(path, method, request, db)
       }
+      // Stage 12: My tribe (GET /me/tribe)
+      else if (path[1] === 'tribe') {
+        result = await handleTribes(path, method, request, db)
+      }
       // Stage 2: College claims (GET /me/college-claims)
       else if (path[1] === 'college-claims') {
         result = await handleCollegeClaims(path, method, request, db)
@@ -313,6 +318,10 @@ async function handleRoute(request, { params }) {
       // Stage 10: User reels (GET /users/:id/reels, GET /users/:id/reels/series)
       else if (path[2] === 'reels') {
         result = await handleReels(path, method, request, db)
+      }
+      // Stage 12: User tribe (GET /users/:id/tribe)
+      else if (path[2] === 'tribe') {
+        result = await handleTribes(path, method, request, db)
       }
       if (!result) {
         result = await handleUsers(path, method, request, db)
@@ -372,6 +381,26 @@ async function handleRoute(request, { params }) {
       else if (path[0] === 'admin' && path[1] === 'authenticity') {
         result = await handleAuthenticityTags(path, method, request, db)
       }
+      // Stage 12: Admin tribe routes (distribution, reassign, migrate, boards)
+      else if (path[0] === 'admin' && path[1] === 'tribes') {
+        result = await handleTribeAdmin(path, method, request, db)
+      }
+      // Stage 12: Admin tribe seasons
+      else if (path[0] === 'admin' && path[1] === 'tribe-seasons') {
+        result = await handleTribeAdmin(path, method, request, db)
+      }
+      // Stage 12: Admin tribe contests
+      else if (path[0] === 'admin' && path[1] === 'tribe-contests') {
+        result = await handleTribeAdmin(path, method, request, db)
+      }
+      // Stage 12: Admin tribe salutes
+      else if (path[0] === 'admin' && path[1] === 'tribe-salutes') {
+        result = await handleTribeAdmin(path, method, request, db)
+      }
+      // Stage 12: Admin tribe awards
+      else if (path[0] === 'admin' && path[1] === 'tribe-awards') {
+        result = await handleTribeAdmin(path, method, request, db)
+      }
       // Stage 7: Board notices moderation
       else if (path[0] === 'moderation' && path[1] === 'board-notices') {
         result = await handleBoardNotices(path, method, request, db)
@@ -388,6 +417,8 @@ async function handleRoute(request, { params }) {
       result = await handleBoardNotices(path, method, request, db)
     } else if (path[0] === 'authenticity') {
       result = await handleAuthenticityTags(path, method, request, db)
+    } else if (path[0] === 'tribes') {
+      result = await handleTribes(path, method, request, db)
     }
 
     // ---- Process result ----
