@@ -180,6 +180,14 @@ def social_user(api_url, db):
     return user
 
 
+@pytest.fixture(scope='session')
+def reel_signal_user(api_url, db):
+    """Dedicated user for reel feed signal tests (hide/share/not-interested) — separate WRITE budget."""
+    user = _register_or_login(api_url, _next_phone(14), display_name='Reel Signal User')
+    db.users.update_one({'phone': user['phone']}, {'$set': {'ageStatus': 'ADULT'}})
+    return user
+
+
 @pytest.fixture
 def test_ip():
     """A unique IP for the current test (use in X-Forwarded-For)."""
@@ -229,6 +237,9 @@ def pytest_sessionfinish(session, exitstatus):
             db.reel_saves.delete_many({'userId': {'$in': user_ids}})
             db.reel_comments.delete_many({'userId': {'$in': user_ids}})
             db.reel_watches.delete_many({'userId': {'$in': user_ids}})
+            db.reel_hidden.delete_many({'userId': {'$in': user_ids}})
+            db.reel_not_interested.delete_many({'userId': {'$in': user_ids}})
+            db.reel_shares.delete_many({'userId': {'$in': user_ids}})
             # Infra data cleanup (Stage 4A)
             deleted_sessions = db.sessions.delete_many({'userId': {'$in': user_ids}})
             deleted_audits = db.audit_logs.delete_many({'actorId': {'$in': user_ids}})

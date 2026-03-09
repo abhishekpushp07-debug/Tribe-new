@@ -27,13 +27,13 @@ Executed through staged plan: Security → Observability → Testing → Scalabi
 ### Stage 4A: Test Foundation — GOLD CLOSURE (87/100)
 - 78 unit tests, JS eval bridge, CI gate, coverage baseline (96%), execution hooks
 
-### Stage 4B: Product-Domain Coverage — COMPLETE (88/100) — SCORECARD DELIVERED
-- **270 total tests** (78 unit + 184 integration + 8 smoke)
-- 10 product domains covered: Posts, Feed (4 surfaces), Social (like/dislike/save/comment/follow/reaction-remove), Events+RSVP, Resources+Voting, Notices+Ack, Reels, Visibility Safety, Cross-Surface Consistency
-- 7 dedicated test users for WRITE rate-limit isolation
-- 2x idempotent, full cleanup (20+ collections)
+### Stage 4B: Product-Domain Coverage — COMPLETE (90/100) — SCORECARD DELIVERED
+- **296 total tests** (78 unit + 210 integration + 8 smoke)
+- 10 product domains covered: Posts, Feed (4 surfaces), Social (like/dislike/save/comment/follow/reaction-remove), Events+RSVP, Resources+Voting, Notices (full CRUD+pin+college listing+ack list), Reels (feeds+interactions+comments+hide/not-interested/share), Visibility Safety, Cross-Surface Consistency
+- 8 dedicated test users for WRITE rate-limit isolation (added reel_signal_user)
+- 2x idempotent, full cleanup (20+ collections incl. reel_hidden, reel_not_interested, reel_shares)
 - True Deep Audit Scorecard: `/app/memory/stage_4b_true_scorecard.md`
-- Key pattern: Core user paths at 100% (Posts, Feed, Social), secondary domains at "core-only" (~25-30% endpoint coverage but primary flows protected)
+- P6 Notices+Reels improved from 7/10 to 9/10 by implementing 26 new tests covering update/delete/pin/unpin/college listing/ack list (notices) and comment list/hide/not-interested/share (reels)
 
 ## Upcoming Tasks
 

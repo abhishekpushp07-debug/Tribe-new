@@ -1,5 +1,15 @@
 # Tribe — Changelog
 
+## 2026-03-10: Stage 4B P6 Fix — Notices + Reels 7/10 → 9/10
+- Added 15 new notice tests: update (PATCH), delete (soft-remove→410), pin/unpin, college listing, acknowledgment list
+- Added 11 new reel tests: comment list (GET), hide, not-interested, share + idempotency + auth checks
+- Created `reel_signal_user` fixture (8th user) for rate-limit isolation
+- Updated conftest.py cleanup for `reel_hidden`, `reel_not_interested`, `reel_shares`
+- Suite: 296/296 passed, 2x idempotent (30.92s, 30.00s)
+- Scorecard updated to reflect earned 90/100
+
+---
+
 ## 2026-03-10: Stage 4B True Deep Audit Scorecard — DELIVERED
 - Full endpoint-by-endpoint audit across all 18 handlers
 - Mapped 38 covered endpoints against ~150+ total handler endpoints

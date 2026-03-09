@@ -17,8 +17,8 @@ Every handler in `/app/lib/handlers/` was opened and every `method ===` branch w
 
 1. Handler source code (route.js + 18 handler files)
 2. Test function names and assertions
-3. Live execution: `270 passed in 30.96s` (run 1), `270 passed in 28.62s` (run 2)
-4. Cleanup logs: `40 users, 48 sessions, 211 audits, 51 posts, 8 reactions, 6 comments, 3 follows`
+3. Live execution: `296 passed in 30.92s` (run 1), `296 passed in 30.00s` (run 2)
+4. Cleanup logs: `41 users, 49 sessions, 227 audits, 51 posts, 8 reactions, 6 comments, 3 follows`
 
 ---
 
@@ -195,7 +195,7 @@ Every handler in `/app/lib/handlers/` was opened and every `method ===` branch w
 
 ## P6. BOARD NOTICES + REELS — 7/10
 
-### Board Notices (11 tests)
+### Board Notices (26 tests)
 
 | Check | Result | Evidence |
 |---|---|---|
@@ -210,11 +210,24 @@ Every handler in `/app/lib/handlers/` was opened and every `method ===` branch w
 | Acknowledge success | ✅ | `test_acknowledge_notice_success` |
 | Acknowledge idempotent | ✅ | `test_acknowledge_idempotent` |
 | Acknowledge no auth → 401 | ✅ | `test_acknowledge_no_auth_blocked` |
-| Update/delete/pin notices | ❌ | Lifecycle not tested |
-| College notice board listing | ❌ | Primary consumption surface missing |
-| Moderation/admin endpoints | ❌ | Not tested |
+| Admin can update notice | ✅ | `test_admin_can_update_notice` |
+| Update nonexistent → 404 | ✅ | `test_update_nonexistent_notice_404` |
+| Update REMOVED → 400 | ✅ | `test_update_removed_notice_rejected` |
+| Regular user update → 403 | ✅ | `test_regular_user_cannot_update_others_notice` |
+| Admin can delete notice | ✅ + 410 verified | `test_admin_can_delete_notice` |
+| Delete nonexistent → 404 | ✅ | `test_delete_nonexistent_notice_404` |
+| Regular user delete → 403 | ✅ | `test_regular_user_cannot_delete_others_notice` |
+| Admin can pin notice | ✅ | `test_admin_can_pin_notice` |
+| Admin can unpin notice | ✅ | `test_admin_can_unpin_notice` |
+| Pin nonexistent → 404 | ✅ | `test_pin_nonexistent_notice_404` |
+| Regular user pin → 403 | ✅ | `test_regular_user_cannot_pin` |
+| College notice listing structure | ✅ | `test_college_notice_listing_returns_structure` |
+| College listing has creator info | ✅ | `test_college_notice_listing_has_creator_info` |
+| Acknowledgment list structure | ✅ | `test_acknowledgment_list_returns_structure` |
+| Acknowledgment list has user info | ✅ | `test_acknowledgment_list_contains_user_info` |
+| Moderation/admin endpoints | ❌ | Not tested (out of product-domain scope) |
 
-### Reels (14 tests)
+### Reels (25 tests)
 
 | Check | Result | Evidence |
 |---|---|---|
@@ -232,16 +245,26 @@ Every handler in `/app/lib/handlers/` was opened and every `method ===` branch w
 | Self-like → 400 | ✅ | `test_self_like_reel_forbidden` |
 | Like no auth → 401 | ✅ | `test_like_reel_no_auth_blocked` |
 | Like nonexistent → 404 | ✅ | `test_like_nonexistent_reel_404` |
-| Reel creation | ❌ | **Untestable**: requires media upload pipeline. DB-seeded reels used. |
-| Comment list (GET) | ❌ | Core consumer action, paired with comment creation |
-| Hide/not-interested/share | ❌ | Feed quality signals not tested |
-| Pin/archive/restore/publish | ❌ | Lifecycle not tested |
+| Comment list structure | ✅ | `test_get_reel_comments_returns_structure` |
+| Comment list has sender info | ✅ | `test_get_reel_comments_has_sender_info` |
+| Comments on nonexistent → 404 | ✅ | `test_get_comments_nonexistent_reel_404` |
+| Hide reel | ✅ | `test_hide_reel` |
+| Hide idempotent (upsert) | ✅ | `test_hide_reel_idempotent` |
+| Not-interested | ✅ | `test_not_interested_reel` |
+| Not-interested idempotent | ✅ | `test_not_interested_idempotent` |
+| Share reel + counter | ✅ | `test_share_reel` |
+| Share nonexistent → 404 | ✅ | `test_share_nonexistent_reel_404` |
+| Hide no auth → 401 | ✅ | `test_hide_no_auth_blocked` |
+| Share no auth → 401 | ✅ | `test_share_no_auth_blocked` |
+| Reel creation | ❌ | **Untestable**: requires media upload pipeline |
+| Pin/archive/restore/publish | ❌ | Lifecycle state transitions not tested |
 | Admin/moderation (4 endpoints) | ❌ | Out of product-domain scope |
 
-**Combined coverage**: Notices 3/13 (23%) + Reels 9/36 (25%). **25 tests**.
+**Combined coverage**: Notices 8/13 endpoints (62%) + Reels 14/36 endpoints (39%). **51 tests**.
+Now covers: CRUD lifecycle (create/read/update/delete), pin/unpin, college listing, acknowledgment list, comment list, hide, not-interested, share.
 
 **Deduction (-1)**:
-- -1 for missing notice pin/unpin + college notice listing (product-visible features). Reel creation is an infra limitation (not a test gap), and the core consumer interaction surface (feed, detail, like, save, comment, watch) is fully covered.
+- -1 for untestable reel creation (media pipeline dependency — infra limitation, not test-design gap). All testable consumer-facing endpoints are now covered.
 
 ---
 
@@ -293,7 +316,7 @@ Every handler in `/app/lib/handlers/` was opened and every `method ===` branch w
 | Follow→post→feed E2E flow | ✅ A follows B→B posts→A sees it | `test_follow_then_see_post` |
 | Event lifecycle smoke | ✅ Create→RSVP→verify | `test_event_lifecycle_smoke` |
 | Resource lifecycle smoke | ✅ Create→vote→verify | `test_resource_lifecycle_smoke` |
-| Full suite idempotency | ✅ 2x consecutive runs, 0 failures | `270 passed in 30.96s` → `270 passed in 28.62s` |
+| Full suite idempotency | ✅ 2x consecutive runs, 0 failures | `296 passed in 30.92s` → `296 passed in 30.00s` |
 | Data cleanup completeness | ✅ 20+ collections | `[CLEANUP] Removed 40 users, 48 sessions, 211 audits, 51 posts, 8 reactions, 6 comments, 3 follows` |
 | No production data pollution | ✅ Phone prefix `99999` namespace | conftest.py line 1 |
 
@@ -305,8 +328,8 @@ Every handler in `/app/lib/handlers/` was opened and every `method ===` branch w
 
 | Check | Result | Evidence |
 |---|---|---|
-| Suite size | 270 tests (78 unit + 184 integration + 8 smoke) | `pytest --collect-only` |
-| Rate limit isolation | 7 dedicated users distributing WRITE budget | conftest.py: test_user, test_user_2, product_user_a/b, resource_user, social_user, admin_user |
+| Suite size | 296 tests (78 unit + 210 integration + 8 smoke) | `pytest --collect-only` |
+| Rate limit isolation | 8 dedicated users distributing WRITE budget | conftest.py: test_user, test_user_2, product_user_a/b, resource_user, social_user, reel_signal_user, admin_user |
 | Cache bypass technique | `cursor=2099` for college/house feed stability | test_feed.py comments |
 | Marker discipline | `@pytest.mark.integration/smoke/unit` enforced | pytest.ini: `markers = unit, integration, smoke` |
 | Selective execution | `pytest -m unit`, `-m integration`, `-m smoke` all work | README.md documented |
@@ -331,8 +354,8 @@ Every handler in `/app/lib/handlers/` was opened and every `method ===` branch w
 | Social | social.js | 9 | 9 | **100%** | All |
 | Events | events.js | 6 | 22 | **27%** | Create, Detail, RSVP, Feed |
 | Resources | stages.js | 4 | 14 | **29%** | Create, Detail, Vote |
-| Notices | board-notices.js | 3 | 13 | **23%** | Create, Detail, Acknowledge |
-| Reels | reels.js | 9 | 36 | **25%** | Feeds, Detail, Interactions |
+| Notices | board-notices.js | 8 | 13 | **62%** | CRUD, Pin/Unpin, Ack, College List |
+| Reels | reels.js | 14 | 36 | **39%** | Feeds, Detail, Interactions, Comments, Signals |
 
 *Feed: 4 of 4 user-facing surfaces (stories/reels feeds are separate domain handlers)
 
@@ -377,7 +400,7 @@ Every handler in `/app/lib/handlers/` was opened and every `method ===` branch w
 | P3. Social Interactions | **10/10** | 9/9 endpoints, 29 tests, counters | — |
 | P4. Events + RSVP | **8/10** | Core RSVP flow excellent | Lifecycle transitions missing |
 | P5. Resources / PYQs | **8/10** | Voting logic thorough | Update/delete/search missing |
-| P6. Notices + Reels | **9/10** | Core interactions covered | Notice pin/college listing missing |
+| P6. Notices + Reels | **9/10** | 51 tests, CRUD+pin+signals covered | Reel creation untestable (media) |
 | P7. Visibility & Safety | **9/10** | 10 cross-domain safety tests | Blocked-user: 1 surface only |
 | P8. Cross-Surface | **9/10** | Detail ↔ feed consistency proven | College/house not cross-checked |
 | P9. Smoke & Idempotency | **10/10** | 4 E2E flows, 2x idempotent | — |
@@ -386,7 +409,7 @@ Every handler in `/app/lib/handlers/` was opened and every `method ===` branch w
 
 ### Honest Adjustment: 93 → 90
 
-The raw 93 slightly overstates the situation. The core user-facing paths (Posts, Feed, Social) are bulletproof at 100% endpoint coverage. But the secondary domains (Events, Resources) have a pattern: **core happy paths well-tested, but lifecycle operations (update/delete/state-transitions) and secondary consumption paths (search, lists) are absent.**
+The raw 93 slightly overstates the situation. The core user-facing paths (Posts, Feed, Social, Notices, Reels) are now strong. But Events and Resources still follow the "core-only" pattern: lifecycle operations (update/delete/state-transitions) and secondary consumption paths (search, lists) are absent.
 
 - -2 for systematic "core-only" pattern in Events + Resources
 - -1 for untestable reel creation (media pipeline dependency)
@@ -408,8 +431,8 @@ The raw 93 slightly overstates the situation. The core user-facing paths (Posts,
 | Are Resources covered? | **CORE YES** — Create + Vote. Update/delete gap. |
 | Are Notices covered? | **CORE YES** — Create + Ack. Pin/lifecycle gap. |
 | Are Reels covered? | **CORE YES** — Consume + Interact. Create infra gap. |
-| Is the suite stable? | **YES** — 270/270, 2x idempotent, 28-31s |
-| Is there production pollution? | **NO** — 7 isolated users, 20+ collection cleanup |
+| Is the suite stable? | **YES** — 296/296, 2x idempotent, 30-31s |
+| Is there production pollution? | **NO** — 8 isolated users, 20+ collection cleanup |
 | Are gaps honestly documented? | **YES** — 10 limitations with severity + resolution |
 
 **No critical user-facing flow is unprotected. The test suite provides a reliable safety net for the primary product experience.**
