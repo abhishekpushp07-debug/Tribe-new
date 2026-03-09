@@ -54,20 +54,21 @@ class TestHeldContentVisibility:
 
 
 class TestBlockedUserVisibility:
-    def test_blocked_user_content_in_feed(self, api_url, product_user_a, product_user_b, db):
+    def test_blocked_user_content_in_feed(self, api_url, social_user, product_user_b, db):
         """Document block behavior: following feed is authorId-based query.
 
         The feed handler queries by followeeIds and does NOT filter by blocks.
         This is the ACTUAL behavior — documented as a known limitation.
+        Uses social_user as content creator (separate WRITE budget).
         """
-        follow_user(api_url, product_user_a['userId'], product_user_b['token'])
-        resp, created = create_post(api_url, product_user_a['token'], 'Blocked user post')
-        assert resp.status_code == 201
+        follow_user(api_url, social_user['userId'], product_user_b['token'])
+        resp, created = create_post(api_url, social_user['token'], 'Blocked user post')
+        assert resp.status_code == 201, f'Post creation failed: {created}'
         post_id = created['post']['id']
 
         # Create block
         from tests.helpers.product import block_user
-        block_user(db, product_user_b['userId'], product_user_a['userId'])
+        block_user(db, product_user_b['userId'], social_user['userId'])
 
         # Check feed after block — document actual behavior
         resp, data = get_feed(api_url, 'following', token=product_user_b['token'])

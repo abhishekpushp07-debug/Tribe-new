@@ -22,52 +22,32 @@ Executed through staged plan: Security → Observability → Testing → Scalabi
 - Centralized input sanitization (XSS, payload size)
 
 ### Stage 3 + 3B: Observability — PASS (93/100)
-- Structured JSON logging (NDJSON, PII redaction, 12+ categories)
-- End-to-end request lineage via AsyncLocalStorage
-- 3-tier health checks (liveness/readiness/deep)
-- Metrics: histogram, percentiles, error codes, SLIs
-- Redis resilience: degraded mode + recovery strategy
+- Structured JSON logging, request lineage, health checks, metrics, Redis resilience
 
-### Stage 4A: Test Foundation — GOLD CLOSURE COMPLETE (87/100)
-- **139 pytest-collected tests** (78 unit + 57 integration + 4 smoke)
-- JS eval bridge, CI gate, coverage baseline (96%), execution hooks
+### Stage 4A: Test Foundation — GOLD CLOSURE (87/100)
+- 78 unit tests, JS eval bridge, CI gate, coverage baseline (96%), execution hooks
 
-### Stage 4B-1: Product-Domain Coverage — IN PROGRESS (86/100)
-- **188 total tests** (78 unit + 104 integration + 6 smoke)
-- Posts: create, get, delete — validation, auth, contract (11 tests)
-- Feed: public, following — distribution rules, pagination (8 tests)
-- Social: like, save, comment, follow — idempotency, counters (17 tests)
-- Visibility: deleted/HELD/blocked content, view counts (6 tests)
-- Product smoke: post→feed, follow→post→feed (2 tests)
-- Cleanup extended: content_items, reactions, saves, comments, follows, blocks
-- 2x idempotent, 0 regressions on 4A suite
+### Stage 4B: Product-Domain Coverage — COMPLETE (88/100)
+- **270 total tests** (78 unit + 184 integration + 8 smoke)
+- 10 product domains covered: Posts, Feed (4 surfaces), Social (like/dislike/save/comment/follow/reaction-remove), Events+RSVP, Resources+Voting, Notices+Ack, Reels, Visibility Safety, Cross-Surface Consistency
+- 7 dedicated test users for WRITE rate-limit isolation
+- 2x idempotent, full cleanup (20+ collections)
 
 ## Upcoming Tasks
 
-### Stage 4B-2: Campus Features Coverage (P1)
-- Events: CRUD, RSVP, search, permissions
-- Resources/PYQs: create, list, vote, download tracking
-- Board Notices: create, list, detail, acknowledgment
-- Remaining social: dislike, reaction-remove
-- College/house feed coverage
-
-### Stage 4B-3: Advanced + Closure (P1)
-- Reels: creation, feeds, interactions, moderation effects
-- Cross-surface consistency tests
-- Final product smoke: moderation-linked flows
-- Coverage report update
-- Final 4B proof pack + scorecard
-
-### Stage 5: Scalability Foundation Refactor (P2)
+### Stage 5: Scalability Foundation Refactor (P1)
 - Service/Repository layer separation
+- handler.js → service.js → repository.js pattern
 
-### Future Stages (P3)
+### Future Stages (P2-P3)
 - Stage 6: Async Backbone + Job System + CQRS-lite
-- Stage 10+: Production Hardening
+- Stage 10+: Production Hardening (separate test DB, TTL, Redis-backed metrics)
 
 ## Known Product Behaviors (Documented by Tests)
-1. Following feed does NOT filter blocked users' posts
+1. Following feed does NOT filter blocked users' posts (code gap)
 2. Like handler does NOT check content visibility (removed content can be liked)
 3. New posts have distributionStage=0, excluded from public/college/house feeds
-4. No separate test DB (namespace isolation via phone prefix 99999)
-5. WRITE rate limit: 30/min per user (mitigated by 4 dedicated test users)
+4. Self-vote on resources returns 403, self-like reel returns 400
+5. REMOVED notices return 410 Gone
+6. Regular users cannot create board notices (403)
+7. Duplicate same-direction vote on resources returns 409 CONFLICT

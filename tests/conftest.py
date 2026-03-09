@@ -164,6 +164,22 @@ def product_user_b(api_url, db):
     return user
 
 
+@pytest.fixture(scope='session')
+def resource_user(api_url, db):
+    """Dedicated user for resource creation — separate WRITE budget."""
+    user = _register_or_login(api_url, _next_phone(12), display_name='Resource User')
+    db.users.update_one({'phone': user['phone']}, {'$set': {'ageStatus': 'ADULT'}})
+    return user
+
+
+@pytest.fixture(scope='session')
+def social_user(api_url, db):
+    """Dedicated user for social reaction tests — separate WRITE budget."""
+    user = _register_or_login(api_url, _next_phone(13), display_name='Social User')
+    db.users.update_one({'phone': user['phone']}, {'$set': {'ageStatus': 'ADULT'}})
+    return user
+
+
 @pytest.fixture
 def test_ip():
     """A unique IP for the current test (use in X-Forwarded-For)."""
@@ -200,6 +216,19 @@ def pytest_sessionfinish(session, exitstatus):
             db.blocks.delete_many({
                 '$or': [{'blockerId': {'$in': user_ids}}, {'blockedId': {'$in': user_ids}}]
             })
+            # Events/Resources/Notices cleanup
+            db.events.delete_many({'creatorId': {'$in': user_ids}})
+            db.event_rsvps.delete_many({'userId': {'$in': user_ids}})
+            db.resources.delete_many({'uploaderId': {'$in': user_ids}})
+            db.resource_votes.delete_many({'voterId': {'$in': user_ids}})
+            db.board_notices.delete_many({'creatorId': {'$in': user_ids}})
+            db.notice_acknowledgments.delete_many({'userId': {'$in': user_ids}})
+            # Reels cleanup
+            db.reels.delete_many({'creatorId': {'$in': user_ids}})
+            db.reel_likes.delete_many({'userId': {'$in': user_ids}})
+            db.reel_saves.delete_many({'userId': {'$in': user_ids}})
+            db.reel_comments.delete_many({'userId': {'$in': user_ids}})
+            db.reel_watches.delete_many({'userId': {'$in': user_ids}})
             # Infra data cleanup (Stage 4A)
             deleted_sessions = db.sessions.delete_many({'userId': {'$in': user_ids}})
             deleted_audits = db.audit_logs.delete_many({'actorId': {'$in': user_ids}})

@@ -1,42 +1,37 @@
 # Tribe — Changelog
 
-## 2026-03-09: Stage 4B-1 Product Coverage — COMPLETE (86/100)
+## 2026-03-09: Stage 4B Complete — DONE (88/100)
 
-### What Was Added
-- **49 new tests** bringing total from 139 → 188
-- `tests/helpers/product.py`: Canonical product helpers (create_post, like_post, follow_user, etc.)
-- `tests/integration/product/test_posts.py`: 11 tests — post lifecycle
-- `tests/integration/product/test_feed.py`: 8 tests — feed behavior + distribution rules
-- `tests/integration/product/test_social_actions.py`: 17 tests — like/save/comment/follow
-- `tests/integration/product/test_visibility_safety.py`: 6 tests — visibility enforcement
-- `tests/smoke/test_smoke_product.py`: 2 E2E product flows
+### What Was Added (131 new tests: 139→270)
+- **Dislike + Reaction-Remove** (10 tests): dislike, toggle like→dislike, reaction-remove, counter decrement
+- **Events** (16 tests): create, detail, RSVP GOING/INTERESTED, duplicate RSVP, cancel, feed, auth, validation
+- **Resources/PYQs** (14 tests): create with collegeId, detail, vote UP/DOWN/switch, duplicate vote 409, self-vote 403, remove vote
+- **Board Notices** (10 tests): admin-only create, detail, REMOVED→410, acknowledge, duplicate ack, permission boundary
+- **Reels** (14 tests): discovery/following feed, detail, like/unlike, save/unsave, comment, watch analytics, self-like forbidden
+- **Cross-Surface** (4 tests): like count detail↔feed, comment count detail↔feed, delete consistency, contract stability
+- **Product Smoke Expansion** (2 tests): event lifecycle, resource lifecycle
+- **College + House Feed** (10 tests): distributionStage gating, cross-college/house isolation
 
-### Fixture Changes
-- `product_user_a`, `product_user_b`: New session-scoped fixtures (ADULT, dedicated WRITE budget)
-- `test_user`, `test_user_2`: Now auto-set to `ageStatus: 'ADULT'`
-- Cleanup extended: content_items, reactions, saves, comments, follows, blocks
+### Infrastructure Changes
+- 7 dedicated test users: test_user, test_user_2, product_user_a/b, resource_user, social_user, admin_user
+- Cleanup extended to 20+ collections (events, resources, notices, reels, etc.)
+- Fixed flaky OPTIONS metrics test for high-volume suite runs
+- Cache-bypass strategy for college/house feed tests (cursor=2099)
 
 ### Discoveries
-- `ErrorCode.VALIDATION` maps to string `'VALIDATION_ERROR'` (not `'VALIDATION'`)
-- WRITE tier rate limit is per-user (not per-IP) — requires user separation strategy
-- Feed handler does not implement block filtering (known code gap)
+- Resource create requires collegeId in body + matching user college + college exists in DB
+- Resource vote field is `vote` (not `type`), duplicate same-direction = 409
+- Reel interactions return `{ message: 'Liked' }` (not `viewerHasLiked`)
+- Event creation has 10/hour per-user rate limit
+- Notice creation restricted to board members or admin role
 
-### Verification
-- 188/188 passed, 2x idempotent
+---
+
+## 2026-03-09: Stage 4B-1 — Posts + Feed + Social + Visibility
+- 49 new tests, product_user_a/b fixtures, extended cleanup
 - Proof pack: `/app/memory/stage_4b1_proof_pack.md`
 
----
-
 ## 2026-03-09: Stage 4A Gold Closure — COMPLETE (87/100)
+- Proof pack: `/app/memory/stage_4a_gold_closure_proof_pack.md`
 
-### Additions
-- pytest-cov installed, 96% test code coverage baseline
-- health.js (4 tests), constants.js (10 tests) unit tests
-- Rate-limit STRICT 429 proof, OPTIONS observability, Redis degraded mode (10 tests)
-- Makefile + package.json hooks, marker-based selection
-
----
-
-## Earlier Stages
-- Stage 3 + 3B: Observability — PASS (93/100)
-- Stage 2: Security Hardening — PASS (88/100)
+## Earlier: Stage 3 + 3B (93/100), Stage 2 (88/100)
