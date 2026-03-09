@@ -24,6 +24,7 @@ import { applySecurityHeaders, getEndpointTier, checkTieredRateLimit, extractIP,
 import logger from '@/lib/logger'
 import metrics from '@/lib/metrics'
 import { checkLiveness, checkReadiness, checkDeepHealth } from '@/lib/health'
+import { requestContext } from '@/lib/request-context'
 
 // ========== CORS ==========
 function cors(response) {
@@ -52,15 +53,29 @@ function jsonErr(message, code, status = 400, extraHeaders = {}) {
   return resp
 }
 
-// ========== OPTIONS ==========
-export async function OPTIONS() {
+// ========== OPTIONS (Stage 3B: with observability) ==========
+export async function OPTIONS(request, context) {
+  const requestId = crypto.randomUUID()
+  const startTime = Date.now()
+  const { path = [] } = context.params
+  const route = `/${path.join('/')}`
+  const ip = extractIP(request)
+
   const resp = cors(new NextResponse(null, { status: 200 }))
   applySecurityHeaders(resp)
+  resp.headers.set('x-request-id', requestId)
+  applyFreezeHeaders(resp, route, 'OPTIONS')
+
+  const latencyMs = Date.now() - startTime
+  logger.info('HTTP', 'request_completed', {
+    requestId, method: 'OPTIONS', route, statusCode: 200, latencyMs, ip,
+  })
+  metrics.recordRequest(route, 'OPTIONS', 200, latencyMs)
   return resp
 }
 
 // ========== MAIN ROUTER CORE ==========
-// reqCtx is populated by the outer observability wrapper and read after completion
+// reqCtx: mutable context populated during request lifecycle, read by observability wrapper
 async function handleRouteCore(request, { params }, reqCtx) {
   const { path = [] } = params
   const route = `/${path.join('/')}`
@@ -77,6 +92,7 @@ async function handleRouteCore(request, { params }, reqCtx) {
   const ipRateResult = await checkTieredRateLimit(ip, null, tier)
   if (!ipRateResult.allowed) {
     reqCtx.rateLimited = true
+    reqCtx.errorCode = 'RATE_LIMITED'
     return jsonErr(
       `Rate limit exceeded (${tier.name}). Try again later.`,
       'RATE_LIMITED',
@@ -88,6 +104,7 @@ async function handleRouteCore(request, { params }, reqCtx) {
   // Stage 2: Payload size check (non-media routes)
   if (['POST', 'PUT', 'PATCH'].includes(method) && !route.startsWith('/media')) {
     if (!checkPayloadSize(request)) {
+      reqCtx.errorCode = 'PAYLOAD_TOO_LARGE'
       return jsonErr('Request payload too large', 'PAYLOAD_TOO_LARGE', 413)
     }
   }
@@ -107,8 +124,13 @@ async function handleRouteCore(request, { params }, reqCtx) {
             body: JSON.stringify(sanitized),
           })
         }
-      } catch {
-        // If body parsing fails, let the handler deal with the original request
+      } catch (e) {
+        // Body parsing failure: log and let handler deal with original request
+        logger.warn('HTTP', 'body_parse_failed', {
+          requestId: reqCtx.requestId,
+          route, method,
+          error: e.message,
+        })
       }
     }
   }
@@ -130,16 +152,27 @@ async function handleRouteCore(request, { params }, reqCtx) {
           if (sess) {
             authUserId = sess.userId
             reqCtx.userId = sess.userId
+            // Update AsyncLocalStorage context with userId for downstream audit correlation
+            const ctx = requestContext.getStore()
+            if (ctx) ctx.userId = sess.userId
           }
         }
       }
-    } catch { /* rate limit falls back to IP-only */ }
+    } catch (e) {
+      // userId extraction failed: rate limiting falls back to IP-only.
+      // Not a request-breaking error — log and continue.
+      logger.debug('HTTP', 'userid_extraction_failed', {
+        requestId: reqCtx.requestId,
+        error: e.message,
+      })
+    }
 
     // Apply per-user rate limit (separate from per-IP, uses userId as key)
     if (authUserId) {
       const userRateResult = await checkTieredRateLimit(null, authUserId, tier)
       if (!userRateResult.allowed) {
         reqCtx.rateLimited = true
+        reqCtx.errorCode = 'RATE_LIMITED'
         return jsonErr(
           `Rate limit exceeded (${tier.name}). Try again later.`,
           'RATE_LIMITED',
@@ -200,10 +233,12 @@ async function handleRouteCore(request, { params }, reqCtx) {
         const { requireAuth } = await import('@/lib/auth-utils')
         const user = await requireAuth(request, db)
         if (!['ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
+          reqCtx.errorCode = 'FORBIDDEN'
           return jsonErr('Admin access required', 'FORBIDDEN', 403)
         }
       } catch (e) {
-        if (e.status) return jsonErr(e.message, e.code, e.status)
+        if (e.status) { reqCtx.errorCode = e.code; return jsonErr(e.message, e.code, e.status) }
+        reqCtx.errorCode = 'UNAUTHORIZED'
         return jsonErr('Authentication required', 'UNAUTHORIZED', 401)
       }
       return jsonOk(await cache.getStats())
@@ -214,15 +249,17 @@ async function handleRouteCore(request, { params }, reqCtx) {
         const { requireAuth } = await import('@/lib/auth-utils')
         const user = await requireAuth(request, db)
         if (!['MODERATOR', 'ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
+          reqCtx.errorCode = 'FORBIDDEN'
           return jsonErr('Moderator access required', 'FORBIDDEN', 403)
         }
       } catch (e) {
-        if (e.status) return jsonErr(e.message, e.code, e.status)
+        if (e.status) { reqCtx.errorCode = e.code; return jsonErr(e.message, e.code, e.status) }
+        reqCtx.errorCode = 'UNAUTHORIZED'
         return jsonErr('Authentication required', 'UNAUTHORIZED', 401)
       }
       const modResult = await handleModerationRoutes(path, method, request, db)
       if (modResult) {
-        if (modResult.error) return jsonErr(modResult.error, modResult.code || 'ERROR', modResult.status || 400)
+        if (modResult.error) { reqCtx.errorCode = modResult.code; return jsonErr(modResult.error, modResult.code || 'ERROR', modResult.status || 400) }
         return jsonOk(modResult.data, modResult.status || 200)
       }
     }
@@ -232,51 +269,51 @@ async function handleRouteCore(request, { params }, reqCtx) {
         const { requireAuth } = await import('@/lib/auth-utils')
         const user = await requireAuth(request, db)
         if (!['MODERATOR', 'ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
+          reqCtx.errorCode = 'FORBIDDEN'
           return jsonErr('Moderator access required', 'FORBIDDEN', 403)
         }
       } catch (e) {
-        if (e.status) return jsonErr(e.message, e.code, e.status)
+        if (e.status) { reqCtx.errorCode = e.code; return jsonErr(e.message, e.code, e.status) }
+        reqCtx.errorCode = 'UNAUTHORIZED'
         return jsonErr('Authentication required', 'UNAUTHORIZED', 401)
       }
       const modResult = await handleModerationRoutes(path, method, request, db)
       if (modResult) {
-        if (modResult.error) return jsonErr(modResult.error, modResult.code || 'ERROR', modResult.status || 400)
+        if (modResult.error) { reqCtx.errorCode = modResult.code; return jsonErr(modResult.error, modResult.code || 'ERROR', modResult.status || 400) }
         return jsonOk(modResult.data, modResult.status || 200)
       }
     }
 
-    // ========================
-    // OPS: Deep health check (all dependencies) — ADMIN auth required
-    // ========================
+    // ======================== OPS ENDPOINTS (admin auth) ========================
     if (route === '/ops/health' && method === 'GET') {
       try {
         const { requireAuth } = await import('@/lib/auth-utils')
         const user = await requireAuth(request, db)
         if (!['ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
+          reqCtx.errorCode = 'FORBIDDEN'
           return jsonErr('Admin access required', 'FORBIDDEN', 403)
         }
       } catch (e) {
-        if (e.status) return jsonErr(e.message, e.code, e.status)
+        if (e.status) { reqCtx.errorCode = e.code; return jsonErr(e.message, e.code, e.status) }
+        reqCtx.errorCode = 'UNAUTHORIZED'
         return jsonErr('Authentication required', 'UNAUTHORIZED', 401)
       }
       return jsonOk(await checkDeepHealth(db))
     }
 
-    // ========================
-    // OPS: Observability metrics — ADMIN auth required
-    // ========================
     if (route === '/ops/metrics' && method === 'GET') {
       try {
         const { requireAuth } = await import('@/lib/auth-utils')
         const user = await requireAuth(request, db)
         if (!['ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
+          reqCtx.errorCode = 'FORBIDDEN'
           return jsonErr('Admin access required', 'FORBIDDEN', 403)
         }
       } catch (e) {
-        if (e.status) return jsonErr(e.message, e.code, e.status)
+        if (e.status) { reqCtx.errorCode = e.code; return jsonErr(e.message, e.code, e.status) }
+        reqCtx.errorCode = 'UNAUTHORIZED'
         return jsonErr('Authentication required', 'UNAUTHORIZED', 401)
       }
-      // Combine observability metrics with business counts
       const [userCount, postCount, activeSessionCount, reportCount, grievanceCount] = await Promise.all([
         db.collection('users').countDocuments(),
         db.collection('content_items').countDocuments(),
@@ -299,35 +336,33 @@ async function handleRouteCore(request, { params }, reqCtx) {
       })
     }
 
-    // ========================
-    // OPS: SLI dashboard — ADMIN auth required
-    // ========================
     if (route === '/ops/slis' && method === 'GET') {
       try {
         const { requireAuth } = await import('@/lib/auth-utils')
         const user = await requireAuth(request, db)
         if (!['ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
+          reqCtx.errorCode = 'FORBIDDEN'
           return jsonErr('Admin access required', 'FORBIDDEN', 403)
         }
       } catch (e) {
-        if (e.status) return jsonErr(e.message, e.code, e.status)
+        if (e.status) { reqCtx.errorCode = e.code; return jsonErr(e.message, e.code, e.status) }
+        reqCtx.errorCode = 'UNAUTHORIZED'
         return jsonErr('Authentication required', 'UNAUTHORIZED', 401)
       }
       return jsonOk(metrics.getSLIs())
     }
 
-    // ========================
-    // OPS: Database backup proof (dry-run) — ADMIN auth required
-    // ========================
     if (route === '/ops/backup-check' && method === 'GET') {
       try {
         const { requireAuth: requireAuthFn } = await import('@/lib/auth-utils')
         const user = await requireAuthFn(request, db)
         if (!['ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
+          reqCtx.errorCode = 'FORBIDDEN'
           return jsonErr('Admin access required', 'FORBIDDEN', 403)
         }
       } catch (e) {
-        if (e.status) return jsonErr(e.message, e.code, e.status)
+        if (e.status) { reqCtx.errorCode = e.code; return jsonErr(e.message, e.code, e.status) }
+        reqCtx.errorCode = 'UNAUTHORIZED'
         return jsonErr('Authentication required', 'UNAUTHORIZED', 401)
       }
       try {
@@ -352,53 +387,41 @@ async function handleRouteCore(request, { params }, reqCtx) {
     }
 
     // ---- Route dispatch ----
-    // Each handler returns: { data, status } | { error, code, status } | { raw: NextResponse } | null
     let result = null
 
     if (path[0] === 'auth') {
       result = await handleAuth(path, method, request, db)
     } else if (path[0] === 'me') {
-      // Stage 9: Story archive (GET /me/stories/archive)
       if (path[1] === 'stories' && path[2] === 'archive') {
         result = await handleStories(path, method, request, db)
       }
-      // Stage 9: Close friends
       else if (path[1] === 'close-friends') {
         result = await handleStories(path, method, request, db)
       }
-      // Stage 9: Highlights
       else if (path[1] === 'highlights') {
         result = await handleStories(path, method, request, db)
       }
-      // Stage 9: Story settings
       else if (path[1] === 'story-settings') {
         result = await handleStories(path, method, request, db)
       }
-      // Stage 9: User blocks
       else if (path[1] === 'blocks') {
         result = await handleStories(path, method, request, db)
       }
-      // Stage 10: Creator reels routes (archive, analytics, series)
       else if (path[1] === 'reels') {
         result = await handleReels(path, method, request, db)
       }
-      // Stage 6: My events (GET /me/events, GET /me/events/rsvps)
       else if (path[1] === 'events') {
         result = await handleEvents(path, method, request, db)
       }
-      // Stage 7: My board notices (GET /me/board/notices)
       else if (path[1] === 'board') {
         result = await handleBoardNotices(path, method, request, db)
       }
-      // Stage 12: My tribe (GET /me/tribe)
       else if (path[1] === 'tribe') {
         result = await handleTribes(path, method, request, db)
       }
-      // Stage 2: College claims (GET /me/college-claims)
       else if (path[1] === 'college-claims') {
         result = await handleCollegeClaims(path, method, request, db)
       }
-      // Stage 5: My resources (GET /me/resources)
       else if (path[1] === 'resources') {
         result = await handleResources(path, method, request, db)
       }
@@ -514,29 +537,29 @@ async function handleRouteCore(request, { params }, reqCtx) {
 
     // ---- Process result ----
     if (result === null) {
+      reqCtx.errorCode = 'NOT_FOUND'
       return jsonErr(`Route ${route} [${method}] not found`, 'NOT_FOUND', 404)
     }
 
-    // Raw response (e.g., media binary, SSE streams) — add security headers
     if (result.raw) {
       const rawResp = cors(result.raw)
       applySecurityHeaders(rawResp)
       return rawResp
     }
 
-    // Error response
     if (result.error) {
+      reqCtx.errorCode = result.code || 'ERROR'
       return jsonErr(result.error, result.code || 'ERROR', result.status || 400, result.headers || {})
     }
 
-    // Success response
     return jsonOk(result.data, result.status || 200)
 
   } catch (error) {
-    // Structured error from requireAuth / access token expired
     if (error.status && error.code) {
+      reqCtx.errorCode = error.code
       return jsonErr(error.message, error.code, error.status)
     }
+    reqCtx.errorCode = 'INTERNAL_ERROR'
     logger.error('HTTP', 'unhandled_error', {
       requestId: reqCtx.requestId,
       route: `/${(params?.path || []).join('/')}`,
@@ -548,9 +571,9 @@ async function handleRouteCore(request, { params }, reqCtx) {
   }
 }
 
-// ========== OBSERVABILITY WRAPPER ==========
-// Every request flows through here: generates requestId, measures latency,
-// emits structured access log, records metrics.
+// ========== OBSERVABILITY WRAPPER (Stage 3B: with AsyncLocalStorage context) ==========
+// Every request flows through here: generates requestId, sets correlation context,
+// measures latency, emits structured access log, records metrics + error codes.
 async function handleRoute(request, context) {
   const requestId = crypto.randomUUID()
   const startTime = Date.now()
@@ -559,11 +582,17 @@ async function handleRoute(request, context) {
   const method = request.method
   const ip = extractIP(request)
 
-  // Request context: populated by handleRouteCore, read here for access log
-  const reqCtx = { requestId, userId: null, rateLimited: false }
+  // Request context: populated during lifecycle, read by observability + audit
+  const reqCtx = { requestId, userId: null, rateLimited: false, errorCode: null }
 
-  // Execute core handler
-  const response = await handleRouteCore(request, context, reqCtx)
+  // Correlation context: set in AsyncLocalStorage, auto-read by writeSecurityAudit
+  const correlationStore = { requestId, ip, method, route, userId: null }
+
+  // Execute core handler within correlation context
+  const response = await requestContext.run(correlationStore, () =>
+    handleRouteCore(request, context, reqCtx)
+  )
+
   const statusCode = response.status
   const latencyMs = Date.now() - startTime
 
@@ -581,10 +610,16 @@ async function handleRoute(request, context) {
     ip,
     userId: reqCtx.userId,
     rateLimited: reqCtx.rateLimited,
+    errorCode: reqCtx.errorCode,
   })
 
   // Record metrics
   metrics.recordRequest(route, method, statusCode, latencyMs)
+
+  // Record error code if present (wires metrics.recordError to real data)
+  if (reqCtx.errorCode) {
+    metrics.recordError(reqCtx.errorCode)
+  }
 
   return response
 }
