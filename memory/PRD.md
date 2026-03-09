@@ -1,142 +1,82 @@
 # Tribe — Product Requirements Document
 
-## Problem Statement
-World-class social media backend for Indian college students, named **Tribe**. Features 21 tribes (Param Vir Chakra awardees), college verification, content distribution ladder, stories, reels, events, board notices, governance, and a full contest engine.
-
-Target: Backend quality score 900+/1000 across 10 parameters.
+## Original Problem Statement
+Build a world-best social media backend API targeting 900+/1000 quality score.
+Multi-stage plan: 12 stages from Security to Production Hardening.
 
 ## Architecture
-- **Backend**: Monolithic Next.js API (all routes under `/api/*`)
-- **Database**: MongoDB (60+ collections, 200+ indexes)
-- **Cache/PubSub**: Redis (with in-memory fallback)
-- **Real-time**: Server-Sent Events (SSE) via Redis Pub/Sub
-- **Content Moderation**: OpenAI GPT-4o-mini
-- **Storage**: Emergent Object Storage (with base64 fallback)
+- **Framework**: Monolithic Next.js backend API
+- **Database**: MongoDB (with 86 collections, 391 indexes)
+- **Cache/PubSub**: Redis (optional, graceful degradation when unavailable)
+- **Central Gateway**: `/app/api/[[...path]]/route.js`
+- **Handlers**: `/app/lib/handlers/` (18 handler files)
+- **Security**: `/app/lib/security.js` (rate limiting, sanitization, audit)
+- **Observability**: `/app/lib/logger.js`, `/app/lib/metrics.js`, `/app/lib/health.js`
 
 ## Completed Stages
 
-| Stage | Name | Status | Date |
-|-------|------|--------|------|
-| 0 | Auth & Core | DONE | — |
-| 1 | Appeal Decision | DONE | — |
-| 2 | College Claims | DONE | — |
-| 4 | Distribution Ladder | DONE (2 test failures) | — |
-| 5 | Notes/PYQs Library | DONE (needs formal proof pack) | — |
-| 6 | Events + RSVP | DONE | — |
-| 7 | Board Notices + Authenticity | DONE | — |
-| 9 | Stories (full) | DONE | — |
-| 10 | Reels (full) | DONE | — |
-| 12 | Tribe System | DONE | — |
-| 12X | Tribe Contest Engine | GOLD FROZEN (69/69 tests) | — |
-| 12X-RT | Real-Time SSE Layer | GOLD FROZEN | — |
-| B0 | Backend Source of Truth Freeze | COMPLETE (8/8 sub-stages) | 2026-02 |
-| B0-E | Backend Freeze Code Enforcement | COMPLETE (85/85 tests) | 2026-03 |
-| **S1** | **Canonical Contract Freeze v2** | **COMPLETE (51/51 tests, 100%)** | **2026-03** |
-| **S1B** | **Semantic Contract Completion** | **COMPLETE (8/8 tests, 100%)** | **2026-03** |
-| **S2** | **Security & Session Hardening** | **COMPLETE (Recovery PASS, 92/100)** | **2026-03** |
+### Stage 2: Security & Session Hardening — PASS (88/100)
+- Access/refresh token model with rotation and replay detection
+- Full session management (list, revoke-one, revoke-all)
+- 7 security headers on all responses
+- Tiered rate limiting (per-IP + per-user)
+- Centralized input sanitization (deep XSS stripping)
+- Structured security audit logging with PII masking
+- 7 admin/ops endpoints secured with ADMIN role
 
+### Stage 3: Observability Baseline + Health Intelligence — PASS (91/100)
+**Date**: 2026-03-09
+- Structured JSON logger (NDJSON, 5 levels, 12+ categories, PII redaction)
+- Request ID generation + propagation (x-request-id on every response)
+- Access logging (method, route, status, latency, requestId, userId, IP)
+- Three-tier health: /healthz (liveness), /readyz (readiness), /ops/health (deep)
+- Redis-backed rate limiting with Lua script + per-tier fallback policies
+- In-memory metrics: request counts, latency histogram, p50/p95/p99, error rates
+- SLI dashboard (/ops/slis): errorRate, latency percentiles, dep failure counts
+- Unified canonical audit pipeline (merged writeAudit + writeSecurityAudit)
+- All 7 empty catch blocks fixed with structured error logging
+- Zero raw console.* on active request paths (2 documented bootstrap exceptions)
 
-## Stage S2 — Security & Session Hardening (COMPLETED + RECOVERY)
+## Key Endpoints
 
-Goal: Harden identity/session/security foundation. Score 75 → 87-92.
+### Public (no auth)
+- GET /api/healthz — Liveness probe (runs before rate limiting + DB)
+- GET /api/readyz — Readiness probe (checks MongoDB + Redis)
 
-### Original implementation:
-1. Access + Refresh Token Split (at_/rt_ prefixes, 15-min/30-day TTLs)
-2. Refresh Token Rotation with replay/reuse detection + family revocation
-3. Session Inventory (list/revoke-one/revoke-all, IP/device/lastAccessed metadata, max 10 sessions)
-4. PIN Change Hardening (revokes ALL sessions, fresh token pair)
-5. Security Headers (7 headers on ALL responses)
-6. Tiered Rate Limiting (7 tiers)
-7. 7 Previously Unprotected Routes Fixed
-8. Security Audit Logging (structured, severity, PII masking)
+### Admin Only
+- GET /api/ops/health — Deep dependency health (mongodb, redis, rateLimiter, moderation, storage, audit)
+- GET /api/ops/metrics — Full observability metrics + business counts
+- GET /api/ops/slis — SLI dashboard (error rate, p50/p95/p99 latency)
+- GET /api/ops/backup-check — Database backup readiness check
 
-### Recovery (Fixed FAILED stage):
-- **Per-user rate limiting**: Was dead code (userId=null). Now REAL: two-phase (per-IP pre-auth + per-user post-auth with session DB lookup)
-- **Input sanitization**: Was 1/15+ fields. Now CENTRALIZED: deepSanitizeStrings at router level covers ALL 21 text fields
-- **Sanitization regex**: Was incomplete (missed unquoted event handlers, non-script HTML tags). Now strips ALL HTML tags
+## Known Limitations (Exception Register)
+1. Metrics are in-memory only (per-instance). Redis-backed deferred to Stage 10.
+2. Rate limiting falls back to in-memory when Redis is down. STRICT tiers use 50% limits.
+3. 2 console.log statements in realtime.js startup (documented bootstrap exception).
+4. ioredis unhandled error events from cache.js/realtime.js (pre-existing).
+5. No OpenTelemetry (overkill for monolith; requestId provides correlation).
+6. Legacy token-in-URL pattern in stories.js (noted in Stage 2).
 
-### Files:
-- `/app/lib/security.js` — Rate limiting, security headers, deepSanitizeStrings, audit logging
-- `/app/lib/auth-utils.js` — createSession, rotateRefreshToken, dual-mode authenticate
-- `/app/lib/constants.js` — 6 new ErrorCodes, 3 new Config values
-- `/app/lib/handlers/auth.js` — Refresh endpoint, revoke-one, PIN change, audit logging
-- `/app/lib/handlers/admin.js` — Protected /admin/colleges/seed
-- `/app/app/api/[[...path]]/route.js` — Security headers, tiered+per-user rate limiting, centralized sanitization, protected ops/mod routes
-- `/app/memory/freeze/S2-security-session-hardening.md` — Full audit + proof pack
-- `/app/memory/freeze/S2-recovery-anti-theater-fix.md` — Recovery proof pack
+## Key Files
+- `/app/lib/logger.js` — Structured JSON logger
+- `/app/lib/metrics.js` — In-memory metrics collector
+- `/app/lib/health.js` — Three-tier health checks
+- `/app/lib/security.js` — Rate limiting, sanitization, canonical audit
+- `/app/app/api/[[...path]]/route.js` — Central gateway with observability wrapper
+- `/app/lib/auth-utils.js` — Token/session logic, writeAudit wrapper
+- `/app/lib/db.js` — MongoDB connection + indexes
 
-### Exception register: 12 documented items (see recovery doc)
+## Prioritized Backlog
 
+### P0: Next Up
+- **Stage 4**: Test Pyramid + CI Gate v1 (unit/integration tests)
 
-## Stage S1B — Semantic Contract Completion (COMPLETED)
+### P1: Planned
+- **Stage 5**: Scalability Foundation Refactor (service/repository layers)
+- **Stage 6**: Async Backbone + Job System + CQRS-lite
+- **Stage 7**: Real-Time Reliability Layer
 
-Goal: Complete the hard semantic work Stage 1A left unfinished.
-
-### What was done:
-1. **Naming Discipline**: `authorId`/`creatorId` split documented and frozen. Viewer state unified with `viewer*` prefix aliases (`viewerIsFollowing`, `viewerRsvp`).
-2. **Entity Snippets**: 6 canonical snippets defined in `/lib/entity-snippets.js` (UserSnippet, UserProfile, MediaObject, CollegeSnippet, TribeSnippet, ContestSnippet). `toUserSnippet()` adopted in `enrichPosts()`.
-3. **Visibility Model**: 2-dimension semantic model (lifecycle + moderation) documented per content type. No fake enum unification.
-4. **Versioning Architecture**: Header-based versioning with rationale, deprecation policy, compatibility windows.
-5. **Duplicate Map**: 11 endpoints classified (CANONICAL/LEGACY/SHADOW) with migration decisions.
-6. **Frontend Impact**: Per-surface dependency matrix with risk ratings. Zero breaking changes confirmed.
-
-### Files created/modified:
-- **NEW**: `/app/lib/entity-snippets.js` — 6 canonical snippet builders
-- **NEW**: `/app/memory/freeze/S1B-semantic-contract-completion.md` — Full audit + spec
-- **MODIFIED**: `/app/lib/auth-utils.js` — enrichPosts uses toUserSnippet
-- **MODIFIED**: `/app/lib/handlers/users.js` — viewerIsFollowing alias
-- **MODIFIED**: `/app/lib/handlers/social.js` — viewerIsFollowing alias
-- **MODIFIED**: `/app/lib/handlers/events.js` — viewerRsvp alias
-
-### Combined Stage 1 Score: ~86/100
-
-## Stage S1 — Canonical Contract Freeze v2 (COMPLETED)
-
-Goal: Push API Design score from 82 to 90+.
-
-### What was done:
-1. **Error Code Centralization**: All 18 handler files converted from raw string error codes to `ErrorCode.*` constants. Registry expanded from 12 to 36 codes.
-2. **List Response Standardization**: Every list endpoint now includes canonical `items` key + `pagination` metadata object alongside backward-compat aliases.
-3. **Pagination Discipline**: All cursor endpoints include `{ nextCursor, hasMore }` in `pagination`. All offset endpoints include `{ total, limit, offset, hasMore }`.
-4. **Contract Version**: `x-contract-version: v2` header on every response.
-5. **Response Contract Builders**: `/lib/response-contracts.js` defines `cursorList()`, `offsetList()`, `simpleList()`, `mutationOk()`.
-6. **Zero breaking changes**: All additions are additive. Legacy field names preserved.
-
-### Files created/modified:
-- **NEW**: `/app/lib/response-contracts.js` — Canonical response builder helpers
-- **NEW**: `/app/memory/freeze/S1-contract-freeze-v2.md` — Full audit + freeze spec
-- **MODIFIED**: `/app/lib/constants.js` — ErrorCode expanded to 36 codes
-- **MODIFIED**: `/app/lib/freeze-registry.js` — CONTRACT_VERSION bumped to v2
-- **MODIFIED**: `/app/app/api/[[...path]]/route.js` — v2 header in response builders
-- **MODIFIED**: All 18 handlers in `/app/lib/handlers/` — Error codes + list standardization
-
-## 12-Stage Plan to 900+ Score
-
-| Stage | Target Parameter | Current | Target | Status |
-|-------|-----------------|---------|--------|--------|
-| **S1** | **API Design** | **82** | **90+** | **✅ DONE** |
-| **S2** | **Security** | **75** | **86-88** | **✅ DONE (87)** |
-| S3 | Production Readiness (baseline) | 55 | 70 | NEXT |
-| S4 | Testing | 72 | 84-86 | PLANNED |
-| S5 | Scalability Foundation | 60 | 78-80 | PLANNED |
-| S6 | Async/CQRS | 80 | 88 | PLANNED |
-| S7 | Real-Time | 78 | 88-90 | PLANNED |
-| S8 | Moderation v2 | 85 | 91-92 | PLANNED |
-| S9 | Feature Depth (Pages, Push, DMs) | 88 | 92+ | PLANNED |
-| S10 | Production Hardening | 78 | 90+ | PLANNED |
-| S11 | Load/Chaos/Concurrency | 86 | 92 | PLANNED |
-| S12 | Final 900+ Gate | — | 900+ | PLANNED |
-
-## Pending Issues (P2)
-1. Stage 4: 2 automated test failures (Distribution Ladder)
-2. Stage 5: Needs formal deep proof pack for acceptance
-
-## Key Documents
-- `/app/memory/freeze/B0-MASTER-INDEX.md` — Master freeze index
-- `/app/memory/freeze/S1-contract-freeze-v2.md` — Stage 1 contract audit + spec
-- `/app/memory/freeze/S2-security-session-hardening.md` — Stage 2 security audit + proof pack
-- `/app/memory/android_agent_handoff.md` — Complete API reference for Android
-- `/app/memory/freeze/B0-S1-domain-freeze.md` through `B0-S8-*` — Full freeze package
-- `/app/lib/response-contracts.js` — Canonical response builders
-- `/app/lib/security.js` — Security module (rate limiting, headers, sanitization, audit)
-- `/app/lib/constants.js` — Centralized ErrorCode registry (42 codes)
+### P2: Future
+- **Stage 8**: Moderation v2
+- **Stage 9**: Feature Depth (Pages, Push Notifications, DMs)
+- **Stages 10-12**: Production Hardening, Load/Chaos Testing, Final 900+ Gate
