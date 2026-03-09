@@ -33,6 +33,45 @@ Target: Backend quality score 900+/1000 across 10 parameters.
 | B0-E | Backend Freeze Code Enforcement | COMPLETE (85/85 tests) | 2026-03 |
 | **S1** | **Canonical Contract Freeze v2** | **COMPLETE (51/51 tests, 100%)** | **2026-03** |
 | **S1B** | **Semantic Contract Completion** | **COMPLETE (8/8 tests, 100%)** | **2026-03** |
+| **S2** | **Security & Session Hardening** | **COMPLETE (87/100, 8 exceptions documented)** | **2026-03** |
+
+
+## Stage S2 — Security & Session Hardening (COMPLETED)
+
+Goal: Harden identity/session/security foundation. Score 75 → 87.
+
+### What was done:
+1. **Access + Refresh Token Split**: 15-min access tokens (`at_` prefix), 30-day refresh tokens (`rt_` prefix)
+2. **Refresh Token Rotation**: `POST /auth/refresh` with family tracking and replay/reuse detection (entire family revoked on reuse)
+3. **Session Inventory**: List/revoke-one/revoke-all with IP, device, lastAccessed metadata. Max 10 concurrent sessions.
+4. **PIN Change Hardening**: Revokes ALL sessions, issues fresh token pair
+5. **Security Headers**: 7 headers on ALL responses (HSTS, X-Frame-Options, CSP, etc.)
+6. **Tiered Rate Limiting**: 7 tiers (AUTH 10/min, WRITE 30/min, READ 120/min, ADMIN 60/min, etc.)
+7. **Privileged Route Hardening**: 7 previously unprotected routes fixed (/ops/health, /ops/metrics, /ops/backup-check, /cache/stats, /admin/colleges/seed, /moderation/config, /moderation/check)
+8. **Security Audit Logging**: Structured events with severity, PII masking, actor/target attribution
+9. **Input Sanitization**: Script blocks, event handlers, js: protocol stripped
+10. **Migration-safe**: Legacy tokens still work, backward-compat `token` field preserved
+
+### Files created/modified:
+- **NEW**: `/app/lib/security.js` — Rate limiting, security headers, sanitization, audit logging, PII masking
+- **NEW**: `/app/memory/freeze/S2-security-session-hardening.md` — Full audit + proof pack
+- **MODIFIED**: `/app/lib/auth-utils.js` — createSession, rotateRefreshToken, dual-mode authenticate
+- **MODIFIED**: `/app/lib/constants.js` — 6 new ErrorCodes, 3 new Config values
+- **MODIFIED**: `/app/lib/handlers/auth.js` — Refresh endpoint, revoke-one, enhanced PIN change, audit logging
+- **MODIFIED**: `/app/lib/handlers/admin.js` — Protected /admin/colleges/seed
+- **MODIFIED**: `/app/app/api/[[...path]]/route.js` — Security headers, tiered rate limiting, protected ops/mod routes
+
+### Exceptions (8 documented):
+1. In-memory rate limiting (Redis in S3)
+2. Per-user post-auth rate limiting partial (IP-only pre-auth)
+3. No auto-invalidation on role downgrade (role checked per-request)
+4. CDN/proxy header conflict (infrastructure issue)
+5. Reuse detection window limited to 5 tokens
+6. No explicit blacklist (session deletion = effective blacklist)
+7. No phone verification at registration (OTP in S9)
+8. Login brute force in-memory (Redis in S3)
+
+### Scorecard: 87/100
 
 
 ## Stage S1B — Semantic Contract Completion (COMPLETED)
@@ -82,8 +121,8 @@ Goal: Push API Design score from 82 to 90+.
 | Stage | Target Parameter | Current | Target | Status |
 |-------|-----------------|---------|--------|--------|
 | **S1** | **API Design** | **82** | **90+** | **✅ DONE** |
-| S2 | Security | 75 | 86-88 | NEXT |
-| S3 | Production Readiness (baseline) | 55 | 70 | PLANNED |
+| **S2** | **Security** | **75** | **86-88** | **✅ DONE (87)** |
+| S3 | Production Readiness (baseline) | 55 | 70 | NEXT |
 | S4 | Testing | 72 | 84-86 | PLANNED |
 | S5 | Scalability Foundation | 60 | 78-80 | PLANNED |
 | S6 | Async/CQRS | 80 | 88 | PLANNED |
@@ -101,7 +140,9 @@ Goal: Push API Design score from 82 to 90+.
 ## Key Documents
 - `/app/memory/freeze/B0-MASTER-INDEX.md` — Master freeze index
 - `/app/memory/freeze/S1-contract-freeze-v2.md` — Stage 1 contract audit + spec
+- `/app/memory/freeze/S2-security-session-hardening.md` — Stage 2 security audit + proof pack
 - `/app/memory/android_agent_handoff.md` — Complete API reference for Android
 - `/app/memory/freeze/B0-S1-domain-freeze.md` through `B0-S8-*` — Full freeze package
 - `/app/lib/response-contracts.js` — Canonical response builders
-- `/app/lib/constants.js` — Centralized ErrorCode registry (36 codes)
+- `/app/lib/security.js` — Security module (rate limiting, headers, sanitization, audit)
+- `/app/lib/constants.js` — Centralized ErrorCode registry (42 codes)
