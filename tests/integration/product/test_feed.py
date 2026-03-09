@@ -89,3 +89,113 @@ class TestFeedContract:
         resp, data = get_feed(api_url, 'following', token=product_user_b['token'])
         if data['items']:
             assert '_id' not in data['items'][0]
+
+
+
+TEST_COLLEGE_ID = 'test-college-4b'
+TEST_HOUSE_ID = 'test-house-4b'
+
+
+class TestCollegeFeed:
+    def test_college_feed_returns_structure(self, api_url):
+        """College feed returns valid structure even if empty."""
+        resp, data = get_feed(api_url, f'college/{TEST_COLLEGE_ID}')
+        assert resp.status_code == 200
+        assert 'items' in data
+        assert 'pagination' in data
+        assert data['feedType'] == 'college'
+
+    def test_college_feed_pagination_contract(self, api_url):
+        resp, data = get_feed(api_url, f'college/{TEST_COLLEGE_ID}', params={'limit': 2})
+        assert resp.status_code == 200
+        assert 'hasMore' in data['pagination']
+        assert isinstance(data['pagination']['hasMore'], bool)
+
+    def test_stage0_post_not_in_college_feed(self, api_url, product_user_b, db):
+        """New posts (distributionStage=0) excluded from college feed (requires >=1)."""
+        db.users.update_one({'id': product_user_b['userId']}, {'$set': {'collegeId': TEST_COLLEGE_ID}})
+        resp, created = create_post(api_url, product_user_b['token'], 'Stage0 college test')
+        assert resp.status_code == 201
+        post_id = created['post']['id']
+        resp, data = get_feed(api_url, f'college/{TEST_COLLEGE_ID}')
+        feed_ids = [p['id'] for p in data['items']]
+        assert post_id not in feed_ids, 'Stage 0 post appeared in college feed'
+
+    def test_stage1_post_in_college_feed(self, api_url, product_user_b, db):
+        """Posts promoted to distributionStage>=1 appear in college feed."""
+        db.users.update_one({'id': product_user_b['userId']}, {'$set': {'collegeId': TEST_COLLEGE_ID}})
+        resp, created = create_post(api_url, product_user_b['token'], 'Stage1 college test')
+        assert resp.status_code == 201
+        post_id = created['post']['id']
+        # Promote to stage 1 and ensure collegeId is set on the content item
+        db.content_items.update_one({'id': post_id}, {'$set': {
+            'distributionStage': 1, 'collegeId': TEST_COLLEGE_ID
+        }})
+        # Use cursor to bypass feed cache (cursor=truthy → no cacheKey)
+        resp, data = get_feed(api_url, f'college/{TEST_COLLEGE_ID}',
+                              params={'cursor': '2099-01-01T00:00:00.000Z'})
+        feed_ids = [p['id'] for p in data['items']]
+        assert post_id in feed_ids, 'Stage 1 post missing from college feed'
+
+    def test_different_college_not_leaking(self, api_url, product_user_b, db):
+        """Post in college-A must not appear in college-B feed."""
+        db.users.update_one({'id': product_user_b['userId']}, {'$set': {'collegeId': TEST_COLLEGE_ID}})
+        resp, created = create_post(api_url, product_user_b['token'], 'College isolation test')
+        assert resp.status_code == 201
+        post_id = created['post']['id']
+        db.content_items.update_one({'id': post_id}, {'$set': {'distributionStage': 1}})
+        resp, data = get_feed(api_url, 'college/other-college-id')
+        feed_ids = [p['id'] for p in data['items']]
+        assert post_id not in feed_ids, 'Post leaked to wrong college feed'
+
+
+class TestHouseFeed:
+    def test_house_feed_returns_structure(self, api_url):
+        """House feed returns valid structure even if empty."""
+        resp, data = get_feed(api_url, f'house/{TEST_HOUSE_ID}')
+        assert resp.status_code == 200
+        assert 'items' in data
+        assert 'pagination' in data
+        assert data['feedType'] == 'house'
+
+    def test_house_feed_pagination_contract(self, api_url):
+        resp, data = get_feed(api_url, f'house/{TEST_HOUSE_ID}', params={'limit': 2})
+        assert resp.status_code == 200
+        assert 'hasMore' in data['pagination']
+
+    def test_stage0_post_not_in_house_feed(self, api_url, product_user_b, db):
+        """New posts (distributionStage=0) excluded from house feed (requires >=1)."""
+        db.users.update_one({'id': product_user_b['userId']}, {'$set': {'houseId': TEST_HOUSE_ID}})
+        resp, created = create_post(api_url, product_user_b['token'], 'Stage0 house test')
+        assert resp.status_code == 201
+        post_id = created['post']['id']
+        resp, data = get_feed(api_url, f'house/{TEST_HOUSE_ID}')
+        feed_ids = [p['id'] for p in data['items']]
+        assert post_id not in feed_ids, 'Stage 0 post appeared in house feed'
+
+    def test_stage1_post_in_house_feed(self, api_url, product_user_b, db):
+        """Posts promoted to distributionStage>=1 appear in house feed."""
+        db.users.update_one({'id': product_user_b['userId']}, {'$set': {'houseId': TEST_HOUSE_ID}})
+        resp, created = create_post(api_url, product_user_b['token'], 'Stage1 house test')
+        assert resp.status_code == 201
+        post_id = created['post']['id']
+        # Promote to stage 1 and ensure houseId is set on the content item
+        db.content_items.update_one({'id': post_id}, {'$set': {
+            'distributionStage': 1, 'houseId': TEST_HOUSE_ID
+        }})
+        # Use non-default limit to bypass any cached empty results
+        resp, data = get_feed(api_url, f'house/{TEST_HOUSE_ID}',
+                              params={'cursor': '2099-01-01T00:00:00.000Z'})
+        feed_ids = [p['id'] for p in data['items']]
+        assert post_id in feed_ids, 'Stage 1 post missing from house feed'
+
+    def test_different_house_not_leaking(self, api_url, product_user_b, db):
+        """Post in house-A must not appear in house-B feed."""
+        db.users.update_one({'id': product_user_b['userId']}, {'$set': {'houseId': TEST_HOUSE_ID}})
+        resp, created = create_post(api_url, product_user_b['token'], 'House isolation test')
+        assert resp.status_code == 201
+        post_id = created['post']['id']
+        db.content_items.update_one({'id': post_id}, {'$set': {'distributionStage': 1}})
+        resp, data = get_feed(api_url, 'house/other-house-id')
+        feed_ids = [p['id'] for p in data['items']]
+        assert post_id not in feed_ids, 'Post leaked to wrong house feed'
