@@ -348,7 +348,7 @@
 
 ### H.1 Security Headers Proof (curl)
 ```
-$ curl -D - https://tribe-audit-judge.preview.emergentagent.com/api/healthz
+$ curl -D - https://tribe-audit-proof.preview.emergentagent.com/api/healthz
 
 x-content-type-options: nosniff
 x-frame-options: DENY

@@ -6,14 +6,14 @@
 
 ### Base URL
 ```
-https://tribe-audit-judge.preview.emergentagent.com
+https://tribe-audit-proof.preview.emergentagent.com
 ```
 
 All API endpoints are prefixed with `/api`. Example:
 ```
-GET  https://tribe-audit-judge.preview.emergentagent.com/api/healthz
-GET  https://tribe-audit-judge.preview.emergentagent.com/api/tribes
-POST https://tribe-audit-judge.preview.emergentagent.com/api/auth/register
+GET  https://tribe-audit-proof.preview.emergentagent.com/api/healthz
+GET  https://tribe-audit-proof.preview.emergentagent.com/api/tribes
+POST https://tribe-audit-proof.preview.emergentagent.com/api/auth/register
 ```
 
 ### Health Check (confirmed working right now):
@@ -70,7 +70,7 @@ Additionally: `/app/memory/android_agent_handoff.md` — Full API reference (1,2
 
 **Backend is deployed, running, and fully functional.** Do not rebuild it.
 
-Base URL: `https://tribe-audit-judge.preview.emergentagent.com`
+Base URL: `https://tribe-audit-proof.preview.emergentagent.com`
 
 Keep it configurable in your codebase (env variable / build config), but you have a working backend RIGHT NOW to build against.
 

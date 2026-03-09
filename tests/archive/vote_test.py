@@ -6,7 +6,7 @@ Quick test for vote system fix
 import requests
 import json
 
-BASE_URL = "https://tribe-audit-judge.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-audit-proof.preview.emergentagent.com/api"
 ADMIN_PHONE = "9000000501"
 USER_PHONE = "9000000502" 
 PIN = "1234"

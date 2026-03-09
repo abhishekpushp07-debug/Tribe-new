@@ -9,7 +9,7 @@ C. Concurrency/Counter Tests (5 tests) - Idempotency and counter accuracy
 D. Block Integration Tests (5 tests) - Blocked user access restrictions
 E. Visibility Tests (5 tests) - Status-based access control (REMOVED/HELD/DRAFT/PRIVATE/FOLLOWERS)
 
-Base URL: https://tribe-audit-judge.preview.emergentagent.com/api
+Base URL: https://tribe-audit-proof.preview.emergentagent.com/api
 Test Users: 7777100001, 7777100002 (PIN: 1234) + ADMIN promotion via DB
 """
 
@@ -24,7 +24,7 @@ import base64
 import os
 
 # Use environment URL or default
-BASE_URL = os.getenv("NEXT_PUBLIC_BASE_URL", "https://tribe-audit-judge.preview.emergentagent.com") + "/api"
+BASE_URL = os.getenv("NEXT_PUBLIC_BASE_URL", "https://tribe-audit-proof.preview.emergentagent.com") + "/api"
 
 class ReelsTestSuite:
     def __init__(self):
