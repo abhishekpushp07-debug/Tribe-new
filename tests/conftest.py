@@ -115,15 +115,19 @@ def _register_or_login(api, phone, pin='1234', display_name='Test User 4A', ip=N
 
 
 @pytest.fixture(scope='session')
-def test_user(api_url):
-    """A regular test user with valid token."""
-    return _register_or_login(api_url, _next_phone(1))
+def test_user(api_url, db):
+    """A regular test user with valid token. Set to ADULT for product tests."""
+    user = _register_or_login(api_url, _next_phone(1))
+    db.users.update_one({'phone': user['phone']}, {'$set': {'ageStatus': 'ADULT'}})
+    return user
 
 
 @pytest.fixture(scope='session')
-def test_user_2(api_url):
-    """A second regular test user (for social/follow tests)."""
-    return _register_or_login(api_url, _next_phone(2), display_name='Test User 4A-2')
+def test_user_2(api_url, db):
+    """A second regular test user (for social/follow tests). Set to ADULT."""
+    user = _register_or_login(api_url, _next_phone(2), display_name='Test User 4A-2')
+    db.users.update_one({'phone': user['phone']}, {'$set': {'ageStatus': 'ADULT'}})
+    return user
 
 
 @pytest.fixture(scope='session')
@@ -141,6 +145,23 @@ def admin_user(api_url, db):
         data = resp.json()
         user_data['token'] = data.get('accessToken') or data.get('token')
     return user_data
+
+
+# ========== PRODUCT TEST FIXTURES (Stage 4B) ==========
+@pytest.fixture(scope='session')
+def product_user_a(api_url, db):
+    """Dedicated product user A — separate rate-limit budget for content creation tests."""
+    user = _register_or_login(api_url, _next_phone(10), display_name='Product User A')
+    db.users.update_one({'phone': user['phone']}, {'$set': {'ageStatus': 'ADULT'}})
+    return user
+
+
+@pytest.fixture(scope='session')
+def product_user_b(api_url, db):
+    """Dedicated product user B — separate rate-limit budget for social/visibility tests."""
+    user = _register_or_login(api_url, _next_phone(11), display_name='Product User B')
+    db.users.update_one({'phone': user['phone']}, {'$set': {'ageStatus': 'ADULT'}})
+    return user
 
 
 @pytest.fixture
@@ -168,14 +189,30 @@ def pytest_sessionfinish(session, exitstatus):
         phones = [u['phone'] for u in test_users]
 
         if user_ids:
+            # Product data cleanup (Stage 4B)
+            del_content = db.content_items.delete_many({'authorId': {'$in': user_ids}})
+            del_reactions = db.reactions.delete_many({'userId': {'$in': user_ids}})
+            del_saves = db.saves.delete_many({'userId': {'$in': user_ids}})
+            del_comments = db.comments.delete_many({'authorId': {'$in': user_ids}})
+            del_follows = db.follows.delete_many({
+                '$or': [{'followerId': {'$in': user_ids}}, {'followeeId': {'$in': user_ids}}]
+            })
+            db.blocks.delete_many({
+                '$or': [{'blockerId': {'$in': user_ids}}, {'blockedId': {'$in': user_ids}}]
+            })
+            # Infra data cleanup (Stage 4A)
             deleted_sessions = db.sessions.delete_many({'userId': {'$in': user_ids}})
             deleted_audits = db.audit_logs.delete_many({'actorId': {'$in': user_ids}})
             db.notifications.delete_many({'userId': {'$in': user_ids}})
             db.user_tribe_memberships.delete_many({'userId': {'$in': user_ids}})
             deleted_users = db.users.delete_many({'phone': {'$in': phones}})
-            print(f'\n[CLEANUP] Removed {deleted_users.deleted_count} test users, '
+            print(f'\n[CLEANUP] Removed {deleted_users.deleted_count} users, '
                   f'{deleted_sessions.deleted_count} sessions, '
-                  f'{deleted_audits.deleted_count} audit entries')
+                  f'{deleted_audits.deleted_count} audits, '
+                  f'{del_content.deleted_count} posts, '
+                  f'{del_reactions.deleted_count} reactions, '
+                  f'{del_comments.deleted_count} comments, '
+                  f'{del_follows.deleted_count} follows')
         client.close()
     except Exception as e:
         print(f'\n[CLEANUP WARNING] {e}')

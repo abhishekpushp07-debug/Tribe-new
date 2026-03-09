@@ -1,40 +1,42 @@
 # Tribe — Changelog
 
-## 2026-03-09: Stage 4A Gold Closure — COMPLETE (87/100)
+## 2026-03-09: Stage 4B-1 Product Coverage — COMPLETE (86/100)
 
-### What Changed
-- Installed `pytest-cov` 7.0.0 + `coverage` 7.13.4 for coverage measurement
-- Updated `tests/README.md` with full documentation: coverage commands, marker usage, Makefile hooks, Known Limitations
-- Created final proof pack at `/app/memory/stage_4a_gold_closure_proof_pack.md`
+### What Was Added
+- **49 new tests** bringing total from 139 → 188
+- `tests/helpers/product.py`: Canonical product helpers (create_post, like_post, follow_user, etc.)
+- `tests/integration/product/test_posts.py`: 11 tests — post lifecycle
+- `tests/integration/product/test_feed.py`: 8 tests — feed behavior + distribution rules
+- `tests/integration/product/test_social_actions.py`: 17 tests — like/save/comment/follow
+- `tests/integration/product/test_visibility_safety.py`: 6 tests — visibility enforcement
+- `tests/smoke/test_smoke_product.py`: 2 E2E product flows
 
-### What Was Already Implemented (by previous agent, verified this session)
-- `tests/unit/test_health.py` — 4 unit tests for `health.js` checkLiveness
-- `tests/unit/test_constants.py` — 10 unit tests for `constants.js` (assignHouse, HOUSES, ErrorCode, Role)
-- `tests/integration/test_ratelimit_options_redis.py` — 10 integration tests (rate-limit STRICT 429, OPTIONS observability, Redis degraded mode)
-- `Makefile` — test-unit, test-integration, test-smoke, test-coverage, test-mark-*, test-collect targets
-- `package.json` — `"test": "bash scripts/ci-gate.sh"` hook
+### Fixture Changes
+- `product_user_a`, `product_user_b`: New session-scoped fixtures (ADULT, dedicated WRITE budget)
+- `test_user`, `test_user_2`: Now auto-set to `ageStatus: 'ADULT'`
+- Cleanup extended: content_items, reactions, saves, comments, follows, blocks
 
-### Verification Results
-- **139/139 tests passed** (78 unit + 57 integration + 4 smoke)
-- **96% test code coverage** (pytest-cov baseline)
-- **3x idempotent runs** — 0 failures
-- **Marker-based selection** — all 3 markers work correctly
-- **Execution hooks** — `npm test`, `make test`, `make test-*` all verified
+### Discoveries
+- `ErrorCode.VALIDATION` maps to string `'VALIDATION_ERROR'` (not `'VALIDATION'`)
+- WRITE tier rate limit is per-user (not per-IP) — requires user separation strategy
+- Feed handler does not implement block filtering (known code gap)
 
-### Score
-- Previous: ~73/100
-- Current: **87/100** — FREEZE-READY
+### Verification
+- 188/188 passed, 2x idempotent
+- Proof pack: `/app/memory/stage_4b1_proof_pack.md`
 
 ---
 
-## Earlier (Pre-Gold Closure): Stage 4A Foundation Build
-- Built pytest-native test infrastructure from scratch
-- 115 initial tests with JS bridge, conftest fixtures, CI gate
-- Archived 35+ legacy ad-hoc test scripts
-- Created `scripts/ci-gate.sh`
+## 2026-03-09: Stage 4A Gold Closure — COMPLETE (87/100)
 
-## Stage 3B: Observability — PASS (90/100)
-- Structured JSON logging, request lineage, health checks, metrics, Redis resilience
+### Additions
+- pytest-cov installed, 96% test code coverage baseline
+- health.js (4 tests), constants.js (10 tests) unit tests
+- Rate-limit STRICT 429 proof, OPTIONS observability, Redis degraded mode (10 tests)
+- Makefile + package.json hooks, marker-based selection
 
-## Stage 2: Security Hardening — PASS (88/100)
-- Token system, session management, rate limiting, input sanitization
+---
+
+## Earlier Stages
+- Stage 3 + 3B: Observability — PASS (93/100)
+- Stage 2: Security Hardening — PASS (88/100)

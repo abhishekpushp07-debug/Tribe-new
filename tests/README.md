@@ -1,18 +1,19 @@
-# Tribe — Test Suite (Stage 4A — Gold Closure)
+# Tribe — Test Suite (Stage 4A + 4B-1)
 
 ## Overview
 
 This is the canonical test system for the Tribe backend. It replaces all ad-hoc root-level test scripts.
-**139 tests** | 78 unit + 57 integration + 4 smoke | **96% test code coverage** | 3x idempotent proven
+**188 tests** | 78 unit + 104 integration + 6 smoke | 2x idempotent proven
 
 ### Architecture
 
 ```
 tests/
-  conftest.py          # Shared fixtures (api_url, db, test_user, admin_user, cleanup)
+  conftest.py          # Shared fixtures (api_url, db, test_user, admin_user, product_user_a/b, cleanup)
   pytest.ini           # pytest configuration + custom markers
   helpers/
     js_eval.py         # JS eval bridge (runs Node.js code from pytest)
+    product.py         # Product test helpers (create_post, like, follow, etc.)
   unit/                # Pure function tests (no network, no DB)
     test_security.py   # sanitizeTextInput, deepSanitizeStrings, maskPII, getEndpointTier
     test_auth_utils.py # hashPin/verifyPin, generateToken, loginThrottle, sanitizeUser
@@ -28,11 +29,39 @@ tests/
     test_security_guards.py # XSS, payload size, auth boundaries, security headers
     test_correlation.py # requestId header, audit DB proof, error code metrics proof
     test_ratelimit_options_redis.py # Rate-limit STRICT 429 proof, OPTIONS observability, Redis degraded mode
+    product/           # Stage 4B — Product-domain integration tests
+      test_posts.py    # Create, get, delete posts — validation, auth, contract shape
+      test_feed.py     # Public, following feed — visibility, pagination, distribution rules
+      test_social_actions.py # Like, save, comment, follow/unfollow — idempotency, counters
+      test_visibility_safety.py # Deleted/HELD/blocked content behavior, view counts
   smoke/               # End-to-end flow tests (minimal, critical paths)
     test_smoke_auth_ops.py  # register→login→me, admin→ops
     test_smoke_metrics.py   # 404→metrics, rate limit visibility
+    test_smoke_product.py   # post→feed flow, follow→feed flow
   archive/             # 35+ legacy ad-hoc scripts (preserved, not run)
 ```
+
+## Stage 4B-1 Product Coverage (NEW)
+
+### Domains Covered
+| Domain | File | Tests | What's Tested |
+|---|---|---|---|
+| Posts | test_posts.py | 11 | Create, get, delete, validation, auth, admin delete, contract shape |
+| Feed | test_feed.py | 8 | Public/following feed, distributionStage rules, pagination, contract |
+| Social | test_social_actions.py | 17 | Like/save/comment/follow — success, idempotency, counters, auth |
+| Visibility | test_visibility_safety.py | 6 | Deleted/HELD/blocked content, view counts, removed content interactions |
+| Product Smoke | test_smoke_product.py | 2 | Full register→post→feed flow, follow→post→feed flow |
+
+### Rate Limit Isolation Strategy
+Product tests use **4 dedicated test users** to stay within WRITE tier limits (30/min):
+- `product_user_a`: Posts tests (heavier WRITE load)
+- `product_user_b`: Feed + visibility tests
+- `test_user` / `test_user_2`: Social action tests (lighter WRITE load)
+
+### Known Product Behaviors Documented
+1. **Block filtering**: Following feed does NOT filter blocked users' posts (query is authorId-based)
+2. **Removed content interactions**: Like handler does NOT check `visibility` — soft-deleted posts can still be liked
+3. **Distribution stage**: New posts have `distributionStage=0`, won't appear in public (requires 2) or college/house (requires ≥1) feeds
 
 ## Running Tests
 

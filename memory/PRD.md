@@ -21,58 +21,53 @@ Executed through staged plan: Security → Observability → Testing → Scalabi
 - Layered rate limiting (7 tiers, Redis-backed with Lua)
 - Centralized input sanitization (XSS, payload size)
 
-### Stage 3 + 3B: Observability — PASS (90/100)
+### Stage 3 + 3B: Observability — PASS (93/100)
 - Structured JSON logging (NDJSON, PII redaction, 12+ categories)
 - End-to-end request lineage via AsyncLocalStorage
 - 3-tier health checks (liveness/readiness/deep)
 - Metrics: histogram, percentiles, error codes, SLIs
 - Redis resilience: degraded mode + recovery strategy
-- Full observability coverage including OPTIONS
 
-### Stage 4A: Test Foundation + CI Gate — GOLD CLOSURE COMPLETE (87/100)
+### Stage 4A: Test Foundation — GOLD CLOSURE COMPLETE (87/100)
 - **139 pytest-collected tests** (78 unit + 57 integration + 4 smoke)
-- JS eval bridge for testing actual JS functions from pytest
-- Rate limit isolation via X-Forwarded-For unique IPs
-- Phone namespace isolation (prefix 99999) + session cleanup
-- CI gate script (scripts/ci-gate.sh) — exits non-zero on failure
-- 3x idempotent consecutive runs — 0 failures
-- 35+ old ad-hoc scripts archived to tests/archive/
-- Full documentation (tests/README.md)
-- **Gold Closure additions**:
-  - Rate-limit STRICT 429 proof (real 429, RATE_LIMITED code)
-  - OPTIONS/preflight observability proof (4 tests)
-  - Redis degraded-mode direct assertion (4 tests, semi-direct)
-  - pytest-cov installed, 96% baseline (no fake threshold)
-  - health.js unit tests (4 tests)
-  - constants.js unit tests (10 tests)
-  - Marker-based selective execution working
-  - package.json + Makefile execution hooks
+- JS eval bridge, CI gate, coverage baseline (96%), execution hooks
+
+### Stage 4B-1: Product-Domain Coverage — IN PROGRESS (86/100)
+- **188 total tests** (78 unit + 104 integration + 6 smoke)
+- Posts: create, get, delete — validation, auth, contract (11 tests)
+- Feed: public, following — distribution rules, pagination (8 tests)
+- Social: like, save, comment, follow — idempotency, counters (17 tests)
+- Visibility: deleted/HELD/blocked content, view counts (6 tests)
+- Product smoke: post→feed, follow→post→feed (2 tests)
+- Cleanup extended: content_items, reactions, saves, comments, follows, blocks
+- 2x idempotent, 0 regressions on 4A suite
 
 ## Upcoming Tasks
 
-### Stage 4B: Product/Handler Test Coverage (P1)
-- Posts, feed, social actions, events, resources, notices, reels
-- Moderation-linked flows, house/contest domain logic
-- Migrate valuable assertions from archived gold_freeze_gate.py
+### Stage 4B-2: Campus Features Coverage (P1)
+- Events: CRUD, RSVP, search, permissions
+- Resources/PYQs: create, list, vote, download tracking
+- Board Notices: create, list, detail, acknowledgment
+- Remaining social: dislike, reaction-remove
+- College/house feed coverage
 
-### Stage 5: Scalability Foundation Refactor (P1)
+### Stage 4B-3: Advanced + Closure (P1)
+- Reels: creation, feeds, interactions, moderation effects
+- Cross-surface consistency tests
+- Final product smoke: moderation-linked flows
+- Coverage report update
+- Final 4B proof pack + scorecard
+
+### Stage 5: Scalability Foundation Refactor (P2)
 - Service/Repository layer separation
-- handler.js → service.js → repository.js pattern
 
-### Future Stages (P2-P3)
+### Future Stages (P3)
 - Stage 6: Async Backbone + Job System + CQRS-lite
-- Stage 7: Real-Time Reliability Layer (SSE improvements)
-- Stage 8: Moderation v2
-- Stage 9: Feature Depth (Pages, Push Notifications, DMs)
-- Stages 10-12: Production Hardening, Load/Chaos Testing, Final 900+ Gate
+- Stage 10+: Production Hardening
 
-## Known Limitations
-1. No TTL on audit_logs collection (P2)
-2. Legacy audit entries (2124) lack requestId (forward-only migration)
-3. Redis recovery not live-tested (code verified, degraded mode proven)
-4. In-memory metrics (per-instance, not distributed)
-5. 2 console.log in realtime.js (Bootstrap only)
-6. Duplicate headers from next.config.js vs security.js
-7. Login throttle persists in memory (affects test re-runs with same phone)
-8. No separate test DB (tests use namespace isolation)
-9. No JS lib coverage measurement (would need Istanbul/c8)
+## Known Product Behaviors (Documented by Tests)
+1. Following feed does NOT filter blocked users' posts
+2. Like handler does NOT check content visibility (removed content can be liked)
+3. New posts have distributionStage=0, excluded from public/college/house feeds
+4. No separate test DB (namespace isolation via phone prefix 99999)
+5. WRITE rate limit: 30/min per user (mitigated by 4 dedicated test users)
