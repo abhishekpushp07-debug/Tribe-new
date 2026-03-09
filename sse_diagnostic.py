@@ -6,7 +6,7 @@ Simple SSE Connection Test - Diagnose SSE endpoints
 import requests
 import time
 
-BASE_URL = "https://token-session-vault.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-observability.preview.emergentagent.com/api"
 
 def test_sse_basic():
     print("🔍 SSE Basic Connection Test")

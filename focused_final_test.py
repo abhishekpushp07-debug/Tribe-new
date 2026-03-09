@@ -11,7 +11,7 @@ import time
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://token-session-vault.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-observability.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 # Test credentials - use existing users

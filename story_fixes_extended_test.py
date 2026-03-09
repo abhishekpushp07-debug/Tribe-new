@@ -22,7 +22,7 @@ import uuid
 import subprocess
 import sys
 
-BASE_URL = "https://token-session-vault.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-observability.preview.emergentagent.com/api"
 TIMEOUT = 30
 
 class TestResult:

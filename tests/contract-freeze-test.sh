@@ -17,7 +17,7 @@
 
 set -e
 
-API="${1:-https://token-session-vault.preview.emergentagent.com}"
+API="${1:-https://tribe-observability.preview.emergentagent.com}"
 PASS=0
 FAIL=0
 TOTAL=0

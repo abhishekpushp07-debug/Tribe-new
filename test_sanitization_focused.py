@@ -6,7 +6,7 @@ import time
 
 def test_focused_sanitization():
     """Test sanitization after proper onboarding"""
-    base_url = "https://token-session-vault.preview.emergentagent.com/api"
+    base_url = "https://tribe-observability.preview.emergentagent.com/api"
     
     # Step 1: Register user
     timestamp = int(time.time())
