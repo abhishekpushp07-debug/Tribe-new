@@ -6,12 +6,13 @@ Multi-stage plan: 12 stages from Security to Production Hardening.
 
 ## Architecture
 - **Framework**: Monolithic Next.js backend API
-- **Database**: MongoDB (with 86 collections, 391 indexes)
+- **Database**: MongoDB (86 collections, 391+ indexes)
 - **Cache/PubSub**: Redis (optional, graceful degradation when unavailable)
 - **Central Gateway**: `/app/api/[[...path]]/route.js`
 - **Handlers**: `/app/lib/handlers/` (18 handler files)
-- **Security**: `/app/lib/security.js` (rate limiting, sanitization, audit)
+- **Security**: `/app/lib/security.js` (Redis-backed rate limiting, sanitization, canonical audit)
 - **Observability**: `/app/lib/logger.js`, `/app/lib/metrics.js`, `/app/lib/health.js`
+- **Correlation**: `/app/lib/request-context.js` (AsyncLocalStorage for end-to-end request lineage)
 
 ## Completed Stages
 
@@ -24,55 +25,51 @@ Multi-stage plan: 12 stages from Security to Production Hardening.
 - Structured security audit logging with PII masking
 - 7 admin/ops endpoints secured with ADMIN role
 
-### Stage 3: Observability Baseline + Health Intelligence — PASS (91/100)
-**Date**: 2026-03-09
+### Stage 3 + 3B: Observability Baseline + Gold Remediation
+**Initial audit**: 14/100 → **Stage 3**: 81.7 → **Stage 3B**: 91.6/100
+
+#### Stage 3B fixes (Gold Remediation):
+- **AsyncLocalStorage request lineage**: requestId, ip, route, method auto-propagated to all audit writes (DB-verified: 10+ entries with non-null requestId)
+- **Error code metrics**: metrics.recordError() wired to real traffic (UNAUTHORIZED, NOT_FOUND, RATE_LIMITED tracked)
+- **OPTIONS observability**: CORS preflight now gets requestId + access log + metrics
+- **Redis reconnect**: Bounded backoff (1s→30s, max 10 retries) replaces permanent degradation
+- **Zero bare catches**: All empty catch blocks replaced with structured logging
+- **Honest proof pack**: DB count proofs, negative proofs, complete exception register
+
+#### Core features (Stage 3):
 - Structured JSON logger (NDJSON, 5 levels, 12+ categories, PII redaction)
-- Request ID generation + propagation (x-request-id on every response)
-- Access logging (method, route, status, latency, requestId, userId, IP)
+- Request ID on every response (x-request-id header)
+- Access logging (method, route, status, latency, requestId, userId, IP, errorCode)
 - Three-tier health: /healthz (liveness), /readyz (readiness), /ops/health (deep)
 - Redis-backed rate limiting with Lua script + per-tier fallback policies
 - In-memory metrics: request counts, latency histogram, p50/p95/p99, error rates
-- SLI dashboard (/ops/slis): errorRate, latency percentiles, dep failure counts
-- Unified canonical audit pipeline (merged writeAudit + writeSecurityAudit)
-- All 7 empty catch blocks fixed with structured error logging
-- Zero raw console.* on active request paths (2 documented bootstrap exceptions)
-
-## Key Endpoints
-
-### Public (no auth)
-- GET /api/healthz — Liveness probe (runs before rate limiting + DB)
-- GET /api/readyz — Readiness probe (checks MongoDB + Redis)
-
-### Admin Only
-- GET /api/ops/health — Deep dependency health (mongodb, redis, rateLimiter, moderation, storage, audit)
-- GET /api/ops/metrics — Full observability metrics + business counts
-- GET /api/ops/slis — SLI dashboard (error rate, p50/p95/p99 latency)
-- GET /api/ops/backup-check — Database backup readiness check
-
-## Known Limitations (Exception Register)
-1. Metrics are in-memory only (per-instance). Redis-backed deferred to Stage 10.
-2. Rate limiting falls back to in-memory when Redis is down. STRICT tiers use 50% limits.
-3. 2 console.log statements in realtime.js startup (documented bootstrap exception).
-4. ioredis unhandled error events from cache.js/realtime.js (pre-existing).
-5. No OpenTelemetry (overkill for monolith; requestId provides correlation).
-6. Legacy token-in-URL pattern in stories.js (noted in Stage 2).
+- SLI dashboard (/ops/slis)
+- Unified canonical audit pipeline (PII masking, auto-context)
 
 ## Key Files
+- `/app/lib/request-context.js` — AsyncLocalStorage correlation
 - `/app/lib/logger.js` — Structured JSON logger
 - `/app/lib/metrics.js` — In-memory metrics collector
 - `/app/lib/health.js` — Three-tier health checks
 - `/app/lib/security.js` — Rate limiting, sanitization, canonical audit
 - `/app/app/api/[[...path]]/route.js` — Central gateway with observability wrapper
 - `/app/lib/auth-utils.js` — Token/session logic, writeAudit wrapper
-- `/app/lib/db.js` — MongoDB connection + indexes
+
+## Known Limitations
+1. Metrics are in-memory only (per-instance). Redis-backed deferred to Stage 10.
+2. 1995 legacy audit entries lack requestId/category (forward-only migration).
+3. Redis reconnect not live-tested (no Redis in test env).
+4. ioredis unhandled error spam from cache.js/realtime.js (pre-existing).
+5. 2 console.log [Bootstrap] in realtime.js (documented exception).
+6. No startup probe, no event loop lag metric (deferred to Stage 10).
 
 ## Prioritized Backlog
 
 ### P0: Next Up
-- **Stage 4**: Test Pyramid + CI Gate v1 (unit/integration tests)
+- **Stage 4**: Test Pyramid + CI Gate v1
 
 ### P1: Planned
-- **Stage 5**: Scalability Foundation Refactor (service/repository layers)
+- **Stage 5**: Scalability Foundation Refactor
 - **Stage 6**: Async Backbone + Job System + CQRS-lite
 - **Stage 7**: Real-Time Reliability Layer
 
