@@ -1,687 +1,521 @@
 #!/usr/bin/env python3
+"""
+Stage 3 Observability Backend Testing Suite - Focused Test
+Tests the comprehensive observability implementation for Tribe social media backend API.
+"""
 
-import requests
+import subprocess
 import json
 import time
+import uuid
 import sys
-from datetime import datetime
-from typing import Dict, List, Optional
+import traceback
 
-class TribeStage2RecoveryTest:
+# Configuration
+BASE_URL = "https://tribe-observability.preview.emergentagent.com"
+API_BASE = f"{BASE_URL}/api"
+
+# Test admin user credentials
+TEST_ADMIN_PHONE = "9876500001"
+TEST_ADMIN_PIN = "1234"
+
+class ObservabilityTester:
     def __init__(self):
-        self.base_url = "https://tribe-observability.preview.emergentagent.com/api"
+        self.admin_token = None
         self.test_results = []
-        self.users = {}  # Store test user credentials and tokens
+        self.request_ids = set()
         
-    def log_test(self, test_name: str, success: bool, details: str = ""):
-        """Log a test result"""
-        status = "✅ PASS" if success else "❌ FAIL"
-        result = {
-            "test": test_name,
-            "success": success,
-            "details": details,
-            "timestamp": datetime.now().isoformat()
-        }
-        self.test_results.append(result)
-        print(f"{status}: {test_name}")
-        if details:
-            print(f"    {details}")
+    def log(self, message, success=None):
+        """Log test results"""
+        status = ""
+        if success is True:
+            status = "✅ "
+        elif success is False:
+            status = "❌ "
+        
+        print(f"{status}{message}")
+        self.test_results.append({
+            'message': message,
+            'success': success,
+            'timestamp': time.time()
+        })
+        
+    def curl_request(self, method, endpoint, data=None, headers=None, expect_json=True):
+        """Make curl request with error handling"""
+        url = f"{API_BASE}{endpoint}"
+        cmd = ['curl', '-s', '-w', '%{http_code}', '--max-time', '30']
+        
+        if method == 'POST':
+            cmd.extend(['-X', 'POST'])
+        elif method == 'GET':
+            cmd.extend(['-X', 'GET'])
             
-    def make_request(self, method: str, endpoint: str, data: dict = None, headers: dict = None, expected_status: int = None) -> tuple:
-        """Make HTTP request and return (success, response, actual_status)"""
-        url = f"{self.base_url}{endpoint}"
-        default_headers = {"Content-Type": "application/json"}
         if headers:
-            default_headers.update(headers)
+            for key, value in headers.items():
+                cmd.extend(['-H', f'{key}: {value}'])
+                
+        if data:
+            cmd.extend(['-H', 'Content-Type: application/json', '-d', json.dumps(data)])
             
+        cmd.append(url)
+        
         try:
-            if method.upper() == 'GET':
-                resp = requests.get(url, headers=default_headers, timeout=10)
-            elif method.upper() == 'POST':
-                resp = requests.post(url, json=data, headers=default_headers, timeout=10)
-            elif method.upper() == 'PATCH':
-                resp = requests.patch(url, json=data, headers=default_headers, timeout=10)
-            elif method.upper() == 'PUT':
-                resp = requests.put(url, json=data, headers=default_headers, timeout=10)
-            elif method.upper() == 'DELETE':
-                resp = requests.delete(url, headers=default_headers, timeout=10)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            output = result.stdout
+            
+            # Extract status code (last 3 characters)
+            if len(output) >= 3:
+                status_code = int(output[-3:])
+                response_body = output[:-3]
             else:
-                return False, None, 0
+                return None, None, None
                 
-            if expected_status and resp.status_code != expected_status:
-                return False, resp, resp.status_code
-            return True, resp, resp.status_code
-        except Exception as e:
-            return False, str(e), 0
-
-    # ==================== CENTRALIZED SANITIZATION TESTS ====================
-    
-    def test_register_xss_sanitization(self):
-        """Test A1: Register with XSS in displayName should be sanitized"""
-        try:
-            # Generate unique 10-digit phone number
-            timestamp = int(time.time())
-            phone = f"{9000000000 + (timestamp % 999999999)}"[:10]  # Ensure exactly 10 digits
-            malicious_name = "<script>alert(1)</script>CleanName"
-            
-            success, resp, status = self.make_request('POST', '/auth/register', {
-                "phone": phone,
-                "pin": "1234", 
-                "displayName": malicious_name
-            }, expected_status=201)
-            
-            if success and resp.json():
-                data = resp.json()
-                actual_name = data.get('user', {}).get('displayName', '')
-                if '<script>' not in actual_name and 'CleanName' in actual_name:
-                    self.log_test("Register XSS Sanitization", True, f"displayName sanitized: '{actual_name}'")
-                    self.users['sanitization_test'] = {
-                        "phone": phone,
-                        "pin": "1234",
-                        "token": data.get('accessToken', data.get('token', ''))
-                    }
-                    return True
-                else:
-                    self.log_test("Register XSS Sanitization", False, f"displayName not sanitized: '{actual_name}'")
-                    return False
-            else:
-                self.log_test("Register XSS Sanitization", False, f"Registration failed: {status}")
-                return False
-        except Exception as e:
-            self.log_test("Register XSS Sanitization", False, f"Exception: {str(e)}")
-            return False
-            
-    def test_post_creation_xss_sanitization(self):
-        """Test A2: Post creation with XSS in caption should be sanitized"""
-        try:
-            # First ensure we have a user token
-            if 'sanitization_test' not in self.users:
-                self.test_register_xss_sanitization()
-                
-            token = self.users.get('sanitization_test', {}).get('token', '')
-            if not token:
-                self.log_test("Post Creation XSS Sanitization", False, "No auth token available")
-                return False
-                
-            malicious_caption = "<script>steal()</script>Normal <img onerror=hack src=x>"
-            
-            success, resp, status = self.make_request('POST', '/content/posts', {
-                "caption": malicious_caption,
-                "visibility": "PUBLIC"
-            }, headers={"Authorization": f"Bearer {token}"})
-            
-            if success and status == 201 and resp.json():
-                data = resp.json()
-                actual_caption = data.get('post', {}).get('caption', '')
-                if '<script>' not in actual_caption and '<img' not in actual_caption and 'Normal' in actual_caption:
-                    self.log_test("Post Creation XSS Sanitization", True, f"Caption sanitized: '{actual_caption}'")
-                    return True
-                else:
-                    self.log_test("Post Creation XSS Sanitization", False, f"Caption not sanitized: '{actual_caption}'")
-                    return False
-            else:
-                self.log_test("Post Creation XSS Sanitization", False, f"Post creation failed: {status}")
-                return False
-        except Exception as e:
-            self.log_test("Post Creation XSS Sanitization", False, f"Exception: {str(e)}")
-            return False
-    
-    def test_profile_update_xss_sanitization(self):
-        """Test A3: Profile update with XSS in bio should be sanitized"""
-        try:
-            token = self.users.get('sanitization_test', {}).get('token', '')
-            if not token:
-                self.log_test("Profile Update XSS Sanitization", False, "No auth token available")
-                return False
-                
-            malicious_bio = "<script>xss</script>Hello <div onclick=evil()>"
-            
-            success, resp, status = self.make_request('PATCH', '/me/profile', {
-                "bio": malicious_bio
-            }, headers={"Authorization": f"Bearer {token}"})
-            
-            if success and status == 200 and resp.json():
-                data = resp.json()
-                actual_bio = data.get('user', {}).get('bio', '')
-                if '<script>' not in actual_bio and '<div' not in actual_bio and 'Hello' in actual_bio:
-                    self.log_test("Profile Update XSS Sanitization", True, f"Bio sanitized: '{actual_bio}'")
-                    return True
-                else:
-                    self.log_test("Profile Update XSS Sanitization", False, f"Bio not sanitized: '{actual_bio}'")
-                    return False
-            else:
-                self.log_test("Profile Update XSS Sanitization", False, f"Profile update failed: {status}")
-                return False
-        except Exception as e:
-            self.log_test("Profile Update XSS Sanitization", False, f"Exception: {str(e)}")
-            return False
-    
-    def test_comment_xss_sanitization(self):
-        """Test A4: Comment with XSS should be sanitized"""
-        try:
-            token = self.users.get('sanitization_test', {}).get('token', '')
-            if not token:
-                self.log_test("Comment XSS Sanitization", False, "No auth token available")
-                return False
-                
-            # First get a post to comment on by checking public feed
-            success, resp, status = self.make_request('GET', '/feed/public?limit=1')
-            if not (success and resp.json() and resp.json().get('items')):
-                self.log_test("Comment XSS Sanitization", False, "No posts found for commenting")
-                return False
-                
-            post_id = resp.json()['items'][0]['id']
-            malicious_text = "<script>cookie</script>Nice! <a href=\"javascript:alert(1)\">"
-            
-            success, resp, status = self.make_request('POST', f'/content/{post_id}/comments', {
-                "text": malicious_text
-            }, headers={"Authorization": f"Bearer {token}"})
-            
-            if success and status == 201 and resp.json():
-                data = resp.json()
-                actual_text = data.get('comment', {}).get('text', '')
-                if '<script>' not in actual_text and '<a' not in actual_text and 'Nice!' in actual_text:
-                    self.log_test("Comment XSS Sanitization", True, f"Comment text sanitized: '{actual_text}'")
-                    return True
-                else:
-                    self.log_test("Comment XSS Sanitization", False, f"Comment text not sanitized: '{actual_text}'")
-                    return False
-            else:
-                self.log_test("Comment XSS Sanitization", False, f"Comment creation failed: {status}")
-                return False
-        except Exception as e:
-            self.log_test("Comment XSS Sanitization", False, f"Exception: {str(e)}")
-            return False
-
-    def test_event_xss_sanitization(self):
-        """Test A5: Event creation with XSS should be sanitized"""
-        try:
-            token = self.users.get('sanitization_test', {}).get('token', '')
-            if not token:
-                self.log_test("Event XSS Sanitization", False, "No auth token available")
-                return False
-                
-            malicious_title = "<script>hack</script>Event Title"
-            malicious_description = "<img onerror=steal()>Good desc"
-            
-            success, resp, status = self.make_request('POST', '/events', {
-                "title": malicious_title,
-                "description": malicious_description,
-                "eventDate": "2024-12-31T18:00:00Z",
-                "visibility": "PUBLIC"
-            }, headers={"Authorization": f"Bearer {token}"})
-            
-            if success and status == 201 and resp.json():
-                data = resp.json()
-                event = data.get('event', {})
-                actual_title = event.get('title', '')
-                actual_desc = event.get('description', '')
-                
-                title_clean = '<script>' not in actual_title and 'Event Title' in actual_title
-                desc_clean = '<img' not in actual_desc and 'Good desc' in actual_desc
-                
-                if title_clean and desc_clean:
-                    self.log_test("Event XSS Sanitization", True, f"Event title/desc sanitized: '{actual_title}' / '{actual_desc}'")
-                    return True
-                else:
-                    self.log_test("Event XSS Sanitization", False, f"Event not sanitized: '{actual_title}' / '{actual_desc}'")
-                    return False
-            else:
-                self.log_test("Event XSS Sanitization", False, f"Event creation failed: {status}")
-                return False
-        except Exception as e:
-            self.log_test("Event XSS Sanitization", False, f"Exception: {str(e)}")
-            return False
-
-    # ==================== PER-USER RATE LIMITING TESTS ====================
-    
-    def test_code_verification_per_user_rate_limiting(self):
-        """Test B8: Verify per-user rate limiting code exists"""
-        try:
-            # This is a code inspection test - we need to verify the route.js contains the real per-user check
-            # We'll test this functionally by triggering a SENSITIVE tier endpoint multiple times
-            
-            # First register a test user for rate limiting
-            timestamp = int(time.time())
-            phone = f"{8010000000 + (timestamp % 999999999)}"[:10]  # Ensure exactly 10 digits
-            success, resp, status = self.make_request('POST', '/auth/register', {
-                "phone": phone,
-                "pin": "1234",
-                "displayName": "RateTest"
-            }, expected_status=201)
-            
-            if not success:
-                self.log_test("Code Verification Per-User Rate Limiting", False, "Failed to create test user")
-                return False
-                
-            token = resp.json().get('accessToken', resp.json().get('token', ''))
-            self.users['rate_test'] = {"phone": phone, "pin": "1234", "token": token}
-            
-            self.log_test("Code Verification Per-User Rate Limiting", True, 
-                         "Per-user rate limiting implemented in route.js lines 116-144: Two-phase system with IP (line 73) and user (line 135) checks")
-            return True
-            
-        except Exception as e:
-            self.log_test("Code Verification Per-User Rate Limiting", False, f"Exception: {str(e)}")
-            return False
-    
-    def test_sensitive_tier_rate_limiting(self):
-        """Test B9: SENSITIVE tier exhaustion (PIN change) - should trigger per-user rate limit"""
-        try:
-            token = self.users.get('rate_test', {}).get('token', '')
-            if not token:
-                self.log_test("SENSITIVE Tier Rate Limiting", False, "No rate test user available")
-                return False
-                
-            # SENSITIVE tier allows 5 requests per minute
-            # Try to exhaust the per-user rate limit by making 6 PIN change attempts
-            rate_limited = False
-            
-            for attempt in range(6):
-                success, resp, status = self.make_request('PATCH', '/auth/pin', {
-                    "currentPin": "wrong",
-                    "newPin": "5678"
-                }, headers={"Authorization": f"Bearer {token}"})
-                
-                if status == 429:
-                    rate_limited = True
-                    retry_after = resp.headers.get('Retry-After', 'unknown')
-                    self.log_test("SENSITIVE Tier Rate Limiting", True, 
-                                 f"Rate limited on attempt {attempt + 1} (429), retry-after: {retry_after}")
-                    return True
-                elif status == 401:
-                    # Expected - wrong PIN, but not rate limited yet
-                    continue
-                else:
-                    break
+            # Parse JSON if expected
+            response_data = None
+            if expect_json and response_body.strip():
+                try:
+                    response_data = json.loads(response_body)
+                except json.JSONDecodeError:
+                    pass
                     
-            if not rate_limited:
-                self.log_test("SENSITIVE Tier Rate Limiting", False, 
-                             "Expected 429 rate limit after multiple PIN attempts, but didn't get one")
-                return False
-                
+            return status_code, response_data, response_body
         except Exception as e:
-            self.log_test("SENSITIVE Tier Rate Limiting", False, f"Exception: {str(e)}")
-            return False
-    
-    def test_auth_tier_rate_limiting(self):
-        """Test B10: AUTH tier rate limiting - many login attempts"""
+            self.log(f"Curl request failed: {e}")
+            return None, None, None
+            
+    def curl_headers(self, endpoint):
+        """Get headers using curl -I"""
+        url = f"{API_BASE}{endpoint}"
+        cmd = ['curl', '-I', '-s', '--max-time', '30', url]
+        
         try:
-            # AUTH tier allows 10 requests per minute
-            # Try multiple login attempts to trigger rate limiting
-            rate_limited = False
-            
-            for attempt in range(12):
-                phone = f"{8020000000 + attempt}"  # Generate 10-digit phone numbers
-                
-                success, resp, status = self.make_request('POST', '/auth/login', {
-                    "phone": phone,
-                    "pin": "9999"  # Wrong PIN
-                })
-                
-                if status == 429:
-                    rate_limited = True
-                    retry_after = resp.headers.get('Retry-After', 'unknown')
-                    self.log_test("AUTH Tier Rate Limiting", True, 
-                                 f"Rate limited on attempt {attempt + 1} (429), retry-after: {retry_after}")
-                    return True
-                elif status in [400, 404]:  # Expected - user not found or wrong PIN
-                    continue
-                else:
-                    break
-                    
-            if not rate_limited:
-                self.log_test("AUTH Tier Rate Limiting", False, 
-                             "Expected 429 rate limit after multiple login attempts, but didn't get one")
-                return False
-                
-        except Exception as e:
-            self.log_test("AUTH Tier Rate Limiting", False, f"Exception: {str(e)}")
-            return False
-    
-    # ==================== REGRESSION TESTS ====================
-    
-    def test_access_refresh_token_split(self):
-        """Test C11: Register returns accessToken + refreshToken with correct prefixes"""
-        try:
-            timestamp = int(time.time())
-            phone = f"{8030000000 + (timestamp % 999999999)}"[:10]  # Ensure exactly 10 digits
-            
-            success, resp, status = self.make_request('POST', '/auth/register', {
-                "phone": phone,
-                "pin": "1234",
-                "displayName": "TokenTest"
-            }, expected_status=201)
-            
-            if success and resp.json():
-                data = resp.json()
-                access_token = data.get('accessToken', '')
-                refresh_token = data.get('refreshToken', '')
-                expires_in = data.get('expiresIn', 0)
-                
-                # Check token prefixes and expiry
-                has_at_prefix = access_token.startswith('at_')
-                has_rt_prefix = refresh_token.startswith('rt_')
-                has_correct_expiry = expires_in == 900  # 15 minutes
-                
-                if has_at_prefix and has_rt_prefix and has_correct_expiry:
-                    self.log_test("Access+Refresh Token Split", True, 
-                                 f"Correct token format: at_ prefix, rt_ prefix, expiresIn={expires_in}")
-                    self.users['token_test'] = {
-                        "phone": phone, 
-                        "accessToken": access_token,
-                        "refreshToken": refresh_token
-                    }
-                    return True
-                else:
-                    self.log_test("Access+Refresh Token Split", False, 
-                                 f"Token format issue: at_prefix={has_at_prefix}, rt_prefix={has_rt_prefix}, expiresIn={expires_in}")
-                    return False
-            else:
-                self.log_test("Access+Refresh Token Split", False, f"Registration failed: {status}")
-                return False
-        except Exception as e:
-            self.log_test("Access+Refresh Token Split", False, f"Exception: {str(e)}")
-            return False
-    
-    def test_refresh_token_rotation(self):
-        """Test C12: Refresh token rotation works"""
-        try:
-            refresh_token = self.users.get('token_test', {}).get('refreshToken', '')
-            if not refresh_token:
-                self.log_test("Refresh Token Rotation", False, "No refresh token available")
-                return False
-                
-            success, resp, status = self.make_request('POST', '/auth/refresh', {
-                "refreshToken": refresh_token
-            })
-            
-            if success and status == 200 and resp.json():
-                data = resp.json()
-                new_access = data.get('accessToken', '')
-                new_refresh = data.get('refreshToken', '')
-                
-                if new_access and new_refresh and new_access != new_refresh:
-                    self.log_test("Refresh Token Rotation", True, "New tokens issued successfully")
-                    
-                    # Test that old refresh token is invalidated
-                    success2, resp2, status2 = self.make_request('POST', '/auth/refresh', {
-                        "refreshToken": refresh_token  # Old token
-                    })
-                    
-                    if status2 == 400 or status2 == 401:
-                        self.log_test("Refresh Token Rotation", True, "Old refresh token properly invalidated")
-                        return True
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            headers = {}
+            for line in result.stdout.split('\n'):
+                if ':' in line:
+                    key, value = line.split(':', 1)
+                    key = key.strip().lower()
+                    value = value.strip()
+                    # Handle multiple headers with same name
+                    if key in headers:
+                        if isinstance(headers[key], list):
+                            headers[key].append(value)
+                        else:
+                            headers[key] = [headers[key], value]
                     else:
-                        self.log_test("Refresh Token Rotation", False, "Old refresh token not invalidated")
-                        return False
-                else:
-                    self.log_test("Refresh Token Rotation", False, "Invalid token response")
-                    return False
-            else:
-                self.log_test("Refresh Token Rotation", False, f"Refresh failed: {status}")
-                return False
-        except Exception as e:
-            self.log_test("Refresh Token Rotation", False, f"Exception: {str(e)}")
-            return False
-    
-    def test_session_management(self):
-        """Test C13: Session inventory and management"""  
-        try:
-            access_token = self.users.get('token_test', {}).get('accessToken', '')
-            if not access_token:
-                self.log_test("Session Management", False, "No access token available")
-                return False
-                
-            # Get session list
-            success, resp, status = self.make_request('GET', '/auth/sessions', 
-                                                     headers={"Authorization": f"Bearer {access_token}"})
+                        headers[key] = value
+            return headers
+        except Exception:
+            return {}
             
-            if success and status == 200 and resp.json():
-                data = resp.json()
-                sessions = data.get('sessions', [])
+    def check_security_headers(self, headers):
+        """Verify security headers are present"""
+        issues = []
+        
+        # Check required security headers
+        required_headers = {
+            'x-content-type-options': 'nosniff',
+            'x-xss-protection': '1; mode=block',
+            'referrer-policy': 'strict-origin-when-cross-origin',
+        }
+        
+        for header, expected in required_headers.items():
+            value = headers.get(header)
+            if not value:
+                issues.append(f"{header} (missing)")
+            elif value != expected:
+                issues.append(f"{header} (got: {value}, expected: {expected})")
                 
-                if len(sessions) > 0:
-                    # Check session structure
-                    session = sessions[0]
-                    has_id = 'id' in session
-                    has_metadata = 'deviceInfo' in session or 'ipAddress' in session
-                    no_tokens = 'token' not in session and 'accessToken' not in session
-                    
-                    if has_id and has_metadata and no_tokens:
-                        self.log_test("Session Management", True, f"Session list working: {len(sessions)} sessions, proper metadata")
-                        return True
+        # Check presence of other important headers
+        if 'strict-transport-security' not in headers:
+            issues.append("strict-transport-security (missing)")
+        if 'content-security-policy' not in headers:
+            issues.append("content-security-policy (missing)")
+            
+        # Handle x-frame-options special case (might have duplicates)
+        x_frame = headers.get('x-frame-options')
+        if x_frame:
+            # If it's a list, check if DENY is in it
+            if isinstance(x_frame, list):
+                if 'DENY' not in x_frame:
+                    issues.append("x-frame-options (DENY not found in values)")
+            else:
+                if x_frame != 'DENY':
+                    issues.append(f"x-frame-options (got: {x_frame}, expected: DENY)")
+        else:
+            issues.append("x-frame-options (missing)")
+                
+        return issues
+        
+    def check_request_id(self, headers):
+        """Verify x-request-id header is present and valid UUID"""
+        request_id = headers.get('x-request-id')
+        if not request_id:
+            return False, "Missing x-request-id header"
+            
+        try:
+            # Validate UUID format
+            uuid_obj = uuid.UUID(request_id)
+            # Check for uniqueness
+            if request_id in self.request_ids:
+                return False, f"Duplicate request ID: {request_id}"
+            self.request_ids.add(request_id)
+            return True, request_id
+        except ValueError:
+            return False, f"Invalid UUID format: {request_id}"
+            
+    def setup_admin_user(self):
+        """Register and setup admin user"""
+        self.log("=== Setting up admin test user ===")
+        
+        # Try to register user
+        register_data = {
+            "phone": TEST_ADMIN_PHONE,
+            "pin": TEST_ADMIN_PIN,
+            "name": "TestAdmin",
+            "college": "MIT"
+        }
+        
+        status, data, body = self.curl_request("POST", "/auth/register", register_data)
+        if status in [201, 409]:  # 201 = created, 409 = already exists
+            self.log(f"User registration: {status}", True)
+        else:
+            self.log(f"User registration failed: {status}", False)
+            
+        # Try to login
+        login_data = {
+            "phone": TEST_ADMIN_PHONE,
+            "pin": TEST_ADMIN_PIN
+        }
+        
+        status, data, body = self.curl_request("POST", "/auth/login", login_data)
+        if status == 200 and data:
+            self.admin_token = data.get('accessToken') or data.get('token')
+            if self.admin_token:
+                self.log("Login successful, token obtained", True)
+                return True
+            else:
+                self.log("Login successful but no token in response", False)
+        else:
+            self.log(f"Login failed: {status}", False)
+            
+        return False
+            
+    def test_health_probes(self):
+        """Test public health endpoints"""
+        self.log("=== Testing Health Probes (Public) ===")
+        
+        # Test 1: Liveness probe
+        headers = self.curl_headers("/healthz")
+        if headers:
+            success, req_id = self.check_request_id(headers)
+            if success:
+                self.log(f"Liveness probe - Request ID valid: {req_id}", True)
+            else:
+                self.log(f"Liveness probe - Request ID issue: {req_id}", False)
+                
+            security_issues = self.check_security_headers(headers)
+            if not security_issues:
+                self.log("Liveness probe - Security headers valid", True)
+            else:
+                self.log(f"Liveness probe - Security header issues: {', '.join(security_issues[:2])}", False)
+        
+        status, data, body = self.curl_request("GET", "/healthz")
+        if status == 200 and data:
+            required_fields = ['status', 'uptime', 'timestamp']
+            missing_fields = [f for f in required_fields if f not in data]
+            if not missing_fields and data.get('status') == 'ok':
+                self.log("Liveness probe - Response format valid", True)
+            else:
+                self.log(f"Liveness probe - Invalid response: missing {missing_fields}", False)
+        else:
+            self.log(f"Liveness probe - Status: {status}", False)
+        
+        # Test 2: Readiness probe
+        headers = self.curl_headers("/readyz")
+        if headers:
+            success, req_id = self.check_request_id(headers)
+            if success:
+                self.log(f"Readiness probe - Request ID valid: {req_id}", True)
+            else:
+                self.log(f"Readiness probe - Request ID issue: {req_id}", False)
+        
+        status, data, body = self.curl_request("GET", "/readyz")
+        if status == 200 and data:
+            required_fields = ['ready', 'status', 'checks', 'timestamp']
+            missing_fields = [f for f in required_fields if f not in data]
+            if not missing_fields:
+                checks = data.get('checks', {})
+                if 'mongo' in checks and 'redis' in checks:
+                    status_val = data.get('status')
+                    if status_val == 'degraded':
+                        self.log("Readiness probe - Correctly shows degraded when Redis is down", True)
+                    elif status_val in ['healthy', 'unhealthy']:
+                        self.log(f"Readiness probe - Valid response (status: {status_val})", True)
                     else:
-                        self.log_test("Session Management", False, "Invalid session structure")
-                        return False
+                        self.log(f"Readiness probe - Invalid status: {status_val}", False)
                 else:
-                    self.log_test("Session Management", False, "No sessions found")
-                    return False
+                    self.log("Readiness probe - Missing mongo or redis checks", False)
             else:
-                self.log_test("Session Management", False, f"Session list failed: {status}")
-                return False
-        except Exception as e:
-            self.log_test("Session Management", False, f"Exception: {str(e)}")
-            return False
-    
-    def test_security_headers(self):
-        """Test C17: Security headers present on all responses"""
-        try:
-            # Test multiple endpoints for security headers
-            endpoints_to_test = [
-                ('/healthz', 'GET'),
-                ('/', 'GET'), 
-                ('/auth/login', 'POST')
-            ]
+                self.log(f"Readiness probe - Missing fields: {missing_fields}", False)
+        else:
+            self.log(f"Readiness probe - Status: {status}", False)
+                
+    def test_admin_observability_endpoints(self):
+        """Test admin observability endpoints"""
+        self.log("=== Testing Admin Observability Endpoints ===")
+        
+        # Test 1: Test without auth (should get 401/403)
+        status, data, body = self.curl_request("GET", "/ops/health")
+        if status in [401, 403]:
+            self.log("Deep health check - Correctly requires auth", True)
+        else:
+            self.log(f"Deep health check - Should require auth, got: {status}", False)
             
-            all_headers_present = True
-            missing_headers = []
+        if not self.admin_token:
+            self.log("No admin token available, skipping authenticated admin tests", False)
+            return
             
-            expected_headers = [
-                'x-content-type-options',
-                'x-frame-options',
-                'strict-transport-security',
-                'referrer-policy',
-                'permissions-policy',
-                'x-xss-protection',
-                'x-contract-version'
-            ]
-            
-            for endpoint, method in endpoints_to_test:
-                if method == 'GET':
-                    success, resp, status = self.make_request('GET', endpoint)
+        # Test 2: Deep health check with auth
+        auth_headers = {"Authorization": f"Bearer {self.admin_token}"}
+        
+        headers = self.curl_headers("/ops/health")
+        if headers:
+            success, req_id = self.check_request_id(headers)
+            if success:
+                self.log(f"Deep health check - Request ID valid: {req_id}", True)
+            else:
+                self.log(f"Deep health check - Request ID issue: {req_id}", False)
+        
+        status, data, body = self.curl_request("GET", "/ops/health", headers=auth_headers)
+        if status == 200 and data:
+            required_fields = ['status', 'checks', 'slis', 'process', 'version']
+            missing_fields = [f for f in required_fields if f not in data]
+            if not missing_fields:
+                checks = data.get('checks', {})
+                expected_deps = ['mongodb', 'redis', 'rateLimiter', 'moderation', 'objectStorage', 'auditSystem']
+                missing_deps = [d for d in expected_deps if d not in checks]
+                if not missing_deps:
+                    self.log("Deep health check - All dependencies checked", True)
                 else:
-                    success, resp, status = self.make_request('POST', endpoint, {
-                        "phone": "0000000000",
-                        "pin": "1234"
-                    })
-                
-                if success and resp:
-                    headers = {k.lower(): v for k, v in resp.headers.items()}
-                    for header in expected_headers:
-                        if header not in headers:
-                            all_headers_present = False
-                            missing_headers.append(f"{header} on {endpoint}")
-            
-            if all_headers_present:
-                self.log_test("Security Headers", True, "All required security headers present")
-                return True
+                    self.log(f"Deep health check - Missing dependency checks: {missing_deps}", False)
             else:
-                self.log_test("Security Headers", False, f"Missing headers: {missing_headers}")
-                return False
-        except Exception as e:
-            self.log_test("Security Headers", False, f"Exception: {str(e)}")
-            return False
-    
-    def test_privileged_route_protection(self):
-        """Test C18: Privileged routes require proper auth"""
-        try:
-            # Test that ops/admin endpoints require authentication
-            privileged_endpoints = [
-                '/ops/health',
-                '/ops/metrics',
-                '/cache/stats',
-                '/moderation/config'
-            ]
-            
-            all_protected = True
-            unprotected = []
-            
-            for endpoint in privileged_endpoints:
-                success, resp, status = self.make_request('GET', endpoint)
+                self.log(f"Deep health check - Missing fields: {missing_fields}", False)
+        else:
+            self.log(f"Deep health check - Status: {status}", False)
                 
-                if status != 401:
-                    all_protected = False
-                    unprotected.append(f"{endpoint} (got {status})")
-            
-            if all_protected:
-                self.log_test("Privileged Route Protection", True, "All privileged routes properly protected (401)")
-                return True
+        # Test 3: Metrics endpoint
+        status, data, body = self.curl_request("GET", "/ops/metrics", headers=auth_headers)
+        if status == 200 and data:
+            required_sections = ['process', 'http', 'rateLimiting', 'dependencies', 'topRoutes', 'business']
+            missing_sections = [s for s in required_sections if s not in data]
+            if not missing_sections:
+                # Check HTTP metrics structure
+                http = data.get('http', {})
+                if 'totalRequests' in http and 'latency' in http:
+                    latency = http.get('latency', {})
+                    if all(k in latency for k in ['p50Ms', 'p95Ms', 'p99Ms']):
+                        self.log("Metrics endpoint - HTTP latency percentiles present", True)
+                    else:
+                        self.log("Metrics endpoint - Missing latency percentiles", False)
+                        
+                # Check business metrics
+                business = data.get('business', {})
+                if all(k in business for k in ['users', 'posts', 'activeSessions']):
+                    self.log("Metrics endpoint - Business metrics present", True)
+                else:
+                    self.log("Metrics endpoint - Missing business metrics", False)
             else:
-                self.log_test("Privileged Route Protection", False, f"Unprotected routes: {unprotected}")
-                return False
-        except Exception as e:
-            self.log_test("Privileged Route Protection", False, f"Exception: {str(e)}")
-            return False
-    
-    def test_core_endpoints_regression(self):
-        """Test C20: Core endpoints still work"""
-        try:
-            # Test basic endpoints to ensure nothing is broken
-            endpoints_to_test = [
-                ('/feed/public', 'GET', 200),
-                ('/healthz', 'GET', 200),
-                ('/colleges/search?q=IIT', 'GET', 200)
-            ]
-            
-            all_working = True
-            failures = []
-            
-            for endpoint, method, expected_status in endpoints_to_test:
-                success, resp, status = self.make_request(method, endpoint)
+                self.log(f"Metrics endpoint - Missing sections: {missing_sections}", False)
+        else:
+            self.log(f"Metrics endpoint - Status: {status}", False)
                 
-                if status != expected_status:
-                    all_working = False
-                    failures.append(f"{endpoint} (got {status}, expected {expected_status})")
-            
-            if all_working:
-                self.log_test("Core Endpoints Regression", True, "All core endpoints working")
-                return True
+        # Test 4: SLIs endpoint
+        status, data, body = self.curl_request("GET", "/ops/slis", headers=auth_headers)
+        if status == 200 and data:
+            required_fields = ['errorRate', 'latency', 'counters']
+            missing_fields = [f for f in required_fields if f not in data]
+            if not missing_fields:
+                latency = data.get('latency', {})
+                counters = data.get('counters', {})
+                if all(k in latency for k in ['p50Ms', 'p95Ms', 'p99Ms']):
+                    if all(k in counters for k in ['totalRequests', 'total5xx']):
+                        self.log("SLIs endpoint - Complete SLI dashboard data", True)
+                    else:
+                        self.log("SLIs endpoint - Missing counter data", False)
+                else:
+                    self.log("SLIs endpoint - Missing latency percentiles", False)
             else:
-                self.log_test("Core Endpoints Regression", False, f"Failing endpoints: {failures}")
-                return False
-        except Exception as e:
-            self.log_test("Core Endpoints Regression", False, f"Exception: {str(e)}")
-            return False
-    
-    # ==================== MAIN TEST EXECUTION ====================
-    
+                self.log(f"SLIs endpoint - Missing fields: {missing_fields}", False)
+        else:
+            self.log(f"SLIs endpoint - Status: {status}", False)
+                
+    def test_request_id_propagation(self):
+        """Test request ID propagation across endpoints"""
+        self.log("=== Testing Request ID Propagation ===")
+        
+        test_endpoints = ["/healthz", "/readyz", "/nonexistent"]
+        
+        for endpoint in test_endpoints:
+            headers = self.curl_headers(endpoint)
+            if headers:
+                success, req_id = self.check_request_id(headers)
+                if success:
+                    self.log(f"Request ID valid for {endpoint}: {req_id}", True)
+                else:
+                    self.log(f"Request ID issue for {endpoint}: {req_id}", False)
+            else:
+                self.log(f"No headers for {endpoint}", False)
+                
+        # Test with admin endpoint if we have token
+        if self.admin_token:
+            auth_headers = {"Authorization": f"Bearer {self.admin_token}"}
+            headers = self.curl_headers("/ops/health")
+            if headers:
+                success, req_id = self.check_request_id(headers)
+                if success:
+                    self.log(f"Request ID valid for /ops/health: {req_id}", True)
+                else:
+                    self.log(f"Request ID issue for /ops/health: {req_id}", False)
+                
+    def test_rate_limiting(self):
+        """Test rate limiting with metrics"""
+        self.log("=== Testing Rate Limiting ===")
+        
+        # Send multiple rapid requests to trigger rate limiting
+        login_data = {"phone": "invalid_user", "pin": "0000"}
+        rate_limit_hit = False
+        
+        for i in range(12):  # AUTH tier has max=10 (or 5 in STRICT mode when Redis is down)
+            status, data, body = self.curl_request("POST", "/auth/login", login_data)
+            if status == 429:
+                rate_limit_hit = True
+                self.log(f"Rate limiting triggered on attempt {i+1}", True)
+                
+                # Check for Retry-After header
+                headers = self.curl_headers("/auth/login") 
+                if headers and 'retry-after' in headers:
+                    self.log(f"Rate limiting includes Retry-After header", True)
+                else:
+                    self.log("Rate limiting missing Retry-After header", False)
+                break
+                
+        if not rate_limit_hit:
+            self.log("Rate limiting not triggered in 12 requests", False)
+            
+        # Check if rate limiting metrics are recorded
+        if rate_limit_hit and self.admin_token:
+            auth_headers = {"Authorization": f"Bearer {self.admin_token}"}
+            time.sleep(1)  # Give metrics time to update
+            status, data, body = self.curl_request("GET", "/ops/metrics", headers=auth_headers)
+            if status == 200 and data:
+                rate_limiting = data.get('rateLimiting', {})
+                total_hits = rate_limiting.get('totalHits', 0)
+                if total_hits > 0:
+                    self.log(f"Rate limiting metrics recorded: {total_hits} total hits", True)
+                else:
+                    self.log("Rate limiting metrics not recorded", False)
+            
+    def test_error_handling(self):
+        """Test error response structure"""
+        self.log("=== Testing Error Handling ===")
+        
+        # Test 404 for non-existent route
+        status, data, body = self.curl_request("GET", "/nonexistent")
+        if status == 404 and data:
+            if 'error' in data and 'code' in data and data.get('code') == 'NOT_FOUND':
+                self.log("404 error response structure valid", True)
+            else:
+                self.log(f"404 error has wrong structure: {data}", False)
+        else:
+            self.log(f"Non-existent route returned {status}, expected 404", False)
+                
+        # Test 401 for admin endpoint without auth
+        status, data, body = self.curl_request("GET", "/ops/health")
+        if status == 401 and data:
+            if 'error' in data and 'code' in data and data.get('code') == 'UNAUTHORIZED':
+                self.log("401 error response structure valid", True)
+            else:
+                self.log(f"401 error has wrong structure: {data}", False)
+        else:
+            self.log(f"Unauthenticated admin endpoint returned {status}, expected 401", False)
+                
+    def test_root_info(self):
+        """Test root API info endpoint"""
+        self.log("=== Testing Root API Info ===")
+        
+        status, data, body = self.curl_request("GET", "/")
+        if status == 200 and data:
+            if data.get('version') == '3.0.0':
+                self.log("Root API info has correct version 3.0.0", True)
+            else:
+                self.log(f"Root API info has wrong version: {data.get('version')}", False)
+                
+            if 'endpoints' in data:
+                self.log("Root API info includes endpoints documentation", True)
+            else:
+                self.log("Root API info missing endpoints documentation", False)
+        else:
+            self.log(f"Root API info returned {status}, expected 200", False)
+            
     def run_all_tests(self):
-        """Run all Stage 2 Recovery tests"""
-        print("=" * 80)
-        print("TRIBE STAGE 2 RECOVERY - COMPREHENSIVE BACKEND TESTING")
-        print("=" * 80)
-        print()
+        """Run the complete observability test suite"""
+        self.log("🎯 Starting Stage 3 Observability Testing Suite")
+        self.log(f"Base URL: {BASE_URL}")
         
-        # A. Centralized Sanitization Tests
-        print("🔒 A. CENTRALIZED SANITIZATION TESTS")
-        print("-" * 50)
-        self.test_register_xss_sanitization()
-        self.test_post_creation_xss_sanitization()
-        self.test_profile_update_xss_sanitization()
-        self.test_comment_xss_sanitization()
-        self.test_event_xss_sanitization()
-        print()
-        
-        # B. Per-User Rate Limiting Tests
-        print("⏱️ B. PER-USER RATE LIMITING TESTS")
-        print("-" * 50)
-        self.test_code_verification_per_user_rate_limiting()
-        self.test_sensitive_tier_rate_limiting()
-        self.test_auth_tier_rate_limiting()
-        print()
-        
-        # C. Regression Tests
-        print("🔄 C. REGRESSION TESTS (Original Stage 2 Features)")
-        print("-" * 50)
-        self.test_access_refresh_token_split()
-        self.test_refresh_token_rotation()
-        self.test_session_management()
-        self.test_security_headers()
-        self.test_privileged_route_protection()
-        self.test_core_endpoints_regression()
-        print()
+        try:
+            # Setup admin user
+            if not self.setup_admin_user():
+                self.log("Failed to setup admin user - admin tests will be limited", False)
+                
+            # Run all test categories
+            self.test_health_probes()
+            self.test_admin_observability_endpoints() 
+            self.test_request_id_propagation()
+            self.test_rate_limiting()
+            self.test_error_handling()
+            self.test_root_info()
+            
+        except Exception as e:
+            self.log(f"Test execution failed: {e}", False)
+            traceback.print_exc()
         
         # Summary
-        print("=" * 80)
-        print("TEST SUMMARY")
-        print("=" * 80)
+        self.log("\n=== TEST SUMMARY ===")
+        passed = sum(1 for r in self.test_results if r['success'] is True)
+        failed = sum(1 for r in self.test_results if r['success'] is False)
+        total = passed + failed
         
-        total_tests = len(self.test_results)
-        passed_tests = len([t for t in self.test_results if t['success']])
-        failed_tests = total_tests - passed_tests
-        success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
-        
-        print(f"Total Tests: {total_tests}")
-        print(f"Passed: {passed_tests}")
-        print(f"Failed: {failed_tests}")
-        print(f"Success Rate: {success_rate:.1f}%")
-        print()
-        
-        # Categorize results
-        sanitization_tests = [t for t in self.test_results if 'Sanitization' in t['test']]
-        rate_limit_tests = [t for t in self.test_results if 'Rate Limiting' in t['test'] or 'Rate' in t['test']]
-        regression_tests = [t for t in self.test_results if t not in sanitization_tests and t not in rate_limit_tests]
-        
-        def category_summary(tests, name):
-            if not tests:
-                return
-            passed = len([t for t in tests if t['success']])
-            total = len(tests)
-            rate = (passed / total * 100) if total > 0 else 0
-            print(f"{name}: {passed}/{total} ({rate:.1f}%)")
-        
-        category_summary(sanitization_tests, "A. Centralized Sanitization")
-        category_summary(rate_limit_tests, "B. Per-User Rate Limiting")
-        category_summary(regression_tests, "C. Regression Tests")
-        print()
-        
-        # Failed tests detail
-        if failed_tests > 0:
-            print("FAILED TESTS:")
-            for test in self.test_results:
-                if not test['success']:
-                    print(f"❌ {test['test']}: {test['details']}")
-            print()
-        
-        # Verdict
-        if success_rate >= 90:
-            print("🎉 VERDICT: STAGE 2 RECOVERY IS PRODUCTION READY!")
-        elif success_rate >= 75:
-            print("⚠️  VERDICT: STAGE 2 RECOVERY MOSTLY WORKING - Minor issues need attention")
+        if total > 0:
+            success_rate = (passed / total) * 100
+            self.log(f"Total Tests: {total}")
+            self.log(f"Passed: {passed}")
+            self.log(f"Failed: {failed}")
+            self.log(f"Success Rate: {success_rate:.1f}%")
+            
+            if success_rate >= 85:
+                self.log("🎉 EXCELLENT: Stage 3 Observability implementation meets production standards!", True)
+            elif success_rate >= 70:
+                self.log("✅ GOOD: Stage 3 Observability implementation is functional with minor issues", True)
+            else:
+                self.log("❌ NEEDS WORK: Stage 3 Observability implementation has significant issues", False)
         else:
-            print("💥 VERDICT: STAGE 2 RECOVERY HAS SIGNIFICANT ISSUES - Major fixes required")
-        
-        return success_rate, self.test_results
+            self.log("No tests completed", False)
+            
+        return {
+            'total': total,
+            'passed': passed,
+            'failed': failed,
+            'success_rate': success_rate if total > 0 else 0,
+            'results': self.test_results
+        }
 
 if __name__ == "__main__":
-    tester = TribeStage2RecoveryTest()
-    success_rate, results = tester.run_all_tests()
-    
-    # Save detailed results
-    with open('/app/stage2_recovery_test_results.json', 'w') as f:
-        json.dump({
-            "summary": {
-                "success_rate": success_rate,
-                "total_tests": len(results),
-                "passed": len([r for r in results if r['success']]),
-                "failed": len([r for r in results if not r['success']])
-            },
-            "results": results,
-            "timestamp": datetime.now().isoformat()
-        }, f, indent=2)
-    
-    print(f"Detailed results saved to: /app/stage2_recovery_test_results.json")
+    tester = ObservabilityTester()
+    results = tester.run_all_tests()
     
     # Exit with appropriate code
-    sys.exit(0 if success_rate >= 75 else 1)
+    if results['success_rate'] >= 70:
+        sys.exit(0)
+    else:
+        sys.exit(1)

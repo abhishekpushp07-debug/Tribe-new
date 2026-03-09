@@ -9,7 +9,6 @@ import { handleUsers } from '@/lib/handlers/users'
 import { handleDiscovery } from '@/lib/handlers/discovery'
 import { handleMedia } from '@/lib/handlers/media'
 import { handleAdmin } from '@/lib/handlers/admin'
-// Legacy house-points import removed (Stage 12X cleanup)
 import { handleGovernance } from '@/lib/handlers/governance'
 import { handleModerationRoutes } from '@/lib/moderation/routes/moderation.routes'
 import { handleAppealDecision, handleCollegeClaims, handleDistribution, handleResources } from '@/lib/handlers/stages'
@@ -20,9 +19,11 @@ import { handleReels } from '@/lib/handlers/reels'
 import { handleTribes, handleTribeAdmin } from '@/lib/handlers/tribes'
 import { handleTribeContests, handleTribeContestAdmin } from '@/lib/handlers/tribe-contests'
 import { cache } from '@/lib/cache'
-import { applyFreezeHeaders, getFreezeStatus } from '@/lib/freeze-registry'
+import { applyFreezeHeaders } from '@/lib/freeze-registry'
 import { applySecurityHeaders, getEndpointTier, checkTieredRateLimit, extractIP, checkPayloadSize, deepSanitizeStrings } from '@/lib/security'
-import { authenticate } from '@/lib/auth-utils'
+import logger from '@/lib/logger'
+import metrics from '@/lib/metrics'
+import { checkLiveness, checkReadiness, checkDeepHealth } from '@/lib/health'
 
 // ========== CORS ==========
 function cors(response) {
@@ -33,7 +34,7 @@ function cors(response) {
   return response
 }
 
-// ========== RESPONSE BUILDERS (Stage 2: Security headers included) ==========
+// ========== RESPONSE BUILDERS ==========
 function jsonOk(data, status = 200) {
   const resp = cors(NextResponse.json(data, { status }))
   resp.headers.set('x-contract-version', 'v2')
@@ -51,9 +52,6 @@ function jsonErr(message, code, status = 400, extraHeaders = {}) {
   return resp
 }
 
-// ========== RATE LIMITER (Stage 2: Replaced by tiered system in security.js) ==========
-// Legacy in-memory rate limiter removed — now using checkTieredRateLimit from security.js
-
 // ========== OPTIONS ==========
 export async function OPTIONS() {
   const resp = cors(new NextResponse(null, { status: 200 }))
@@ -61,17 +59,24 @@ export async function OPTIONS() {
   return resp
 }
 
-// ========== MAIN ROUTER ==========
-async function handleRouteCore(request, { params }) {
+// ========== MAIN ROUTER CORE ==========
+// reqCtx is populated by the outer observability wrapper and read after completion
+async function handleRouteCore(request, { params }, reqCtx) {
   const { path = [] } = params
   const route = `/${path.join('/')}`
   const method = request.method
   const ip = extractIP(request)
 
+  // ---- LIVENESS PROBE: runs BEFORE rate limiting and DB (must always work) ----
+  if (route === '/healthz' && method === 'GET') {
+    return jsonOk(await checkLiveness())
+  }
+
   // Stage 2: Tiered rate limiting — Phase 1: Per-IP (pre-auth, no DB needed)
   const tier = getEndpointTier(route, method)
-  const ipRateResult = checkTieredRateLimit(ip, null, tier)
+  const ipRateResult = await checkTieredRateLimit(ip, null, tier)
   if (!ipRateResult.allowed) {
+    reqCtx.rateLimited = true
     return jsonErr(
       `Rate limit exceeded (${tier.name}). Try again later.`,
       'RATE_LIMITED',
@@ -88,7 +93,6 @@ async function handleRouteCore(request, { params }) {
   }
 
   // Stage 2 Recovery: Centralized input sanitization for ALL JSON request bodies
-  // Deep-sanitizes every string field before any handler sees the data
   if (['POST', 'PUT', 'PATCH'].includes(method) && !route.startsWith('/media')) {
     const contentType = request.headers.get('content-type')
     if (contentType?.includes('application/json')) {
@@ -105,7 +109,6 @@ async function handleRouteCore(request, { params }) {
         }
       } catch {
         // If body parsing fails, let the handler deal with the original request
-        // (request body was consumed by text() above, so re-create with raw text)
       }
     }
   }
@@ -114,7 +117,6 @@ async function handleRouteCore(request, { params }) {
     const db = await getDb()
 
     // Stage 2 Recovery: Per-user rate limiting — Phase 2 (post-DB, real userId)
-    // Lightweight session lookup to extract userId for per-user rate limiting
     let authUserId = null
     try {
       const authHeader = request.headers.get('authorization')
@@ -125,15 +127,19 @@ async function handleRouteCore(request, { params }) {
             { token: tkn },
             { projection: { userId: 1, _id: 0 } }
           )
-          if (sess) authUserId = sess.userId
+          if (sess) {
+            authUserId = sess.userId
+            reqCtx.userId = sess.userId
+          }
         }
       }
-    } catch { /* ignore - rate limit falls back to IP-only */ }
+    } catch { /* rate limit falls back to IP-only */ }
 
     // Apply per-user rate limit (separate from per-IP, uses userId as key)
     if (authUserId) {
-      const userRateResult = checkTieredRateLimit(null, authUserId, tier)
+      const userRateResult = await checkTieredRateLimit(null, authUserId, tier)
       if (!userRateResult.allowed) {
+        reqCtx.rateLimited = true
         return jsonErr(
           `Rate limit exceeded (${tier.name}). Try again later.`,
           'RATE_LIMITED',
@@ -143,7 +149,16 @@ async function handleRouteCore(request, { params }) {
       }
     }
 
-    // ---- Health endpoints ----
+    // ---- READINESS PROBE: public, no auth, checks critical deps ----
+    if (route === '/readyz' && method === 'GET') {
+      const readiness = await checkReadiness(db)
+      if (!readiness.ready) {
+        return jsonErr('Service not ready', 'NOT_READY', 503)
+      }
+      return jsonOk(readiness)
+    }
+
+    // ---- API root info ----
     if (route === '/' && method === 'GET') {
       return jsonOk({
         name: 'Tribe API',
@@ -175,25 +190,12 @@ async function handleRouteCore(request, { params }) {
           boardNotices: '/api/board/notices, /api/colleges/:id/notices',
           authenticity: '/api/authenticity/tag, /api/authenticity/tags/:type/:id',
           distribution: '/api/admin/distribution/*',
+          health: '/api/healthz, /api/readyz, /api/ops/health, /api/ops/metrics, /api/ops/slis',
         },
       })
     }
 
-    if (route === '/healthz' && method === 'GET') {
-      return jsonOk({ ok: true, timestamp: new Date().toISOString() })
-    }
-
-    if (route === '/readyz' && method === 'GET') {
-      try {
-        await db.command({ ping: 1 })
-        return jsonOk({ ok: true, db: 'connected', timestamp: new Date().toISOString() })
-      } catch {
-        return jsonErr('Database not ready', 'DB_ERROR', 503)
-      }
-    }
-
     if (route === '/cache/stats' && method === 'GET') {
-      // Stage 2: Ops endpoints require ADMIN auth
       try {
         const { requireAuth } = await import('@/lib/auth-utils')
         const user = await requireAuth(request, db)
@@ -208,7 +210,6 @@ async function handleRouteCore(request, { params }) {
     }
 
     if (route === '/moderation/config' && method === 'GET') {
-      // Stage 2: Moderation config requires MODERATOR+ auth
       try {
         const { requireAuth } = await import('@/lib/auth-utils')
         const user = await requireAuth(request, db)
@@ -227,7 +228,6 @@ async function handleRouteCore(request, { params }) {
     }
 
     if (route === '/moderation/check' && method === 'POST') {
-      // Stage 2: Moderation check requires MODERATOR+ auth
       try {
         const { requireAuth } = await import('@/lib/auth-utils')
         const user = await requireAuth(request, db)
@@ -246,7 +246,7 @@ async function handleRouteCore(request, { params }) {
     }
 
     // ========================
-    // OPS: Deep health check (all dependencies) — Stage 2: ADMIN auth required
+    // OPS: Deep health check (all dependencies) — ADMIN auth required
     // ========================
     if (route === '/ops/health' && method === 'GET') {
       try {
@@ -259,38 +259,11 @@ async function handleRouteCore(request, { params }) {
         if (e.status) return jsonErr(e.message, e.code, e.status)
         return jsonErr('Authentication required', 'UNAUTHORIZED', 401)
       }
-      const checks = {}
-
-      // MongoDB
-      try {
-        await db.command({ ping: 1 })
-        const stats = await db.stats()
-        checks.mongodb = { status: 'ok', collections: stats.collections, dataSize: stats.dataSize, indexes: stats.indexes }
-      } catch (e) { checks.mongodb = { status: 'error', error: e.message } }
-
-      // Redis
-      const cacheStats = await cache.getStats()
-      checks.redis = { status: cacheStats.redis.status, keys: cacheStats.redis.keys, hitRate: cacheStats.hitRate }
-
-      // Moderation provider (adapter-based)
-      try {
-        const { getModerationServiceConfig } = await import('@/lib/moderation/middleware/moderate-create-content')
-        const modConfig = getModerationServiceConfig(db)
-        checks.moderation = { status: 'ok', provider: modConfig.activeProvider, providerChain: modConfig.providerChain }
-      } catch (e) { checks.moderation = { status: 'error', error: e.message } }
-
-      // Object storage
-      try {
-        const { isStorageAvailable } = await import('@/lib/storage')
-        checks.objectStorage = { status: isStorageAvailable() ? 'ok' : 'degraded' }
-      } catch { checks.objectStorage = { status: 'unknown' } }
-
-      const allOk = Object.values(checks).every(c => c.status === 'ok')
-      return jsonOk({ status: allOk ? 'healthy' : 'degraded', checks, timestamp: new Date().toISOString() })
+      return jsonOk(await checkDeepHealth(db))
     }
 
     // ========================
-    // OPS: Metrics endpoint — Stage 2: ADMIN auth required
+    // OPS: Observability metrics — ADMIN auth required
     // ========================
     if (route === '/ops/metrics' && method === 'GET') {
       try {
@@ -303,6 +276,7 @@ async function handleRouteCore(request, { params }) {
         if (e.status) return jsonErr(e.message, e.code, e.status)
         return jsonErr('Authentication required', 'UNAUTHORIZED', 401)
       }
+      // Combine observability metrics with business counts
       const [userCount, postCount, activeSessionCount, reportCount, grievanceCount] = await Promise.all([
         db.collection('users').countDocuments(),
         db.collection('content_items').countDocuments(),
@@ -311,19 +285,39 @@ async function handleRouteCore(request, { params }) {
         db.collection('grievance_tickets').countDocuments({ status: 'OPEN' }),
       ])
       const cacheStats = await cache.getStats()
+      const observability = metrics.getMetrics()
       return jsonOk({
-        users: userCount,
-        posts: postCount,
-        activeSessions: activeSessionCount,
-        openReports: reportCount,
-        openGrievances: grievanceCount,
-        cache: { hitRate: cacheStats.hitRate, redisStatus: cacheStats.redis.status },
-        timestamp: new Date().toISOString(),
+        ...observability,
+        business: {
+          users: userCount,
+          posts: postCount,
+          activeSessions: activeSessionCount,
+          openReports: reportCount,
+          openGrievances: grievanceCount,
+          cache: { hitRate: cacheStats.hitRate, redisStatus: cacheStats.redis.status },
+        },
       })
     }
 
     // ========================
-    // OPS: Database backup proof (dry-run) — Stage 2: ADMIN auth required
+    // OPS: SLI dashboard — ADMIN auth required
+    // ========================
+    if (route === '/ops/slis' && method === 'GET') {
+      try {
+        const { requireAuth } = await import('@/lib/auth-utils')
+        const user = await requireAuth(request, db)
+        if (!['ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
+          return jsonErr('Admin access required', 'FORBIDDEN', 403)
+        }
+      } catch (e) {
+        if (e.status) return jsonErr(e.message, e.code, e.status)
+        return jsonErr('Authentication required', 'UNAUTHORIZED', 401)
+      }
+      return jsonOk(metrics.getSLIs())
+    }
+
+    // ========================
+    // OPS: Database backup proof (dry-run) — ADMIN auth required
     // ========================
     if (route === '/ops/backup-check' && method === 'GET') {
       try {
@@ -412,33 +406,27 @@ async function handleRouteCore(request, { params }) {
         result = await handleOnboarding(path, method, request, db)
       }
     } else if (path[0] === 'content' && path.length <= 2 && (method === 'POST' || method === 'GET' || method === 'DELETE')) {
-      // Content CRUD (POST /content/posts, GET /content/:id, DELETE /content/:id)
       result = await handleContent(path, method, request, db)
     } else if (path[0] === 'feed') {
       result = await handleFeed(path, method, request, db)
     } else if (path[0] === 'follow') {
       result = await handleSocial(path, method, request, db)
     } else if (path[0] === 'content' && path.length === 3) {
-      // Social actions on content (like, dislike, reaction, save, comments)
       result = await handleSocial(path, method, request, db)
     } else if (path[0] === 'stories') {
       result = await handleStories(path, method, request, db)
     } else if (path[0] === 'reels') {
       result = await handleReels(path, method, request, db)
     } else if (path[0] === 'users') {
-      // Stage 9: User stories (GET /users/:id/stories)
       if (path.length === 3 && path[2] === 'stories') {
         result = await handleStories(path, method, request, db)
       }
-      // Stage 9: User highlights (GET /users/:id/highlights)
       else if (path.length === 3 && path[2] === 'highlights') {
         result = await handleStories(path, method, request, db)
       }
-      // Stage 10: User reels (GET /users/:id/reels, GET /users/:id/reels/series)
       else if (path[2] === 'reels') {
         result = await handleReels(path, method, request, db)
       }
-      // Stage 12: User tribe (GET /users/:id/tribe)
       else if (path[2] === 'tribe') {
         result = await handleTribes(path, method, request, db)
       }
@@ -446,11 +434,9 @@ async function handleRouteCore(request, { params }) {
         result = await handleUsers(path, method, request, db)
       }
     } else if (path[0] === 'colleges' || path[0] === 'houses' || path[0] === 'search' || path[0] === 'suggestions') {
-      // Stage 2: College claims (POST /colleges/:id/claim)
       if (path[0] === 'colleges' && path.length === 3 && path[2] === 'claim') {
         result = await handleCollegeClaims(path, method, request, db)
       }
-      // Stage 7: College notices (GET /colleges/:id/notices)
       else if (path[0] === 'colleges' && path.length === 3 && path[2] === 'notices') {
         result = await handleBoardNotices(path, method, request, db)
       }
@@ -459,73 +445,56 @@ async function handleRouteCore(request, { params }) {
       }
     } else if (path[0] === 'media') {
       result = await handleMedia(path, method, request, db)
-    // Legacy house-points route deprecated (Stage 12X: tribe salutes replace this)
     } else if (path[0] === 'house-points') {
       result = { error: 'House points system deprecated. Use tribe salutes via /tribe-contests', code: 'DEPRECATED', status: 410 }
     } else if (path[0] === 'governance') {
       result = await handleGovernance(path, method, request, db)
     } else if (['reports', 'moderation', 'appeals', 'notifications', 'legal', 'admin', 'grievances'].includes(path[0])) {
-      // Stage 1: Appeal decisions
       if (path[0] === 'appeals' && path.length === 3 && path[2] === 'decide') {
         result = await handleAppealDecision(path, method, request, db)
       }
-      // Stage 2: College claim admin decisions
       else if (path[0] === 'admin' && path[1] === 'college-claims') {
         result = await handleCollegeClaims(path, method, request, db)
       }
-      // Stage 4: Distribution admin
       else if (path[0] === 'admin' && path[1] === 'distribution') {
         result = await handleDistribution(path, method, request, db)
       }
-      // Stage 5: Admin resources (GET /admin/resources, PATCH /admin/resources/:id/moderate)
       else if (path[0] === 'admin' && path[1] === 'resources') {
         result = await handleResources(path, method, request, db)
       }
-      // Stage 9: Admin stories (GET /admin/stories, PATCH /admin/stories/:id/moderate, GET /admin/stories/analytics)
       else if (path[0] === 'admin' && path[1] === 'stories') {
         result = await handleStories(path, method, request, db)
       }
-      // Stage 10: Admin reels (GET /admin/reels, PATCH /admin/reels/:id/moderate, GET /admin/reels/analytics)
       else if (path[0] === 'admin' && path[1] === 'reels') {
         result = await handleReels(path, method, request, db)
       }
-      // Stage 6: Admin events (GET /admin/events, PATCH /admin/events/:id/moderate, GET /admin/events/analytics, POST /admin/events/:id/recompute-counters)
       else if (path[0] === 'admin' && path[1] === 'events') {
         result = await handleEvents(path, method, request, db)
       }
-      // Stage 7: Admin board-notices analytics
       else if (path[0] === 'admin' && path[1] === 'board-notices') {
         result = await handleBoardNotices(path, method, request, db)
       }
-      // Stage 7: Admin authenticity stats
       else if (path[0] === 'admin' && path[1] === 'authenticity') {
         result = await handleAuthenticityTags(path, method, request, db)
       }
-      // Stage 12: Admin tribe routes (distribution, reassign, migrate, boards)
       else if (path[0] === 'admin' && path[1] === 'tribes') {
         result = await handleTribeAdmin(path, method, request, db)
       }
-      // Stage 12: Admin tribe seasons
       else if (path[0] === 'admin' && path[1] === 'tribe-seasons') {
         result = await handleTribeAdmin(path, method, request, db)
       }
-      // Stage 12: Admin tribe contests (upgraded contest engine)
       else if (path[0] === 'admin' && path[1] === 'tribe-contests') {
         result = await handleTribeContestAdmin(path, method, request, db)
       }
-      // Stage 12: Admin tribe salutes (upgraded)
       else if (path[0] === 'admin' && path[1] === 'tribe-salutes') {
         result = await handleTribeContestAdmin(path, method, request, db)
       }
-      // Stage 12: Admin tribe awards
       else if (path[0] === 'admin' && path[1] === 'tribe-awards') {
         result = await handleTribeAdmin(path, method, request, db)
       }
-      // Stage 7: Board notices moderation
       else if (path[0] === 'moderation' && path[1] === 'board-notices') {
         result = await handleBoardNotices(path, method, request, db)
       }
-      // Default admin handler
       if (!result) {
         result = await handleAdmin(path, method, request, db)
       }
@@ -568,20 +537,55 @@ async function handleRouteCore(request, { params }) {
     if (error.status && error.code) {
       return jsonErr(error.message, error.code, error.status)
     }
-    console.error('API Error:', error)
+    logger.error('HTTP', 'unhandled_error', {
+      requestId: reqCtx.requestId,
+      route: `/${(params?.path || []).join('/')}`,
+      method: request.method,
+      error: error.message,
+      stack: error.stack?.split('\n').slice(0, 5).join(' | '),
+    })
     return jsonErr('Internal server error', 'INTERNAL_ERROR', 500)
   }
 }
 
-// ========== FREEZE ENFORCEMENT WRAPPER ==========
-// Every response passes through here — freeze headers are guaranteed
+// ========== OBSERVABILITY WRAPPER ==========
+// Every request flows through here: generates requestId, measures latency,
+// emits structured access log, records metrics.
 async function handleRoute(request, context) {
+  const requestId = crypto.randomUUID()
+  const startTime = Date.now()
   const { path = [] } = context.params
   const route = `/${path.join('/')}`
   const method = request.method
+  const ip = extractIP(request)
 
-  const response = await handleRouteCore(request, context)
+  // Request context: populated by handleRouteCore, read here for access log
+  const reqCtx = { requestId, userId: null, rateLimited: false }
+
+  // Execute core handler
+  const response = await handleRouteCore(request, context, reqCtx)
+  const statusCode = response.status
+  const latencyMs = Date.now() - startTime
+
+  // Observability headers
+  response.headers.set('x-request-id', requestId)
   applyFreezeHeaders(response, route, method)
+
+  // Structured access log (every request)
+  logger.info('HTTP', 'request_completed', {
+    requestId,
+    method,
+    route,
+    statusCode,
+    latencyMs,
+    ip,
+    userId: reqCtx.userId,
+    rateLimited: reqCtx.rateLimited,
+  })
+
+  // Record metrics
+  metrics.recordRequest(route, method, statusCode, latencyMs)
+
   return response
 }
 
