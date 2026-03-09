@@ -32,6 +32,30 @@ Target: Backend quality score 900+/1000 across 10 parameters.
 | B0 | Backend Source of Truth Freeze | COMPLETE (8/8 sub-stages) | 2026-02 |
 | B0-E | Backend Freeze Code Enforcement | COMPLETE (85/85 tests) | 2026-03 |
 | **S1** | **Canonical Contract Freeze v2** | **COMPLETE (51/51 tests, 100%)** | **2026-03** |
+| **S1B** | **Semantic Contract Completion** | **COMPLETE (8/8 tests, 100%)** | **2026-03** |
+
+
+## Stage S1B — Semantic Contract Completion (COMPLETED)
+
+Goal: Complete the hard semantic work Stage 1A left unfinished.
+
+### What was done:
+1. **Naming Discipline**: `authorId`/`creatorId` split documented and frozen. Viewer state unified with `viewer*` prefix aliases (`viewerIsFollowing`, `viewerRsvp`).
+2. **Entity Snippets**: 6 canonical snippets defined in `/lib/entity-snippets.js` (UserSnippet, UserProfile, MediaObject, CollegeSnippet, TribeSnippet, ContestSnippet). `toUserSnippet()` adopted in `enrichPosts()`.
+3. **Visibility Model**: 2-dimension semantic model (lifecycle + moderation) documented per content type. No fake enum unification.
+4. **Versioning Architecture**: Header-based versioning with rationale, deprecation policy, compatibility windows.
+5. **Duplicate Map**: 11 endpoints classified (CANONICAL/LEGACY/SHADOW) with migration decisions.
+6. **Frontend Impact**: Per-surface dependency matrix with risk ratings. Zero breaking changes confirmed.
+
+### Files created/modified:
+- **NEW**: `/app/lib/entity-snippets.js` — 6 canonical snippet builders
+- **NEW**: `/app/memory/freeze/S1B-semantic-contract-completion.md` — Full audit + spec
+- **MODIFIED**: `/app/lib/auth-utils.js` — enrichPosts uses toUserSnippet
+- **MODIFIED**: `/app/lib/handlers/users.js` — viewerIsFollowing alias
+- **MODIFIED**: `/app/lib/handlers/social.js` — viewerIsFollowing alias
+- **MODIFIED**: `/app/lib/handlers/events.js` — viewerRsvp alias
+
+### Combined Stage 1 Score: ~86/100
 
 ## Stage S1 — Canonical Contract Freeze v2 (COMPLETED)
 
