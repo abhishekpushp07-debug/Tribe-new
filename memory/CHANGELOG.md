@@ -1,5 +1,33 @@
 # Tribe — Changelog
 
+## 2026-03 (Feb): Stage S1 — Canonical Contract Freeze v2
+
+### Goal
+Push API Design & Consistency score from 82 to 90+ as part of the 12-stage 900+ plan.
+
+### Changes
+- **Error Code Centralization**: All 18 handler files migrated from raw string error codes to `ErrorCode.*` constants. ErrorCode registry expanded from 12 to 36 codes covering domain-specific errors (contests, moderation, media, state machines).
+- **List Response Standardization**: All list endpoints now include canonical `items` key + `pagination` metadata object, with backward-compat aliases for v1 consumers.
+- **Pagination Discipline**: All cursor-paginated endpoints now include `pagination: { nextCursor, hasMore }`. All offset-paginated endpoints include `pagination: { total, limit, offset, hasMore }`. Bounded lists include `count`.
+- **Contract Version Header**: `x-contract-version: v2` on every API response.
+- **Response Contract Builders**: New `/lib/response-contracts.js` with `cursorList()`, `offsetList()`, `simpleList()`, `mutationOk()`.
+- **Zero Breaking Changes**: All modifications additive — legacy field names preserved.
+
+### Files
+- NEW: `/app/lib/response-contracts.js`
+- NEW: `/app/memory/freeze/S1-contract-freeze-v2.md`
+- MODIFIED: `/app/lib/constants.js` (ErrorCode 12→36)
+- MODIFIED: `/app/lib/freeze-registry.js` (version v1→v2)
+- MODIFIED: `/app/app/api/[[...path]]/route.js` (v2 header)
+- MODIFIED: All 18 handlers in `/app/lib/handlers/`
+
+### Tests
+- 16/16 contract v2 tests PASS (testing agent)
+- All existing B0 freeze tests remain compatible
+
+---
+
+
 ## 2026-03-08: Stage 12X — Tribe Contest Engine
 
 ### Built
