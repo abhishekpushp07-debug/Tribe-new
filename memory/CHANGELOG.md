@@ -1,5 +1,29 @@
 # Tribe — Changelog
 
+## 2026-03-10: Stage FH1-U — Frontend Readiness Gate (PASS)
+### Validation
+- Full backend discovery: 16 handler files, 150+ routes enumerated from actual code
+- All domains validated: auth, profile, media, content, comments, stories, reels, social graph, notifications, tribes, contests, events, governance, pages, B4 features, search
+- **633/633 tests passing** (B3 107 + B4 72 + existing 454 = zero regressions)
+
+### Frontend Handoff Pack (7 Docs)
+1. **API_REFERENCE.md** — Complete route reference for all 150+ endpoints across 16 domains
+2. **SERIALIZER_CONTRACTS.md** — Frozen canonical shapes: UserSnippet, PageSnippet, PostObject, RepostObject, CommentObject, MediaObject, NotificationObject, CollegeSnippet, TribeSnippet, ContestSnippet
+3. **SCREEN_TO_ENDPOINT_MAP.md** — 22 frontend screens mapped to exact backend endpoints
+4. **STATE_AND_PERMISSIONS.md** — Page role matrix, content visibility, edit/share/like permissions, optimistic UI safety table
+5. **NOTIFICATION_EVENT_GUIDE.md** — All 10 notification types with trigger, recipient, deep-link behavior
+6. **FE_KNOWN_GOTCHAS.md** — 20 documented edge cases (dual author, avatar resolution, pagination, age gate, repost rendering, etc.)
+7. **FRONTEND_INTEGRATION_GUIDE.md** — Complete integration guide by domain
+
+### Contract Freeze Status
+- All serializer shapes frozen and verified against actual code
+- No route drift detected
+- No serializer drift detected
+- Dual author (USER/PAGE) rendering rules documented
+- Repost serializer shape documented
+
+---
+
 ## 2026-03-10: Stage B4 + B4-U — Core Social Gaps (PASS)
 ### Features Implemented
 - **Edit Post Caption** (`PATCH /content/:id`): Owner/page-role edit with moderation re-check, editedAt timestamp, enriched response. B2 ownership + page-role guard.

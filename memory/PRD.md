@@ -119,6 +119,16 @@ id, userId, commentId, contentId, createdAt (unique: userId+commentId)
 | B3-U | Ultimate Test Gate | ✅ PASS | 107 |
 | B4 | Core Social Gaps | ✅ DONE | 72 |
 | B4-U | Ultimate Test Gate | ✅ PASS | 72 |
+| FH1-U | Frontend Readiness Gate | ✅ PASS | — |
 
 ## Next Priority
 **B5 — Discovery, Search & Hashtag Engine**: Hashtag extraction, fix `GET /search?type=posts`
+
+## Frontend Handoff Docs (FH1-U)
+- `/app/memory/API_REFERENCE.md` — Full route reference by domain
+- `/app/memory/SERIALIZER_CONTRACTS.md` — Canonical object shapes (frozen)
+- `/app/memory/SCREEN_TO_ENDPOINT_MAP.md` — Screen-by-screen backend mapping
+- `/app/memory/STATE_AND_PERMISSIONS.md` — Permission matrix + state guide
+- `/app/memory/NOTIFICATION_EVENT_GUIDE.md` — All notification types
+- `/app/memory/FE_KNOWN_GOTCHAS.md` — 20 documented edge cases/traps
+- `/app/memory/FRONTEND_INTEGRATION_GUIDE.md` — Complete integration guide

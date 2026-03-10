@@ -1,432 +1,374 @@
-# TRIBE — API Reference v1.0
-> **Single Source of Truth for Frontend, Mobile, and QA Integration**
-> Generated: 2026-03-10 | 266 live routes | 21 domains
-> Backend: Next.js API | Auth: Phone+PIN JWT | DB: MongoDB
+# Tribe — API Reference (Contract v2.1)
+Generated from verified backend truth. FH1-U gate.
+
+## Base URL
+`/api/` prefix required for all routes.
 
 ---
 
-## Table of Contents
+## Auth Domain
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| POST | /auth/register | No | Register with phone+pin |
+| POST | /auth/login | No | Login with phone+pin |
+| POST | /auth/refresh | No | Refresh access token |
+| POST | /auth/logout | Yes | Logout |
+| GET | /auth/me | Yes | Current user profile |
+| GET | /auth/sessions | Yes | List sessions |
+| DELETE | /auth/sessions | Yes | Logout all sessions |
+| DELETE | /auth/sessions/:id | Yes | Kill specific session |
+| PATCH | /auth/pin | Yes | Change PIN |
 
-1. [Overview](#overview)
-2. [Base Conventions](#base-conventions)
-3. [Auth Rules](#auth-rules)
-4. [Pagination Rules](#pagination-rules)
-5. [Canonical Shared Objects](#canonical-shared-objects)
-6. [Domain: Auth](#domain-auth)
-7. [Domain: Me / Profile](#domain-me--profile)
-8. [Domain: Content / Posts](#domain-content--posts)
-9. [Domain: Feed](#domain-feed)
-10. [Domain: Social (Follow/React/Save/Comment)](#domain-social)
-11. [Domain: Users](#domain-users)
-12. [Domain: Discovery (Colleges/Houses/Search)](#domain-discovery)
-13. [Domain: Media](#domain-media)
-14. [Domain: Stories](#domain-stories)
-15. [Domain: Reels](#domain-reels)
-16. [Domain: Tribes](#domain-tribes)
-17. [Domain: Tribe Contests](#domain-tribe-contests)
-18. [Domain: Events](#domain-events)
-19. [Domain: Board Notices](#domain-board-notices)
-20. [Domain: Resources / PYQs](#domain-resources)
-21. [Domain: Governance](#domain-governance)
-22. [Domain: Reports / Appeals / Notifications / Legal](#domain-reports-appeals-notifications)
-23. [Domain: College Claims](#domain-college-claims)
-24. [Domain: Admin / Moderation](#domain-admin)
-25. [Error Semantics](#error-semantics)
-26. [Quirks & Gotchas](#quirks--gotchas)
-27. [Integration Notes](#integration-notes)
-
----
-
-## Overview
-
-Tribe is a campus-community social media platform. This backend serves 266 API endpoints across 21 domains covering:
-- Social networking (follow, feed, content, comments, reactions)
-- Instagram-grade stories (stickers, privacy, highlights, close friends)
-- TikTok-style reels (audio, remix, series, analytics)
-- Campus features (colleges, houses, governance, board notices, PYQ resources)
-- Tribal competition (tribes, contests, seasons, leaderboards)
-- Full moderation pipeline (AI + human, appeals, strikes)
-
-**Architecture**: Monolithic Next.js catch-all route → 16 handler files → MongoDB
-
----
-
-## Base Conventions
-
-| Convention | Value |
-|---|---|
-| Base URL | `{REACT_APP_BACKEND_URL}/api/` |
-| Content-Type | `application/json` (all endpoints) |
-| Auth | `Authorization: Bearer <accessToken>` |
-| Max payload | 1MB |
-| IDs | UUIDs (v4) |
-| Dates | ISO 8601 strings |
-| Pagination | Cursor-based (feeds) or Offset-based (lists) |
-
-**Response Envelope (success)**:
+### Register Request
 ```json
-{ "data": { ... } }
+{ "phone": "7777000001", "pin": "1234", "displayName": "Name", "username": "uname" }
 ```
-
-**Response Envelope (error)**:
-```json
-{ "error": "message", "code": "ERROR_CODE" }
-```
-
----
-
-## Auth Rules
-
-| Actor | When | Header |
-|---|---|---|
-| PUBLIC | Endpoint needs no auth | — |
-| OPTIONAL | Works without auth, enriched with it | Optional `Bearer` |
-| REQUIRED | Any logged-in user | Required `Bearer` |
-| SELF | Must be the resource owner | Required `Bearer` + code-level ID match |
-| OWNER | Must be content author | Required `Bearer` + code-level author check |
-| MOD+ | Moderator, Admin, or Super Admin | Required `Bearer` + role check |
-| ADMIN+ | Admin or Super Admin only | Required `Bearer` + role check |
-
-Roles: `USER < MODERATOR < ADMIN < SUPER_ADMIN`
-
----
-
-## Pagination Rules
-
-**Cursor-based** (for feeds/streams):
-```
-GET /api/feed/public?cursor=2026-03-10T12:00:00.000Z&limit=20
-→ { data: { items: [...], nextCursor: "...", hasMore: true } }
-```
-
-**Offset-based** (for countable lists):
-```
-GET /api/users/:id/followers?offset=0&limit=20
-→ { data: { users: [...], total: 150, offset: 0, limit: 20 } }
-```
-
-Default limit: 20. Max limit: 50.
-
----
-
-## Canonical Shared Objects
-
-### UserSnippet
+### Register/Login Response
 ```json
 {
-  "id": "UUID", "displayName": "string|null", "username": "string|null",
-  "avatar": "string|null ⚠️ RAW MEDIA ID — construct URL: /api/media/<avatar>",
-  "role": "USER|MODERATOR|ADMIN|SUPER_ADMIN",
-  "collegeId": "string|null", "collegeName": "string|null",
-  "houseId": "string|null", "houseName": "string|null",
-  "tribeId": "string|null", "tribeCode": "string|null"
-}
-```
-
-### MediaObject
-```json
-{
-  "id": "UUID", "url": "string|null ⚠️ may be null — use /api/media/<id>",
-  "type": "IMAGE|VIDEO|AUDIO", "thumbnailUrl": "string|null",
-  "width": "number|null", "height": "number|null",
-  "duration": "number|null", "mimeType": "string|null", "size": "number|null"
+  "accessToken": "at_...",
+  "refreshToken": "rt_...",
+  "user": { /* UserProfile */ }
 }
 ```
 
 ---
 
-## Domain: Auth
-
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| POST | `/api/auth/register` | none | Signup. Body: `{phone, pin, displayName}` → `{accessToken, refreshToken, user}` |
-| POST | `/api/auth/login` | none | Login. Body: `{phone, pin}` → tokens + user. Brute-force: 5 attempts → 15min lock |
-| POST | `/api/auth/refresh` | none | Rotate token. Body: `{refreshToken}`. Reuse detection! |
-| POST | `/api/auth/logout` | optional | Delete session. Always 200 |
-| GET | `/api/auth/me` | required | Current user profile |
-| GET | `/api/auth/sessions` | required | Active sessions list |
-| DELETE | `/api/auth/sessions` | required | Revoke ALL sessions |
-| DELETE | `/api/auth/sessions/:id` | required | Revoke one session |
-| PATCH | `/api/auth/pin` | required | Change PIN. Body: `{currentPin, newPin}` |
+## Profile / Onboarding Domain
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| PATCH | /me/profile | Yes | Update profile fields |
+| PATCH | /me/age | Yes | Set age/birthDate |
+| PATCH | /me/college | Yes | Set college |
+| PATCH | /me/onboarding | Yes | Complete onboarding |
 
 ---
 
-## Domain: Me / Profile
-
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| PATCH | `/api/me/profile` | required | Update: `{displayName, username, bio, avatarMediaId}` |
-| PATCH | `/api/me/age` | required | Set age: `{birthYear}` |
-| PATCH | `/api/me/college` | required | Link college: `{collegeId}` |
-| PATCH | `/api/me/onboarding` | required | Mark onboarding done |
+## Media Domain
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| POST | /media/upload | Yes | Upload media file |
+| GET | /media/:id | No | Resolve media by ID (returns binary) |
 
 ---
 
-## Domain: Content / Posts
-
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| POST | `/api/content/posts` | required | Create. Body: `{caption, mediaIds[], kind, syntheticDeclaration}`. AI moderated |
-| GET | `/api/content/:id` | optional | Get single item. View tracked. Auth enriches viewer flags |
-| DELETE | `/api/content/:id` | owner/mod | Soft-delete (visibility=REMOVED) |
-
----
-
-## Domain: Feed
-
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| GET | `/api/feed/public` | optional | Public feed. Stage 2 only. Cursor |
-| GET | `/api/feed/following` | required | Following feed. Cursor |
-| GET | `/api/feed/college/:collegeId` | optional | College feed. Cached |
-| GET | `/api/feed/house/:houseId` | optional | House feed. Cached |
-| GET | `/api/feed/stories` | required | Story rail (from content_items) |
-| GET | `/api/feed/reels` | optional | Reels feed (from content_items) |
-
----
-
-## Domain: Social
-
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| POST | `/api/follow/:userId` | required | Follow. Idempotent. Self-follow=409 |
-| DELETE | `/api/follow/:userId` | required | Unfollow. Idempotent |
-| POST | `/api/content/:id/like` | required | Like. Switches from dislike |
-| POST | `/api/content/:id/dislike` | required | Dislike. Internal signal |
-| DELETE | `/api/content/:id/reaction` | required | Remove reaction |
-| POST | `/api/content/:id/save` | required | Bookmark. Idempotent |
-| DELETE | `/api/content/:id/save` | required | Unbookmark |
-| POST | `/api/content/:id/comments` | required | Comment. Body: `{body, parentId}`. AI moderated |
-| GET | `/api/content/:id/comments` | none | List comments. Cursor pagination |
-
----
-
-## Domain: Users
-
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| GET | `/api/users/:id` | optional | Profile. Auth adds isFollowing |
-| GET | `/api/users/:id/posts` | optional | User posts. `?kind=POST\|REEL\|STORY`. Cursor |
-| GET | `/api/users/:id/followers` | none | Followers. **Offset** pagination |
-| GET | `/api/users/:id/following` | none | Following. **Offset** pagination |
-| GET | `/api/users/:id/saved` | self-only | **403 if not self**. Cursor |
-
----
-
-## Domain: Discovery
-
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| GET | `/api/colleges/search` | none | `?q, ?state, ?type`. Offset |
-| GET | `/api/colleges/states` | none | Distinct states |
-| GET | `/api/colleges/types` | none | Distinct types |
-| GET | `/api/colleges/:id` | none | College detail |
-| GET | `/api/colleges/:id/members` | none | Members. Offset |
-| GET | `/api/houses` | none | All houses. Cached |
-| GET | `/api/houses/leaderboard` | none | Leaderboard. Cached |
-| GET | `/api/houses/:idOrSlug` | none | House detail |
-| GET | `/api/houses/:idOrSlug/members` | none | Members. Offset |
-| GET | `/api/search` | none | `?q, ?type=all\|users\|colleges\|houses`. ⚠️ Posts NOT searchable |
-| GET | `/api/suggestions/users` | required | Follow suggestions. Max 15 |
-
----
-
-## Domain: Media
-
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| POST | `/api/media/upload` | required | Upload base64. Body: `{data, mimeType}`. Max 5MB img, 30MB vid |
-| GET | `/api/media/:id` | none | Serve binary. Cache-Control immutable |
-
----
-
-## Domain: Stories (33 routes)
-
-**Core**: POST create, GET feed/detail, DELETE, reactions, replies, sticker interactions
-**Close Friends**: GET/POST/DELETE `/api/me/close-friends`
-**Highlights**: CRUD `/api/me/highlights`
-**Settings**: GET/PATCH `/api/me/story-settings`
-**Blocks**: GET/POST/DELETE `/api/me/blocks` (⚠️ in stories handler)
-**Admin**: moderate, cleanup, analytics, recompute
-**SSE**: `GET /api/stories/events/stream` (real-time story events)
-
-Full detail: See `request_contracts.md` and `response_contracts.md`
-
----
-
-## Domain: Reels (36 routes)
-
-**Core**: POST create, GET feed/detail, PATCH edit, DELETE
-**Lifecycle**: publish, archive, restore, pin/unpin
-**Interactions**: like/unlike, save/unsave, comment, report, share, watch, view
-**Discovery**: audio reels, remix chain
-**Creator**: series, archive, analytics, processing status
-**Admin**: moderate, analytics, recompute
-
-Full detail: See `request_contracts.md` and `response_contracts.md`
-
----
-
-## Domain: Tribes (19 routes)
-
-**Public**: list, standings, detail, members, board, fund, salutes
-**User**: my tribe, user's tribe
-**Admin**: distribution, reassign, seasons, contests, salutes, awards, migrate, boards
-
----
-
-## Domain: Tribe Contests (28 routes)
-
-**Public**: list, live-feed, detail, entries, leaderboard, results, seasons, standings
-**User**: enter, vote, withdraw
-**Admin**: full lifecycle (create→publish→open→close→lock→resolve→cancel), scoring, rules, dashboard
-
-Contest states: `DRAFT → PUBLISHED → ENTRIES_OPEN → ENTRIES_CLOSED → JUDGING → RESOLVED`
-
----
-
-## Domain: Events (22 routes)
-
-**Public**: feed, search, detail, college events, attendees
-**User**: create, edit, publish, cancel, archive, RSVP, report, remind
-**Admin**: moderate, analytics, recompute
-
----
-
-## Domain: Board Notices (17 routes)
-
-**Core**: CRUD for notices (board members), pin/unpin, acknowledge
-**Read**: college notices, own notices
-**Moderation**: mod queue, decide
-**Authenticity**: tag/untag synthetic content, stats
-
----
-
-## Domain: Resources (14 routes)
-
-**Core**: create (same-college guard), search (faceted), detail, edit, delete
-**Interactions**: vote (UP/DOWN, trust-weighted), report, download
-**Admin**: queue, moderate, recompute, reconcile
-
----
-
-## Domain: Governance (8 routes)
-
-**Board**: view board, apply, view applications, vote on applications
-**Proposals**: create, list, vote
-**Admin**: seed board
-
----
-
-## Domain: Reports/Appeals/Notifications/Legal
-
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| POST | `/api/reports` | required | Report content/user. Auto-hold at 3+ |
-| POST | `/api/appeals` | required | Appeal moderation decision |
-| GET | `/api/appeals` | required | Own appeals |
-| PATCH | `/api/appeals/:id/decide` | mod+ | Decide appeal |
-| GET | `/api/notifications` | required | User notifications. Cursor. Enriched |
-| PATCH | `/api/notifications/read` | required | Mark read. `{ids:[]}` or all |
-| GET | `/api/legal/consent` | none | Active consent notice |
-| POST | `/api/legal/accept` | required | Accept consent |
-| POST | `/api/grievances` | required | Create grievance ticket |
-| GET | `/api/grievances` | required | Own grievances |
-
----
-
-## Domain: College Claims
-
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| POST | `/api/colleges/:cid/claim` | required | Submit claim. 1 active. 7-day cooldown. Auto-fraud at 3+ rejects |
-| GET | `/api/me/college-claims` | required | Own claims |
-| DELETE | `/api/me/college-claims/:id` | required | Withdraw pending |
-| GET | `/api/admin/college-claims` | mod+ | Admin queue |
-| GET | `/api/admin/college-claims/:id` | mod+ | Claim detail |
-| PATCH | `/api/admin/college-claims/:id/flag-fraud` | mod+ | Escalate to fraud review |
-| PATCH | `/api/admin/college-claims/:id/decide` | mod+ | Approve/reject |
-
----
-
-## Domain: Admin
-
-**Distribution Ladder** (7 routes): evaluate, config, kill-switch, inspect, override, remove-override
-**Platform**: stats, seed colleges
-**All admin routes**: Require MOD/ADMIN/SUPER_ADMIN role
-
----
-
-## Error Semantics
-
-| Status | Meaning | Retry? |
-|---|---|---|
-| 200 | Success | — |
-| 201 | Created | — |
-| 204 | No Content (some deletes) | — |
-| 400 | Validation error | Fix request |
-| 401 | No/invalid auth | Re-auth |
-| 403 | Forbidden (wrong role/not owner) | Don't retry |
-| 404 | Not found OR hidden content | — |
-| 409 | Conflict (duplicate action) | Don't retry |
-| 429 | Rate limited | Retry after `retryAfterSec` |
-| 500 | Server error | Retry with backoff |
-
-**Critical**: 404 is used for hidden content (held, shadow-limited, blocked) to avoid information leakage.
-
----
-
-## Quirks & Gotchas
-
-1. **Avatar = raw media ID** — construct URL: `/api/media/<avatar>`
-2. **Two content systems** — `content_items` (legacy) vs `stories`/`reels` (dedicated)
-3. **Phone+PIN auth** — not email+password
-4. **Blocks in stories handler** — `/api/me/blocks/*` handled by stories.js
-5. **Comment body field** — accepts both `body` and `text`
-6. **Base64 media upload** — not multipart/form-data
-7. **AI moderation is silent** — content created with `visibility: "HELD"`, not rejected
-8. **Reel comment/report bugs** — currently return 400 (fix in B6)
-9. **Search has no posts** — only users/colleges/houses (fix in B5)
-10. **Visibility not fully enforced** — FOLLOWERS posts missing from following feed (fix in B2)
-
----
-
-## Integration Notes
-
-### Quick Start (4 calls to get running)
-1. `POST /api/auth/register` → get tokens
-2. `POST /api/legal/accept` → accept consent
-3. `PATCH /api/me/profile` → set profile
-4. `GET /api/feed/public` → see content
-
-### Token Refresh Flow
-1. Access token expires → 401 with `code: "ACCESS_TOKEN_EXPIRED"`
-2. Call `POST /api/auth/refresh` with `{refreshToken}`
-3. Get new access + refresh tokens
-4. ⚠️ Old refresh token is immediately invalid (rotation)
-5. ⚠️ If reused → entire token family revoked (security)
-
-### Avatar Display
+## Content / Posts Domain
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| POST | /content/posts | Yes | Create post/reel/story |
+| GET | /content/:id | Yes | Get content detail |
+| PATCH | /content/:id | Yes | Edit post caption (B4) |
+| DELETE | /content/:id | Yes | Soft-delete content |
+
+### Create Post Request
+```json
+{ "caption": "Hello world", "kind": "POST", "media": ["media-id-1"] }
 ```
-const avatarUrl = user.avatar
-  ? `${API_BASE}/api/media/${user.avatar}`
-  : '/default-avatar.png'
+kinds: `POST`, `REEL`, `STORY`
+
+### Edit Post Request (B4)
+```json
+{ "caption": "Updated caption" }
+```
+Returns enriched PostObject with `editedAt` set.
+
+---
+
+## Social / Interactions Domain
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| POST | /follow/:userId | Yes | Follow user |
+| DELETE | /follow/:userId | Yes | Unfollow user |
+| POST | /content/:id/like | Yes | Like content |
+| POST | /content/:id/dislike | Yes | Dislike content |
+| DELETE | /content/:id/reaction | Yes | Remove reaction |
+| POST | /content/:id/save | Yes | Save/bookmark |
+| DELETE | /content/:id/save | Yes | Unsave |
+| POST | /content/:id/comments | Yes | Create comment |
+| GET | /content/:id/comments | Optional | List comments |
+| POST | /content/:postId/comments/:commentId/like | Yes | Like comment (B4) |
+| DELETE | /content/:postId/comments/:commentId/like | Yes | Unlike comment (B4) |
+| POST | /content/:id/share | Yes | Repost/share content (B4) |
+
+### Comment Like Response (B4)
+```json
+{ "liked": true, "commentLikeCount": 3 }
 ```
 
-### Supporting Contract Documents
-- `route_inventory_human.md` — full 266-route census
-- `domain_map.md` — domain classification + screen mapping
-- `auth_actor_matrix.md` — per-endpoint auth details
-- `request_contracts.md` — exact request body specs
-- `response_contracts.md` — exact response shapes
-- `error_contracts.md` — error codes + edge cases
-- `pagination_and_streams.md` — cursor/offset/SSE details
-- `quirk_ledger.md` — 17 frontend gotchas
+### Share/Repost Response (B4)
+Returns `201` with `{ "post": { /* RepostObject */ } }`
 
 ---
 
-## B0.9 EXIT GATE: PASS
+## Feed Domain
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| GET | /feed/public | Yes | Public feed |
+| GET | /feed/following | Yes | Following feed (includes page posts) |
+| GET | /feed/college/:collegeId | Yes | College feed |
+| GET | /feed/house/:houseId | Yes | House feed |
+| GET | /feed/stories | Yes | Story rails |
+| GET | /feed/reels | Yes | Reel feed |
 
-Complete API reference with all 266 endpoints, organized by domain.
-Request/response contracts, auth rules, error semantics, and quirks documented.
-Frontend agent can integrate without reading backend code.
+All feeds return `{ items: PostObject[], pagination: { nextCursor, hasMore } }`
+
+---
+
+## Users Domain
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| GET | /users/:id | Optional | User profile |
+| GET | /users/:id/posts | Optional | User's posts |
+| GET | /users/:id/followers | Optional | User's followers |
+| GET | /users/:id/following | Optional | User's following |
+| GET | /users/:id/saved | Yes (self) | User's saved posts |
+
+---
+
+## Stories Domain
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| POST | /stories | Yes | Create story |
+| GET | /stories/feed | Yes | Story feed/rails |
+| GET | /stories/:id | Yes | Story detail |
+| DELETE | /stories/:id | Yes | Delete story |
+| GET | /stories/:id/views | Yes | View list |
+| POST | /stories/:id/react | Yes | React to story |
+| DELETE | /stories/:id/react | Yes | Remove reaction |
+| POST | /stories/:id/reply | Yes | Reply to story |
+| GET | /stories/:id/replies | Yes | List replies |
+| POST | /stories/:id/sticker/:stickerId/respond | Yes | Respond to sticker |
+| GET | /stories/:id/sticker/:stickerId/results | Yes | Sticker results |
+| GET | /stories/:id/sticker/:stickerId/responses | Yes | Sticker responses |
+| GET | /me/stories/archive | Yes | Story archive |
+| GET | /users/:id/stories | Yes | User's active stories |
+| GET | /me/close-friends | Yes | Close friends list |
+| POST | /me/close-friends/:userId | Yes | Add close friend |
+| DELETE | /me/close-friends/:userId | Yes | Remove close friend |
+| POST | /me/highlights | Yes | Create highlight |
+| GET | /users/:id/highlights | Yes | User's highlights |
+| PATCH | /me/highlights/:id | Yes | Update highlight |
+| DELETE | /me/highlights/:id | Yes | Delete highlight |
+| GET | /me/story-settings | Yes | Get story settings |
+| PATCH | /me/story-settings | Yes | Update story settings |
+
+---
+
+## Reels Domain
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| POST | /reels | Yes | Create reel |
+| GET | /reels/feed | Yes | Reel feed |
+| GET | /reels/following | Yes | Following reels |
+| GET | /reels/:id | Yes | Reel detail |
+| PATCH | /reels/:id | Yes | Edit reel |
+| DELETE | /reels/:id | Yes | Delete reel |
+| POST | /reels/:id/publish | Yes | Publish draft reel |
+| POST | /reels/:id/archive | Yes | Archive reel |
+| POST | /reels/:id/restore | Yes | Restore archived reel |
+| POST | /reels/:id/pin | Yes | Pin reel |
+| DELETE | /reels/:id/pin | Yes | Unpin reel |
+| POST | /reels/:id/like | Yes | Like reel |
+| DELETE | /reels/:id/like | Yes | Unlike reel |
+| POST | /reels/:id/save | Yes | Save reel |
+| DELETE | /reels/:id/save | Yes | Unsave reel |
+| POST | /reels/:id/comment | Yes | Comment on reel |
+| GET | /reels/:id/comments | Yes | Reel comments |
+| POST | /reels/:id/report | Yes | Report reel |
+| POST | /reels/:id/hide | Yes | Hide reel |
+| POST | /reels/:id/not-interested | Yes | Not interested |
+| POST | /reels/:id/share | Yes | Share reel |
+| POST | /reels/:id/watch | Yes | Record watch |
+| POST | /reels/:id/view | Yes | Record view |
+| GET | /reels/audio/:audioId | Yes | Audio details |
+| GET | /reels/:id/remixes | Yes | Reel remixes |
+| POST | /me/reels/series | Yes | Create series |
+| GET | /users/:id/reels/series | Yes | User's reel series |
+| GET | /me/reels/archive | Yes | Archived reels |
+| GET | /me/reels/analytics | Yes | Reel analytics |
+| GET | /users/:id/reels | Yes | User's reels |
+
+---
+
+## Notifications Domain
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| GET | /notifications | Yes | List notifications |
+| PATCH | /notifications/read | Yes | Mark as read |
+
+---
+
+## Pages Domain (B3)
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| POST | /pages | Yes | Create page |
+| GET | /pages | No | List/search pages |
+| GET | /pages/:idOrSlug | No | Page detail |
+| PATCH | /pages/:id | Yes | Update page |
+| POST | /pages/:id/archive | Yes | Archive page |
+| POST | /pages/:id/restore | Yes | Restore page |
+| GET | /pages/:id/members | Yes | List members |
+| POST | /pages/:id/members | Yes | Add member |
+| PATCH | /pages/:id/members/:userId | Yes | Change role |
+| DELETE | /pages/:id/members/:userId | Yes | Remove member |
+| POST | /pages/:id/transfer-ownership | Yes | Transfer ownership |
+| POST | /pages/:id/follow | Yes | Follow page |
+| DELETE | /pages/:id/follow | Yes | Unfollow page |
+| GET | /pages/:id/followers | Yes | List followers |
+| GET | /pages/:id/posts | No | Page's posts |
+| POST | /pages/:id/posts | Yes | Publish as page |
+| PATCH | /pages/:id/posts/:postId | Yes | Edit page post |
+| DELETE | /pages/:id/posts/:postId | Yes | Delete page post |
+| GET | /me/pages | Yes | My pages |
+| GET | /pages/:id/analytics | Yes | Page analytics |
+
+---
+
+## Search / Discovery Domain
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| GET | /search?q=...&type=... | No | Unified search (types: users, colleges, houses, pages) |
+| GET | /colleges/search | No | Search colleges |
+| GET | /colleges/states | No | List states |
+| GET | /colleges/types | No | List college types |
+| GET | /colleges/:id | No | College detail |
+| GET | /colleges/:id/members | No | College members |
+| GET | /houses | No | List houses |
+| GET | /houses/leaderboard | No | House leaderboard |
+| GET | /houses/:id | No | House detail |
+| GET | /houses/:id/members | No | House members |
+| GET | /suggestions/users | Yes | User suggestions |
+
+---
+
+## Tribes Domain
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| GET | /tribes | No | List tribes |
+| GET | /tribes/standings/current | No | Current standings |
+| GET | /tribes/:id | No | Tribe detail |
+| GET | /tribes/:id/members | No | Tribe members |
+| GET | /tribes/:id/board | No | Tribe board |
+| GET | /tribes/:id/fund | No | Tribe fund |
+| GET | /tribes/:id/salutes | No | Tribe salutes |
+| GET | /me/tribe | Yes | My tribe info |
+| GET | /users/:id/tribe | No | User's tribe |
+
+---
+
+## Tribe Contests Domain
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| GET | /tribe-contests | No | List contests |
+| GET | /tribe-contests/:id | No | Contest detail |
+| POST | /tribe-contests/:id/enter | Yes | Enter contest |
+| GET | /tribe-contests/:id/entries | No | Contest entries |
+| GET | /tribe-contests/:id/leaderboard | No | Contest leaderboard |
+| GET | /tribe-contests/:id/results | No | Contest results |
+| POST | /tribe-contests/:id/vote | Yes | Vote on entry |
+| POST | /tribe-contests/:id/withdraw | Yes | Withdraw entry |
+| GET | /tribe-contests/seasons | No | List seasons |
+| GET | /tribe-contests/seasons/:id/standings | No | Season standings |
+
+---
+
+## Events Domain
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| POST | /events | Yes | Create event |
+| GET | /events/feed | No | Event feed |
+| GET | /events/search | No | Search events |
+| GET | /events/college/:collegeId | No | College events |
+| GET | /events/:id | No | Event detail |
+| PATCH | /events/:id | Yes | Update event |
+| DELETE | /events/:id | Yes | Delete event |
+| POST | /events/:id/publish | Yes | Publish event |
+| POST | /events/:id/cancel | Yes | Cancel event |
+| POST | /events/:id/archive | Yes | Archive event |
+| POST | /events/:id/rsvp | Yes | RSVP to event |
+| DELETE | /events/:id/rsvp | Yes | Cancel RSVP |
+| GET | /events/:id/attendees | No | Event attendees |
+| POST | /events/:id/report | Yes | Report event |
+| POST | /events/:id/remind | Yes | Set reminder |
+| DELETE | /events/:id/remind | Yes | Remove reminder |
+| GET | /me/events | Yes | My events |
+| GET | /me/events/rsvps | Yes | My RSVPs |
+
+---
+
+## Governance Domain
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| GET | /governance/college/:id/board | No | College board |
+| POST | /governance/college/:id/apply | Yes | Apply for board |
+| GET | /governance/college/:id/applications | No | Board applications |
+| POST | /governance/applications/:id/vote | Yes | Vote on application |
+| POST | /governance/college/:id/proposals | Yes | Create proposal |
+| GET | /governance/college/:id/proposals | No | List proposals |
+| POST | /governance/proposals/:id/vote | Yes | Vote on proposal |
+
+---
+
+## Reports / Moderation / Admin
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| POST | /reports | Yes | Submit report |
+| GET | /moderation/queue | Admin | Moderation queue |
+| POST | /moderation/:id/action | Admin | Take mod action |
+| POST | /appeals | Yes | Submit appeal |
+| GET | /appeals | Admin | List appeals |
+| POST | /appeals/:id/decide | Admin | Decide appeal |
+| GET | /legal/consent | Yes | Get consent status |
+| POST | /legal/accept | Yes | Accept legal terms |
+| POST | /grievances | Yes | Submit grievance |
+| GET | /grievances | Admin | List grievances |
+
+---
+
+## Board Notices Domain
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| POST | /board/notices | Yes | Create notice |
+| GET | /board/notices/:id | No | Notice detail |
+| PATCH | /board/notices/:id | Yes | Update notice |
+| DELETE | /board/notices/:id | Yes | Delete notice |
+| POST | /board/notices/:id/pin | Yes | Pin notice |
+| DELETE | /board/notices/:id/pin | Yes | Unpin notice |
+| POST | /board/notices/:id/acknowledge | Yes | Acknowledge notice |
+| GET | /board/notices/:id/acknowledgments | Yes | Acknowledgment list |
+| GET | /colleges/:id/notices | No | College notices |
+| GET | /me/board/notices | Yes | My board notices |
+
+---
+
+## Block / Safety Domain
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| POST | /me/blocks/:userId | Yes | Block user |
+| DELETE | /me/blocks/:userId | Yes | Unblock user |
+| GET | /me/blocks | Yes | Blocked users list |
+
+---
+
+## Resources Domain
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| POST | /resources | Yes | Create resource |
+| GET | /resources/search | No | Search resources |
+| GET | /resources/:id | No | Resource detail |
+| PATCH | /resources/:id | Yes | Update resource |
+| DELETE | /resources/:id | Yes | Delete resource |
+| POST | /resources/:id/report | Yes | Report resource |
+| POST | /resources/:id/vote | Yes | Vote on resource |
+| DELETE | /resources/:id/vote | Yes | Remove vote |
+| POST | /resources/:id/download | Yes | Track download |
+| GET | /me/resources | Yes | My resources |
+
+---
+
+## Health
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| GET | /healthz | No | Liveness |
+| GET | /readyz | No | Readiness |
+| GET | /deep-health | No | Deep health check |
