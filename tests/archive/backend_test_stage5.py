@@ -11,7 +11,7 @@ import random
 from datetime import datetime, timedelta
 
 # Base API URL from review request
-BASE_URL = "https://tribe-p0a-perfect.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-backend-docs.preview.emergentagent.com/api"
 
 # Test credentials from review request
 ADMIN_PHONE = "9000000501"  # ADMIN role, college linked to IIT Bombay

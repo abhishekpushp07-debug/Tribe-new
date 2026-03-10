@@ -11,7 +11,7 @@ import time
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://tribe-p0a-perfect.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-backend-docs.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 # Test credentials - use existing users

@@ -11,7 +11,7 @@ import time
 import threading
 import uuid
 
-BASE_URL = "https://tribe-p0a-perfect.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-backend-docs.preview.emergentagent.com/api"
 SEASON_ID = "6dd39c1d-f3b3-4543-bba2-d2b44cdf60ac"
 
 # Test tracking

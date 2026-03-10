@@ -15,7 +15,7 @@ Testing 36 endpoint routes for Instagram-grade Reels functionality:
 10. Admin: GET /admin/reels, PATCH /admin/reels/:id/moderate, GET /admin/reels/analytics, POST /admin/reels/:id/recompute-counters
 11. Discovery: GET /reels/:id/remixes, GET /reels/audio/:audioId
 
-Base URL: https://tribe-p0a-perfect.preview.emergentagent.com/api
+Base URL: https://tribe-backend-docs.preview.emergentagent.com/api
 Auth: Admin (9000000001/1234), User1 (9000000002/1234), User2 (9000000003/1234)
 """
 
@@ -29,7 +29,7 @@ from typing import Dict, List, Optional, Tuple
 import base64
 import os
 
-BASE_URL = "https://tribe-p0a-perfect.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-backend-docs.preview.emergentagent.com/api"
 
 class ReelsTestSuite:
     def __init__(self):
