@@ -1,5 +1,29 @@
 # Tribe — Changelog
 
+## 2026-03-10: Stage B6 Phase 2 — Reels Hardening (PASS)
+
+### Safety Fixes
+1. **Comment list block filtering** — Blocked users' comments now hidden from `GET /reels/:id/comments` (B2 safety hole closed)
+2. **Audio/remix browse block filtering** — Blocked creators' reels now hidden from audio/remix browsing surfaces
+3. **Share notification (REEL_SHARE)** — Creator now receives notification when their reel is shared (parity with posts)
+
+### Quality Fixes
+4. **Feed pagination tie-breaker** — Main feed cursor changed from simple `score` to compound `score|id` to prevent duplicate/missing items when scores tie. Backward compatible with old cursor format.
+5. **Added REEL_SHARE to NotificationType enum** — Additive, no breaking change
+
+### Performance
+6. **New index**: `reel_comments.{reelId, moderationStatus, parentId, createdAt}` — supports filtered comment list query
+7. **New index**: `notifications.{userId, read, createdAt}` — supports unread notification queries
+
+### Files Changed
+- `/app/lib/handlers/reels.js` — Block filtering (comments, audio, remix), pagination tie-breaker, share notification
+- `/app/lib/constants.js` — Added REEL_SHARE enum
+- MongoDB indexes added for comment list + notification queries
+
+### Tests
+- **New**: `/app/tests/handlers/test_b6p2_reels_hardening.py` — 28 tests across 7 groups
+- **Regression**: B3 107/107, B4 72/72, B6-P1 31/31, B6-P2 28/28 — **Total 238/238 zero regressions**
+
 ## 2026-03-10: Stage B6 Phase 1 — Reels Polish (PASS)
 
 ### Bug Fixes
