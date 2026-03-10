@@ -72,6 +72,15 @@ time.sleep(0.3)
 postA = create_post(userA, "UserA public post for B2 test")
 time.sleep(0.3)
 
+# Promote post to stage-2 so it appears in public feed (distribution engine requirement)
+import pymongo
+import os
+mongo_url = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
+db_name = os.environ.get("DB_NAME", "your_database_name")
+client = pymongo.MongoClient(mongo_url)
+db = client[db_name]
+db.content_items.update_one({"id": postA}, {"$set": {"distributionStage": 2}})
+
 # UserC comments on post
 requests.post(f"{API}/content/{postA}/comments", headers=h(userC), json={"body": "comment from userC"})
 time.sleep(0.3)
@@ -347,12 +356,7 @@ shadow_post = create_post(userA, "shadow limited test post")
 time.sleep(0.3)
 
 # Use the admin DB access or direct pymongo to change visibility
-import pymongo
-import os
-mongo_url = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
-db_name = os.environ.get("DB_NAME", "your_database_name")
-client = pymongo.MongoClient(mongo_url)
-db = client[db_name]
+# (pymongo already imported and db already connected from setup above)
 
 # 8.1: Set to SHADOW_LIMITED (1 mark)
 result = db.content_items.update_one({"id": shadow_post}, {"$set": {"visibility": "SHADOW_LIMITED"}})
