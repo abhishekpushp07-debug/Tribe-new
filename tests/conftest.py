@@ -204,6 +204,22 @@ def resource_lifecycle_user(api_url, db):
     return user
 
 
+@pytest.fixture(scope='session')
+def consistency_user_a(api_url, db):
+    """Dedicated user for Stage 4C consistency tests — separate WRITE budget."""
+    user = _register_or_login(api_url, _next_phone(17), display_name='Consistency User A')
+    db.users.update_one({'phone': user['phone']}, {'$set': {'ageStatus': 'ADULT'}})
+    return user
+
+
+@pytest.fixture(scope='session')
+def consistency_user_b(api_url, db):
+    """Second user for Stage 4C consistency tests (cross-user actions) — separate WRITE budget."""
+    user = _register_or_login(api_url, _next_phone(18), display_name='Consistency User B')
+    db.users.update_one({'phone': user['phone']}, {'$set': {'ageStatus': 'ADULT'}})
+    return user
+
+
 @pytest.fixture
 def test_ip():
     """A unique IP for the current test (use in X-Forwarded-For)."""
