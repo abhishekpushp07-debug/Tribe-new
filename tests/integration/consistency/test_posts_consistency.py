@@ -26,8 +26,12 @@ CONSISTENCY_HOUSE = 'consistency-house-4c'
 
 
 @pytest.fixture(scope='module', autouse=True)
-def setup_consistency_college(db, consistency_user_a, consistency_user_b):
+def setup_consistency_college(db, consistency_user_a, consistency_user_b, admin_user):
     """Set up college/house for consistency users so posts land in college/house feeds."""
+    # Save admin's original collegeId — notice tests modify it
+    admin_doc = db.users.find_one({'id': admin_user['userId']}, {'collegeId': 1, '_id': 0})
+    original_admin_college = admin_doc.get('collegeId') if admin_doc else None
+
     db.colleges.update_one(
         {'id': CONSISTENCY_COLLEGE},
         {'$setOnInsert': {'id': CONSISTENCY_COLLEGE, 'name': 'Consistency Test College'}},
@@ -44,6 +48,9 @@ def setup_consistency_college(db, consistency_user_a, consistency_user_b):
             '$set': {'collegeId': CONSISTENCY_COLLEGE, 'houseId': CONSISTENCY_HOUSE}
         })
     yield
+    # Restore admin's original collegeId so downstream modules aren't affected
+    db.users.update_one({'id': admin_user['userId']},
+                        {'$set': {'collegeId': original_admin_college}})
     db.colleges.delete_one({'id': CONSISTENCY_COLLEGE})
     db.houses.delete_one({'id': CONSISTENCY_HOUSE})
 

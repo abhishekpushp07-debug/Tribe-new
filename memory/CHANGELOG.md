@@ -1,5 +1,20 @@
 # Tribe — Changelog
 
+## 2026-03-10: Stage 4C-P0B — Visibility + Permission Matrix — PERFECT
+- **44 tests, 0 skipped, 0 failures** across 5 authorization dimensions
+- Anonymous: 7 read-allowed (200) + 11 write-denied (401) across all entity types
+- Age-gate: UNKNOWN→403 AGE_REQUIRED, CHILD→text OK / media+reel+story→403 CHILD_RESTRICTED
+- Role-gate: USER→403 notices, ADMIN→creates/deletes/pins across entities
+- Ownership: own mutations OK, cross-user→403, self-vote→403, self-like→400
+- Content-state: REMOVED→404/410, HELD→absent, DRAFT→invisible to non-creator, CANCELLED→accessible, Banned→403 login
+- Created `permission_user_a`, `permission_user_b`, `permission_admin` fixtures (14th user)
+- Fixed admin WRITE rate limit interference: isolated P0-B admin from shared `admin_user`
+- Fixed admin state leakage: P0-A now saves/restores `admin_user.collegeId`
+- Suite: **396/396 passed**, 2x idempotent (42.40s, 41.47s)
+- Proof pack: `/app/memory/stage_4c_p0b_proof_pack.md`
+
+---
+
 ## 2026-03-10: Stage 4C-P0A — Cross-Surface Entity Consistency — PERFECT
 - **24 tests, 0 skipped, 0 failures** across 5 entity domains
 - Posts (8): detail↔feed, college/house feed, like/dislike/comment/reaction-remove consistency

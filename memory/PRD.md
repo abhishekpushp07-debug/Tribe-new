@@ -48,11 +48,22 @@ Executed through staged plan: Security → Observability → Testing → Scalabi
 - 3 dedicated consistency users, full cleanup, idempotent (2x 352/352)
 - Proof pack: `/app/memory/stage_4c_p0a_proof_pack.md`
 
+### Stage 4C-P0B: Visibility + Permission Matrix — PERFECT (44/44)
+- 5 dimensions: Anonymous (18), Age-Gate (5), Role-Gate (5), Ownership (7), Content-State (10)
+- Anonymous: 7 read-allowed + 11 write-denied (401) across all entity types
+- Age-gate: UNKNOWN→403, CHILD→text OK but media/reel/story→403 CHILD_RESTRICTED
+- Role-gate: USER→403 notices, ADMIN→creates/deletes/pins
+- Ownership: self-mutations OK, cross-user mutations→403, self-vote/like→403/400
+- Content-state: REMOVED→404/410, HELD→absent from feeds, DRAFT→invisible to non-creator, CANCELLED→accessible
+- Banned user→403 on login
+- 4 dedicated users (permission_user_a/b, permission_admin), idempotent (2x 396/396)
+- Proof pack: `/app/memory/stage_4c_p0b_proof_pack.md`
+
 ## In Progress
 
-### Stage 4C: World-Class Product Consistency (P0) — Awaiting P0-B
+### Stage 4C: World-Class Product Consistency (P0) — Awaiting P0-C
 - P0-A ✅ Cross-surface entity consistency (24 tests, PERFECT)
-- P0-B ⬜ Visibility + Permission Matrix
+- P0-B ✅ Visibility + Permission Matrix (44 tests, PERFECT)
 - P0-C ⬜ Moderation-State Exposure Rules
 - P0-D ⬜ Counter and Aggregate Truth
 - P0-E ⬜ Pagination/Cursor Correctness

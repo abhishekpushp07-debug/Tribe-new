@@ -228,6 +228,39 @@ def consistency_resource_user(api_url, db):
     return user
 
 
+@pytest.fixture(scope='session')
+def permission_user_a(api_url, db):
+    """Dedicated user for Stage 4C-P0B permission tests — separate WRITE budget."""
+    user = _register_or_login(api_url, _next_phone(20), display_name='Permission User A')
+    db.users.update_one({'phone': user['phone']}, {'$set': {'ageStatus': 'ADULT'}})
+    return user
+
+
+@pytest.fixture(scope='session')
+def permission_user_b(api_url, db):
+    """Second user for Stage 4C-P0B permission tests — separate WRITE budget."""
+    user = _register_or_login(api_url, _next_phone(21), display_name='Permission User B')
+    db.users.update_one({'phone': user['phone']}, {'$set': {'ageStatus': 'ADULT'}})
+    return user
+
+
+@pytest.fixture(scope='session')
+def permission_admin(api_url, db):
+    """Dedicated admin for Stage 4C-P0B permission tests — separate WRITE budget from main admin."""
+    phone = _next_phone(22)
+    test_ip = _next_test_ip()
+    user_data = _register_or_login(api_url, phone, display_name='Permission Admin', ip=test_ip)
+    db.users.update_one({'phone': phone}, {'$set': {'role': 'ADMIN', 'ageStatus': 'ADULT'}})
+    # Re-login to get fresh token with admin role
+    import requests
+    headers = _make_headers(ip=test_ip)
+    resp = _retry_on_429(lambda: requests.post(f'{api_url}/auth/login', json={'phone': phone, 'pin': '1234'}, headers=headers))
+    if resp.status_code == 200:
+        data = resp.json()
+        user_data['token'] = data.get('accessToken') or data.get('token')
+    return user_data
+
+
 @pytest.fixture
 def test_ip():
     """A unique IP for the current test (use in X-Forwarded-For)."""
