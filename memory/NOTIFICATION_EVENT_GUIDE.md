@@ -75,12 +75,32 @@ Verified backend truth. FH1-U gate.
 - **Trigger**: House points awarded
 - **Recipient**: House members
 
+### 11. REEL_LIKE (B6)
+- **Trigger**: User likes a reel
+- **Recipient**: Reel creator
+- **Actor**: The liker
+- **Self-notify**: No (suppressed)
+- **targetType**: REEL
+- **targetId**: Reel ID
+- **Message**: "{actor.displayName} liked your reel"
+- **Deep link**: Navigate to reel detail
+
+### 12. REEL_COMMENT (B6)
+- **Trigger**: User comments on a reel
+- **Recipient**: Reel creator
+- **Actor**: The commenter
+- **Self-notify**: No (suppressed)
+- **targetType**: REEL
+- **targetId**: Reel ID
+- **Message**: "{actor.displayName} commented on your reel"
+- **Deep link**: Navigate to reel comment sheet
+
 ## Notification DB Schema
 ```json
 {
   "id": "uuid",
   "userId": "recipient user ID",
-  "type": "FOLLOW|LIKE|COMMENT|COMMENT_LIKE|SHARE|MENTION|...",
+  "type": "FOLLOW|LIKE|COMMENT|COMMENT_LIKE|SHARE|MENTION|REEL_LIKE|REEL_COMMENT|...",
   "actorId": "actor user ID",
   "targetType": "USER|CONTENT|COMMENT|PAGE",
   "targetId": "target entity ID",

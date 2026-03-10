@@ -1,5 +1,32 @@
 # Tribe — Changelog
 
+## 2026-03-10: Stage B6 Phase 1 — Reels Polish (PASS)
+
+### Bug Fixes
+1. **Moderation call signature fix** — All 3 moderation calls in `reels.js` (create, edit, comment) were using wrong signature `(text, type)` instead of canonical `(db, {object})`. Fixed to use `moderateCreateContent(db, { entityType, entityId, actorUserId, text, metadata })`.
+2. **Reel comment accepts both `text` and `body`** — Previously only accepted `text`. Now accepts `body || text` matching post comment canonical behavior. Both fields stored for backward compat.
+3. **Reel report safe body parsing** — Added safe JSON parsing with `try/catch` to prevent 500 on empty/malformed body. Returns clear 400 error.
+4. **Report response _id leak fix** — Report response now excludes MongoDB `_id` field.
+
+### Enum & Notification Fixes
+5. **Added `REEL_LIKE`, `REEL_COMMENT` to NotificationType enum** in `constants.js`. Reel handlers now use `NotificationType.REEL_LIKE` and `NotificationType.REEL_COMMENT` instead of raw strings.
+
+### Files Changed
+- `/app/lib/constants.js` — Added REEL_LIKE, REEL_COMMENT to NotificationType
+- `/app/lib/handlers/reels.js` — Fixed moderation calls (3 sites), comment input compat, report safe parsing, _id exclusion, NotificationType enum usage
+
+### Tests
+- **New**: `/app/tests/handlers/test_b6_reels_polish.py` — 31 tests across 5 groups (Moderation, Comment, Notifications, Report, Regression)
+- **Regression**: B3 107/107 PASS, B4 72/72 PASS, B6 31/31 PASS — **Total 210/210 zero regressions**
+
+### Contract Impact
+- Reel comment request: NOW accepts `{ text }` OR `{ body }` (backward compatible)
+- Reel comment response: NOW includes both `text` and `body` fields (additive)
+- NotificationType: Added `REEL_LIKE`, `REEL_COMMENT` (additive, no old type removed)
+- Reel report response: _id no longer leaked (safety fix)
+
+
+
 ## 2026-03-10: Stage FH1-U — Frontend Readiness Gate (PASS)
 ### Validation
 - Full backend discovery: 16 handler files, 150+ routes enumerated from actual code

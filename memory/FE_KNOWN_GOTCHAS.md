@@ -234,3 +234,26 @@ if (post.isRepost) {
 | Followers/Following (none) | "No followers/following yet" |
 | User saved (none) | "No saved posts" |
 | Page members (just owner) | Show only owner |
+
+
+---
+
+## B6 Updates — Reel Fixes (March 2026)
+
+### Fixed Issues
+| # | Issue | Resolution |
+|---|-------|-----------|
+| 1 | Reel comment only accepted `text` field | Now accepts both `text` and `body` (body takes precedence) |
+| 2 | Reel moderation calls silently failed | Fixed moderation call signature to canonical `(db, {object})` |
+| 3 | Reel report crashed on empty body | Added safe JSON parsing, returns clear 400 error |
+| 4 | Reel report leaked MongoDB `_id` | Fixed to exclude `_id` from response |
+
+### New Notification Types (B6)
+| Type | Trigger | targetType | Deep Link |
+|------|---------|------------|-----------|
+| `REEL_LIKE` | User likes a reel | REEL | Reel detail |
+| `REEL_COMMENT` | User comments on a reel | REEL | Reel comment sheet |
+
+### Reel Comment Contract Update
+- **Request**: `{ text: "..." }` OR `{ body: "..." }` — both accepted, `body` takes precedence if both present
+- **Response**: Comment object now includes both `text` AND `body` fields (same value, backward compat)

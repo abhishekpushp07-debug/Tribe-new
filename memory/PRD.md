@@ -120,9 +120,10 @@ id, userId, commentId, contentId, createdAt (unique: userId+commentId)
 | B4 | Core Social Gaps | ✅ DONE | 72 |
 | B4-U | Ultimate Test Gate | ✅ PASS | 72 |
 | FH1-U | Frontend Readiness Gate | ✅ PASS | — |
+| B6-P1 | Reels Polish (bugs) | ✅ PASS | 31 |
 
 ## Next Priority
-**B5 — Discovery, Search & Hashtag Engine**: Hashtag extraction, fix `GET /search?type=posts`
+**B6-P2 — Notifications 2.0**: Device token registration, notification preferences, unread count, grouping/aggregation, delivery hygiene
 
 ## Frontend Handoff Docs (FH1-U)
 - `/app/memory/API_REFERENCE.md` — Full route reference by domain
