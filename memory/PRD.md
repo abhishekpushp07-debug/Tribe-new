@@ -1,94 +1,80 @@
 # Tribe — Product Requirements Document
 
 ## Original Problem Statement
-Build the "Tribe" social media backend to world-best standard, targeting quality score >900/1000.
-Executed through staged plan: Security → Observability → Testing → Scalability → Production.
+Build a "world-best" social media backend for "Tribe" — a campus-community social media platform. The backend is ~95% feature-complete with ~266 routes across 21 domains. The project follows a staged plan (B0-B8) focusing on documentation, identity fixes, permissions, new features, and hardening.
 
-## Architecture
-- **Framework**: Monolithic Next.js API (backend-only)
+## Core Architecture
+- **Framework**: Next.js App Router (monolithic API)
 - **Database**: MongoDB
-- **Cache/Pub-Sub**: Redis (with in-memory fallback)
-- **AI**: OpenAI GPT-4o-mini (moderation)
-- **Storage**: Emergent Object Storage
-- **Context**: AsyncLocalStorage for request lineage
-- **Testing**: pytest (canonical runner) with JS bridge for unit tests
+- **Auth**: Phone+PIN, JWT (access+refresh tokens with rotation)
+- **Handler Files**: 16 active handler files in `/app/lib/handlers/`
+- **Router**: Single catch-all `[[...path]]/route.js` dispatcher (632 lines)
+- **Testing**: pytest (396 tests passing)
+- **3rd Party**: Redis (rate limiting), OpenAI GPT-4o-mini (moderation), Emergent Object Storage (media)
 
-## Stage Completion Status
+## Completed Stages
 
-### Stage 2: Security Hardening — PASS (88/100)
-- Access/refresh token system with replay detection
-- Session management (list, revoke-one, revoke-all)
-- Layered rate limiting (7 tiers, Redis-backed with Lua)
-- Centralized input sanitization (XSS, payload size)
+### Stage B0: API Contract & Truth Bridge ✅ (2026-03-10)
+All 12 sub-stages completed:
+- **B0.1**: Route Census — 266 live routes catalogued across 21 domains
+- **B0.2**: Domain Classification — screen mapping, cross-domain tags
+- **B0.3**: Auth & Actor Matrix — per-endpoint auth behavior documented
+- **B0.4**: Request Contracts — exact request body specs for all write endpoints
+- **B0.5**: Response Contracts — canonical shared objects (UserSnippet, MediaObject, etc.)
+- **B0.6**: Error Contracts — error codes, status patterns, edge cases
+- **B0.7**: Pagination & Streams — cursor/offset per endpoint, SSE contract
+- **B0.8**: Quirk Ledger — 17 non-obvious gotchas documented
+- **B0.9**: API_REFERENCE.md — master reference document
+- **B0.10**: Machine manifests (route_manifest.json, route_inventory_raw.json)
+- **B0.11**: Drift governance rules
+- **B0.12**: Freeze package with known unknowns
 
-### Stage 3 + 3B: Observability — PASS (93/100)
-- Structured JSON logging, request lineage, health checks, metrics, Redis resilience
+**Deliverables**: 15 files in `/app/memory/contracts/` + `/app/memory/API_REFERENCE.md`
 
-### Stage 4A: Test Foundation — GOLD CLOSURE (87/100)
-- 78 unit tests, JS eval bridge, CI gate, coverage baseline (96%), execution hooks
+### Earlier Stages (Pre-B0)
+- Stages 1-9 of original development plan completed
+- 396 tests passing (78 unit + 242 integration + 8 smoke + 68 consistency/permission)
 
-### Stage 4B: Product-Domain Coverage — COMPLETE (96/100) — SCORECARD DELIVERED
-- **328 total tests** (78 unit + 242 integration + 8 smoke)
-- 10 product domains covered with comprehensive lifecycle testing:
-  - Posts (13), Feed 4 surfaces (18), Social 9/9 endpoints (29)
-  - Events: CRUD + state machine (publish/cancel/archive) + RSVP + search + college feed (36)
-  - Resources: CRUD + voting + search + download tracking (32)
-  - Notices: CRUD + pin/unpin + college listing + acknowledgment list (26)
-  - Reels: feeds + interactions + comments + hide/not-interested/share (25)
-  - Visibility Safety (10), Cross-Surface Consistency (4), Smoke (4)
-- 10 dedicated test users for WRITE rate-limit isolation
-- 2x idempotent (328/328, 32.15s + 29.95s), full cleanup (20+ collections)
-- True Deep Audit Scorecard: `/app/memory/stage_4b_true_scorecard.md`
+## Prioritized Backlog
 
-### Stage 4C-P0A: Cross-Surface Entity Consistency — PERFECT (24/24)
-- 5 entity domains: Posts (8), Events (6), Resources (4), Notices (3), Reels (3)
-- Proves truth-field consistency across detail, feeds, search, college listings, cross-user reads
-- Mutation→Read consistency for like, dislike, comment, RSVP, vote, acknowledge
-- Delete/Remove consistency (404/410) across all entities
-- 3 dedicated consistency users, full cleanup, idempotent (2x 352/352)
-- Proof pack: `/app/memory/stage_4c_p0a_proof_pack.md`
+### P0: Stage B1 — Canonical Identity, Avatar & Media Resolution
+- Fix avatar URLs (raw mediaId → resolved URL)
+- Standardize UserSnippet shape across all endpoints
+- Standardize MediaObject resolution
 
-### Stage 4C-P0B: Visibility + Permission Matrix — PERFECT (44/44)
-- 5 dimensions: Anonymous (18), Age-Gate (5), Role-Gate (5), Ownership (7), Content-State (10)
-- Anonymous: 7 read-allowed + 11 write-denied (401) across all entity types
-- Age-gate: UNKNOWN→403, CHILD→text OK but media/reel/story→403 CHILD_RESTRICTED
-- Role-gate: USER→403 notices, ADMIN→creates/deletes/pins
-- Ownership: self-mutations OK, cross-user mutations→403, self-vote/like→403/400
-- Content-state: REMOVED→404/410, HELD→absent from feeds, DRAFT→invisible to non-creator, CANCELLED→accessible
-- Banned user→403 on login
-- 4 dedicated users (permission_user_a/b, permission_admin), idempotent (2x 396/396)
-- Proof pack: `/app/memory/stage_4c_p0b_proof_pack.md`
+### P1: Stage B2 — Visibility, Permission & Feed Safety
+- Enforce content visibility rules (PUBLIC/FOLLOWERS/LIMITED) across feeds
+- Fix following feed to show FOLLOWERS-only content
 
-## In Progress
+### P1: Stage B3 — Pages System
+- Build Instagram/Facebook-style "Pages" from scratch
+- ~15 new endpoints for CRUD, roles, posting-as-page, feed integration
 
-### Stage 4C: World-Class Product Consistency (P0) — Awaiting P0-C
-- P0-A ✅ Cross-surface entity consistency (24 tests, PERFECT)
-- P0-B ✅ Visibility + Permission Matrix (44 tests, PERFECT)
-- P0-C ⬜ Moderation-State Exposure Rules
-- P0-D ⬜ Counter and Aggregate Truth
-- P0-E ⬜ Pagination/Cursor Correctness
-- P0-F ⬜ Illegal State Transitions
-- P1-A ⬜ Contract Hardening
-- P1-B ⬜ Auditability / Request Lineage
-- P1-C ⬜ Domain Matrix README
+### P2: Stage B4 — Core Social Gaps
+- ~8 missing endpoints: edit post, share post, like comment, explore feed, trending hashtags, notification device registration
 
-## Upcoming Tasks
+### P2: Stage B5 — Discovery, Search & Hashtag Engine
+- Hashtag extraction from captions
+- Post content search indexing
+- Fix broken post search
 
-### Stage 4D: Gold-Freeze / Launch-Readiness (P1)
+### P2: Stage B6 — Notifications 2.0 + Reel/Post Polish
+- Fix reel comment/report 400 bugs
+- Notification grouping and preferences
 
-### Stage 5: Scalability Foundation Refactor (P2)
-- Service/Repository layer separation
-- handler.js → service.js → repository.js pattern
+### P3: Stage B7 — Test Hardening + Gold Freeze
+- Scale test coverage to 900+
 
-### Future Stages (P3)
-- Stage 6: Async Backbone + Job System + CQRS-lite
-- Stage 10+: Production Hardening (separate test DB, TTL, Redis-backed metrics)
+### P4: Stage B8 — Infra, Observability, Scale Path
+- 3-layer refactor
+- Separate test DB
+- Job queues, Redis caching
+- Audit log TTL
 
-## Known Product Behaviors (Documented by Tests)
-1. Following feed does NOT filter blocked users' posts (code gap)
-2. Like handler does NOT check content visibility (removed content can be liked)
-3. New posts have distributionStage=0, excluded from public/college/house feeds
-4. Self-vote on resources returns 403, self-like reel returns 400
-5. REMOVED notices return 410 Gone
-6. Regular users cannot create board notices (403)
-7. Duplicate same-direction vote on resources returns 409 CONFLICT
+## Known Issues
+1. Avatar returns raw media ID, not URL (B1)
+2. Post search not working (B5)
+3. Reel comment/report return 400 (B6)
+4. Visibility field not fully enforced in feeds (B2)
+5. Dead code: house-points.js (16 files active, 1 dead)
+6. Dead code: stages.js lines 2247-2623
