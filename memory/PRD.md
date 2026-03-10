@@ -132,3 +132,4 @@ id, userId, commentId, contentId, createdAt (unique: userId+commentId)
 - `/app/memory/NOTIFICATION_EVENT_GUIDE.md` — All notification types
 - `/app/memory/FE_KNOWN_GOTCHAS.md` — 20 documented edge cases/traps
 - `/app/memory/FRONTEND_INTEGRATION_GUIDE.md` — Complete integration guide
+- `/app/memory/FINAL_APP_AGENT_HANDOFF.md` — **MASTER consolidated handoff (818 lines, v3.0 FINAL)**
