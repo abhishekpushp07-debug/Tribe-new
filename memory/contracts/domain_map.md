@@ -47,6 +47,7 @@
 | 37 | Admin: Resources | 4 | 1 | 3 | 4 | 0 | — |
 | 38 | Admin: Moderation System | 5 | 2 | 3 | 5 | 0 | — |
 | 39 | System / Health / Ops | 11 | 8 | 1 | 8 | 1 | — |
+| 40 | Pages (B3) | 18 | 4 | 14 | 0 | 16 | — |
 
 ---
 
@@ -164,6 +165,29 @@
 | `GET /api/governance/college/:cid/board` | Governance | READ |
 | `GET /api/colleges/:id/notices` | Board Notices | READ |
 | `POST /api/board/notices` | Board Notices | WRITE |
+
+### SCREEN: Pages (B3 — Community Publishing)
+| Route | Domain | Action |
+|---|---|---|
+| `POST /api/pages` | Pages | WRITE (create) |
+| `GET /api/pages` | Pages | READ (search/list) |
+| `GET /api/pages/:idOrSlug` | Pages | READ (detail) |
+| `PATCH /api/pages/:id` | Pages | WRITE (update) |
+| `POST /api/pages/:id/archive` | Pages | WRITE |
+| `POST /api/pages/:id/restore` | Pages | WRITE |
+| `GET /api/pages/:id/members` | Pages | READ |
+| `POST /api/pages/:id/members` | Pages | WRITE |
+| `PATCH /api/pages/:id/members/:userId` | Pages | WRITE |
+| `DELETE /api/pages/:id/members/:userId` | Pages | WRITE |
+| `POST /api/pages/:id/transfer-ownership` | Pages | WRITE |
+| `POST /api/pages/:id/follow` | Pages | WRITE |
+| `DELETE /api/pages/:id/follow` | Pages | WRITE |
+| `GET /api/pages/:id/followers` | Pages | READ |
+| `GET /api/pages/:id/posts` | Pages | READ |
+| `POST /api/pages/:id/posts` | Pages | WRITE |
+| `PATCH /api/pages/:id/posts/:postId` | Pages | WRITE |
+| `DELETE /api/pages/:id/posts/:postId` | Pages | WRITE |
+| `GET /api/me/pages` | Pages | READ |
 
 ### SCREEN: Settings / Account
 | Route | Domain | Action |

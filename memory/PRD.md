@@ -1,99 +1,97 @@
 # Tribe — Product Requirements Document
 
 ## Original Problem Statement
-Build a "world-best" social media backend for "Tribe" — a campus-community social media platform. The backend is ~95% feature-complete with ~266 routes across 21 domains. The project follows a staged plan (B0-B8) focusing on documentation, identity fixes, permissions, new features, and hardening.
+Build a "world-best" social media backend for the app "Tribe" — a campus-native social platform. Development follows a rigid multi-stage plan (B0-B8) with contract-driven development, centralized policy enforcement, and canonical data objects.
 
-## Core Architecture
-- **Framework**: Next.js App Router (monolithic API)
-- **Database**: MongoDB
-- **Auth**: Phone+PIN, JWT (access+refresh tokens with rotation)
-- **Handler Files**: 16 active handler files in `/app/lib/handlers/`
-- **Router**: Single catch-all `[[...path]]/route.js` dispatcher (632 lines)
-- **Testing**: pytest (396 tests passing)
-- **3rd Party**: Redis (rate limiting), OpenAI GPT-4o-mini (moderation), Emergent Object Storage (media)
+## Architecture
+- **Stack**: Monolithic Next.js API backend + MongoDB
+- **Testing**: pytest suite
+- **Key Patterns**: Contract-Driven Development, Centralized Policy (access-policy.js), Canonical Serializers (entity-snippets.js)
+- **Collections**: users, sessions, content_items, follows, reactions, saves, comments, notifications, media_assets, audit_logs, pages (B3), page_members (B3), page_follows (B3), reels, stories, ...
 
-## Completed Stages
+## Stage Completion Status
 
-### Stage B0: API Contract & Truth Bridge ✅ (2026-03-10)
-All 12 sub-stages completed:
-- **B0.1**: Route Census — 266 live routes catalogued across 21 domains
-- **B0.2**: Domain Classification — screen mapping, cross-domain tags
-- **B0.3**: Auth & Actor Matrix — per-endpoint auth behavior documented
-- **B0.4**: Request Contracts — exact request body specs for all write endpoints
-- **B0.5**: Response Contracts — canonical shared objects (UserSnippet, MediaObject, etc.)
-- **B0.6**: Error Contracts — error codes, status patterns, edge cases
-- **B0.7**: Pagination & Streams — cursor/offset per endpoint, SSE contract
-- **B0.8**: Quirk Ledger — 17 non-obvious gotchas documented
-- **B0.9**: API_REFERENCE.md — master reference document
-- **B0.10**: Machine manifests (route_manifest.json, route_inventory_raw.json)
-- **B0.11**: Drift governance rules
-- **B0.12**: Freeze package with known unknowns
+### ✅ B0 — API Contract & Manifest (DONE)
+- 266 live API routes documented
+- Full route manifest, domain map, response contracts, quirk ledger
+- TypeScript API client generated
 
-**Deliverables**: 15 files in `/app/memory/contracts/` + `/app/memory/API_REFERENCE.md`
+### ✅ B1 — Canonical Identity & Media Resolution (DONE)
+- `toUserSnippet()`, `toUserProfile()`, `toMediaObject()`, `resolveMediaUrl()` in entity-snippets.js
+- All avatar URLs resolved consistently across all surfaces
 
-### Stage B0.5: TypeScript API Client ✅ (2026-03-10)
-- **File**: `/app/lib/tribe-api-client.ts` (1884 lines)
-- **Coverage**: 265/265 manifest routes (100%)
-- **34 exported types**: UserProfile, ContentItem, Reel, Story, Tribe, TribeContest, Event, BoardNotice, Resource, Notification, etc.
-- **27 domain namespaces**: system, auth, me, content, feed, social, comments, users, discovery, media, stories, blocks, reels, tribes, contests, events, notices, resources, governance, authenticity, reports, appeals, notifications, legal, grievances, claims, admin.*
-- **Features**: SSE streaming, async auto-pagination iterator, AbortController support, auto-401 retry with token refresh, rate-limit error handling, request hooks, media URL resolver, avatarUrl helper
-- **TypeScript strict mode**: 0 errors
-- **Known bugs documented in JSDoc**: reel comment/report 400, post search not indexed
-- **294 JSDoc comments** documenting every method with params, quirks, and constraints
+### ✅ B2 — Visibility, Permission & Feed Safety (DONE)
+- Centralized `access-policy.js` with `canViewContent()`, `isContentListable()`, `applyFeedPolicy()`
+- Block relationships enforced across all feeds and content detail endpoints
+- Cache-bypass bug fixed for block filters
 
-### Earlier Stages (Pre-B0)
-- Stages 1-9 of original development plan completed
-- 396 tests passing (78 unit + 242 integration + 8 smoke + 68 consistency/permission)
+### ✅ B3 — Pages System (DONE)
+- First-class Page entity with 18+ new API endpoints
+- Multi-role team management (OWNER > ADMIN > EDITOR > MODERATOR)
+- Publishing as page — reuses existing content engine
+- Public author = Page (PageSnippet), Audit actor = real user (actingUserId + actingRole)
+- Follow/unfollow pages with counter management
+- Feed integration: followed page posts appear in following feed
+- Search integration: pages searchable by name/slug/category
+- Notification integration: page interactions notify OWNER+ADMIN members
+- Official page spoofing prevention
+- Page lifecycle: ACTIVE → ARCHIVED → restored
+- Migration backfill for legacy content (authorType=USER)
+- 50 targeted B3 tests + 396 existing tests = 446 total tests passing
 
-## Prioritized Backlog
+### ⬜ B4 — Core Social Gaps (NOT STARTED)
+- ~8 missing endpoints: edit post, share post, like comment, etc.
 
-### P0: Stage B1 — Canonical Identity, Avatar & Media Resolution ✅ (2026-03-10)
-- **B1-B**: Created centralized `resolveMediaUrl()` helper in entity-snippets.js — single source for all media ID → URL resolution (future-safe for CDN/signed URLs)
-- **B1-C**: Fixed `toUserSnippet()` — was reading non-existent `user.avatar` field (always null). Now reads `avatarMediaId`, outputs `avatarUrl` (resolved URL), `avatarMediaId` (raw), `avatar` (deprecated legacy alias)
-- **B1-D**: Rewired `sanitizeUser()` in auth-utils.js to delegate to `toUserProfile()` — all 50+ call sites across 15 handlers now get canonical avatar fields
-- **B1-E**: Fixed `toMediaObject()` — `url` now falls back to `resolveMediaUrl(id)` for DB-stored media (was sometimes null)
-- **B1-G**: Updated response_contracts.md and quirk_ledger.md (QUIRK 1 marked RESOLVED)
-- **Testing**: 396 pytest passing (0 regressions) + 10/12 targeted contract tests (2 failures = rate limiting, not B1)
-- **Files changed**: `lib/entity-snippets.js`, `lib/auth-utils.js`
-- **Backward compatibility**: Legacy `avatar` field preserved as deprecated alias. No route/path/DB/permission changes.
+### ⬜ B5 — Discovery, Search & Hashtag Engine (NOT STARTED)
+- Hashtag extraction, fix post search (Issue 1)
 
-### P1: Stage B2 — Visibility, Permission & Feed Safety ✅ (2026-03-10)
-- Created centralized `access-policy.js` with 9 policy functions
-- Applied to 14 surfaces: content detail, 6 feeds, user profile, user posts, followers, following, comments, notifications
-- Bidirectional block enforcement across all read surfaces (returns 404, no existence leak)
-- Parent-child safety: hidden parent → child objects inaccessible
-- Visibility states enforced: SHADOW_LIMITED/HELD → owner+admin only, REMOVED → nobody
-- 396/396 pytest passing, auth_actor_matrix.md updated
+### ⬜ B6 — Notifications 2.0 + Reels/Post Polish (NOT STARTED)
+- Advanced notifications, fix reel interaction bugs (Issue 2)
 
-### P1: Stage B3 — Pages System
-- Build Instagram/Facebook-style "Pages" from scratch
-- ~15 new endpoints for CRUD, roles, posting-as-page, feed integration
+### ⬜ B7 — Test Hardening + Gold Freeze (NOT STARTED)
+- Target 900+ tests
 
-### P2: Stage B4 — Core Social Gaps
-- ~8 missing endpoints: edit post, share post, like comment, explore feed, trending hashtags, notification device registration
-
-### P2: Stage B5 — Discovery, Search & Hashtag Engine
-- Hashtag extraction from captions
-- Post content search indexing
-- Fix broken post search
-
-### P2: Stage B6 — Notifications 2.0 + Reel/Post Polish
-- Fix reel comment/report 400 bugs
-- Notification grouping and preferences
-
-### P3: Stage B7 — Test Hardening + Gold Freeze
-- Scale test coverage to 900+
-
-### P4: Stage B8 — Infra, Observability, Scale Path
-- 3-layer refactor
-- Separate test DB
-- Job queues, Redis caching
-- Audit log TTL
+### ⬜ B8 — Infra, Observability, Scale Path (NOT STARTED)
+- 3-layer refactor, job queues, Redis, separate test DB, audit log TTL
 
 ## Known Issues
-1. ~~Avatar returns raw media ID, not URL (B1)~~ **RESOLVED in B1**
-2. Post search not working (B5)
-3. Reel comment/report return 400 (B6)
-4. ~~Visibility field not fully enforced in feeds (B2)~~ **RESOLVED in B2**
-5. Dead code: house-points.js (16 files active, 1 dead)
-6. Dead code: stages.js lines 2247-2623
+1. **Post Search Not Working** (P1) — deferred to B5
+2. **Reel Interaction Bugs** (P1) — deferred to B6
+3. **Separate Test DB** — deferred to B8
+4. **Audit Log TTL** — deferred to B8
+
+## B3 New API Surface (18 endpoints)
+| Endpoint | Auth | Role |
+|---|---|---|
+| POST /api/pages | User | - |
+| GET /api/pages | Public | - |
+| GET /api/pages/:idOrSlug | Public | - |
+| PATCH /api/pages/:id | User | OWNER/ADMIN |
+| POST /api/pages/:id/archive | User | OWNER |
+| POST /api/pages/:id/restore | User | OWNER |
+| GET /api/pages/:id/members | User | Any member |
+| POST /api/pages/:id/members | User | OWNER/ADMIN |
+| PATCH /api/pages/:id/members/:userId | User | OWNER/ADMIN |
+| DELETE /api/pages/:id/members/:userId | User | OWNER/ADMIN (or self) |
+| POST /api/pages/:id/transfer-ownership | User | OWNER |
+| POST /api/pages/:id/follow | User | - |
+| DELETE /api/pages/:id/follow | User | - |
+| GET /api/pages/:id/followers | User | Any member |
+| GET /api/pages/:id/posts | Public | - |
+| POST /api/pages/:id/posts | User | OWNER/ADMIN/EDITOR |
+| PATCH /api/pages/:id/posts/:postId | User | OWNER/ADMIN/EDITOR |
+| DELETE /api/pages/:id/posts/:postId | User | OWNER/ADMIN/EDITOR |
+| GET /api/me/pages | User | - |
+
+## B3 Data Model
+### pages collection
+slug (unique), name, bio, category, subcategory, avatarMediaId, coverMediaId, status, isOfficial, verificationStatus, linkedEntityType, linkedEntityId, collegeId, tribeId, createdByUserId, followerCount, memberCount, postCount
+
+### page_members collection
+pageId, userId, role, status, addedByUserId
+
+### page_follows collection
+pageId, userId
+
+### content_items extensions (B3)
+authorType (USER|PAGE), pageId, actingUserId, actingRole, createdAs (USER|PAGE)

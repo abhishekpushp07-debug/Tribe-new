@@ -28,6 +28,57 @@ These shapes are used across multiple endpoints. Defined once here, referenced e
 }
 ```
 > Source: `toUserSnippet()` in entity-snippets.js
+
+### PageSnippet (B3 — embedded in content, feeds, search results)
+```json
+{
+  "id": "string (UUID)",
+  "slug": "string",
+  "name": "string",
+  "avatarUrl": "string | null (resolved /api/media/<id>)",
+  "avatarMediaId": "string | null",
+  "category": "string (COLLEGE_OFFICIAL | DEPARTMENT | CLUB | TRIBE_OFFICIAL | FEST | MEME | STUDY_GROUP | HOSTEL | STUDENT_COUNCIL | ALUMNI_CELL | PLACEMENT_CELL | OTHER)",
+  "isOfficial": "boolean",
+  "verificationStatus": "string (NONE | PENDING | VERIFIED | REJECTED)",
+  "linkedEntityType": "string | null",
+  "linkedEntityId": "string | null",
+  "collegeId": "string | null",
+  "tribeId": "string | null",
+  "status": "string (ACTIVE | ARCHIVED)"
+}
+```
+> Source: `toPageSnippet()` in entity-snippets.js
+
+### PageProfile (B3 — full page detail)
+```json
+{
+  "...PageSnippet fields...": "all PageSnippet fields above",
+  "bio": "string",
+  "subcategory": "string",
+  "coverUrl": "string | null",
+  "coverMediaId": "string | null",
+  "followerCount": "number",
+  "memberCount": "number",
+  "postCount": "number",
+  "createdAt": "ISO8601",
+  "updatedAt": "ISO8601",
+  "viewerIsFollowing": "boolean",
+  "viewerRole": "string | null (OWNER | ADMIN | EDITOR | MODERATOR | null)"
+}
+```
+> Source: `toPageProfile()` in entity-snippets.js
+
+### Content Author Shape (B3 — USER or PAGE)
+```json
+{
+  "authorType": "USER | PAGE",
+  "author": "UserSnippet (if authorType=USER) | PageSnippet (if authorType=PAGE)"
+}
+```
+> B3 CONTRACT: When authorType=PAGE, the `author` field is a PageSnippet.
+> When authorType=USER (default), the `author` field is a UserSnippet.
+> Audit fields (actingUserId, actingRole, createdAs) are included in page-authored posts for backend audit.
+
 > B1 Change: `avatar` was always null (bug: read non-existent field). Now correctly reads `avatarMediaId` from DB. Added `avatarUrl` (resolved) and `avatarMediaId` (raw). Legacy `avatar` kept as deprecated alias.
 
 ### UserProfile (full profile, /auth/me, /users/:id)

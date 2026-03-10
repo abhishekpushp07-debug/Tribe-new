@@ -18,6 +18,7 @@ import { handleStories } from '@/lib/handlers/stories'
 import { handleReels } from '@/lib/handlers/reels'
 import { handleTribes, handleTribeAdmin } from '@/lib/handlers/tribes'
 import { handleTribeContests, handleTribeContestAdmin } from '@/lib/handlers/tribe-contests'
+import { handlePages } from '@/lib/handlers/pages'
 import { cache } from '@/lib/cache'
 import { applyFreezeHeaders } from '@/lib/freeze-registry'
 import { applySecurityHeaders, getEndpointTier, checkTieredRateLimit, extractIP, checkPayloadSize, deepSanitizeStrings } from '@/lib/security'
@@ -425,6 +426,9 @@ async function handleRouteCore(request, { params }, reqCtx) {
       else if (path[1] === 'resources') {
         result = await handleResources(path, method, request, db)
       }
+      else if (path[1] === 'pages') {
+        result = await handlePages(path, method, request, db)
+      }
       if (!result) {
         result = await handleOnboarding(path, method, request, db)
       }
@@ -521,6 +525,8 @@ async function handleRouteCore(request, { params }, reqCtx) {
       if (!result) {
         result = await handleAdmin(path, method, request, db)
       }
+    } else if (path[0] === 'pages') {
+      result = await handlePages(path, method, request, db)
     } else if (path[0] === 'resources') {
       result = await handleResources(path, method, request, db)
     } else if (path[0] === 'events') {

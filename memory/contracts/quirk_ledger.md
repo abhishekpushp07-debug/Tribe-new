@@ -222,6 +222,31 @@ Not `multipart/form-data`.
 
 **Frontend implication**: Client-side, check `createdAt + 24h < now` and hide expired stories locally. Don't rely on server to remove them instantly.
 
+
+## QUIRK 18: Content authorType Field (B3 — Pages)
+
+**Added in B3**. Content items now have an `authorType` field.
+
+- `authorType: "USER"` (default) — standard user-authored content. `author` is a `UserSnippet`.
+- `authorType: "PAGE"` — page-authored content. `author` is a `PageSnippet`.
+
+**Frontend implication**: When rendering a post, check `post.authorType` to determine which author shape to expect. If `"PAGE"`, the `author` will have `slug`, `category`, `isOfficial` fields instead of `username`, `displayName`.
+
+**Audit fields**: Page-authored posts include `actingUserId`, `actingRole`, `createdAs` for backend audit truth. These are exposed in the API response.
+
+**Do NOT assume**: All content is user-authored. The `authorType` field disambiguates.
+
+---
+
+## QUIRK 19: Page Slug Lookup
+
+Pages can be fetched by either UUID `id` or `slug`:
+- `GET /api/pages/<uuid>` — by ID
+- `GET /api/pages/<slug>` — by slug
+
+**Frontend implication**: Use slug for URLs (human-readable), ID for API calls.
+
+
 ---
 
 ## B0.8 EXIT GATE: PASS

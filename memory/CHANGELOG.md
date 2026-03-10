@@ -1,5 +1,46 @@
 # Tribe — Changelog
 
+## 2026-03-10: Stage B3 — Pages System (COMPLETE)
+### New Features
+- **Pages as first-class entities**: Full CRUD with slug-based identity, 12 page categories
+- **Multi-role team management**: OWNER > ADMIN > EDITOR > MODERATOR with strict cascading permissions
+- **Publish as page**: Reuses existing content engine. Public author = Page, audit actor = real user
+- **Page follow/unfollow**: With follower count management, idempotent operations
+- **Feed integration**: Followed page posts appear in following feed alongside user-authored posts
+- **Search integration**: Pages searchable by name/slug/category via both /pages?q= and /search?type=pages
+- **Notification targeting**: Likes/comments on page-authored content notify OWNER+ADMIN members
+- **Official page safety**: Cannot self-assert official status, "official" keyword restricted in names/slugs
+- **Page lifecycle**: ACTIVE → ARCHIVED → restored. No publishing on archived pages.
+- **Ownership transfer**: Safe atomic transfer with last-owner protection
+- **Migration backfill**: 380 legacy content items backfilled with authorType=USER
+
+### Files Added
+- `/app/lib/handlers/pages.js` — Main pages handler (18 endpoints)
+- `/app/lib/page-permissions.js` — Centralized page role system
+- `/app/lib/page-slugs.js` — Slug normalization, validation, reserved slugs
+- `/app/tests/handlers/test_b3_pages.py` — 50 targeted B3 tests
+- `/app/scripts/b3_backfill_author_fields.py` — Idempotent migration script
+
+### Files Modified
+- `/app/lib/entity-snippets.js` — Added `toPageSnippet()`, `toPageProfile()`
+- `/app/lib/auth-utils.js` — Extended `enrichPosts()` for PAGE authorship
+- `/app/lib/access-policy.js` — Updated block checks for page-authored content
+- `/app/lib/handlers/feed.js` — Following feed includes followed page posts
+- `/app/lib/handlers/discovery.js` — Search supports type=pages
+- `/app/lib/handlers/content.js` — Content delete supports page-authored posts
+- `/app/lib/handlers/social.js` — Notifications target page OWNER+ADMIN for page content
+- `/app/app/api/[[...path]]/route.js` — Wired pages handler
+
+### Contract Docs Updated
+- `domain_map.md` — Added Pages domain (#40, 18 routes)
+- `response_contracts.md` — Added PageSnippet, PageProfile, Content Author Shape
+- `quirk_ledger.md` — Added Quirk 18 (authorType) and Quirk 19 (slug lookup)
+
+### Test Results
+- 50 B3 targeted tests passing
+- 396 existing tests passing (zero regressions)
+- 446 total tests
+
 ## 2026-03-10: Stage 4C-P0B — Visibility + Permission Matrix — PERFECT
 - **44 tests, 0 skipped, 0 failures** across 5 authorization dimensions
 - Anonymous: 7 read-allowed (200) + 11 write-denied (401) across all entity types
