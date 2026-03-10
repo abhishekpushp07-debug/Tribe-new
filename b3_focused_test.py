@@ -9,7 +9,7 @@ import json
 import time
 import random
 
-API_BASE_URL = "https://pages-ultimate-gate.preview.emergentagent.com/api"
+API_BASE_URL = "https://tribe-handoff-v1.preview.emergentagent.com/api"
 
 class B3PagesQuickTest:
     def __init__(self):

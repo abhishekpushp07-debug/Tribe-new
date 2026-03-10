@@ -5,7 +5,7 @@ import json
 import time
 
 def debug_registration():
-    base_url = "https://pages-ultimate-gate.preview.emergentagent.com/api"
+    base_url = "https://tribe-handoff-v1.preview.emergentagent.com/api"
     
     # Try registration with detailed error logging
     phone = "9001234567"  # Valid 10-digit phone

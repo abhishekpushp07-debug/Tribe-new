@@ -10,7 +10,7 @@ import json
 import time
 from datetime import datetime, timedelta
 
-BASE_URL = "https://pages-ultimate-gate.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-handoff-v1.preview.emergentagent.com/api"
 TEST_USERS = [
     {"phone": "9000000001", "pin": "1234", "role": "regular"},  # Pre-configured user
     {"phone": "9000000002", "pin": "1234", "role": "regular"}, 

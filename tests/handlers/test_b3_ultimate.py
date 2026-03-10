@@ -15,7 +15,7 @@ import random
 import concurrent.futures
 from pymongo import MongoClient
 
-API_URL = os.environ.get("TEST_API_URL", "https://pages-ultimate-gate.preview.emergentagent.com")
+API_URL = os.environ.get("TEST_API_URL", "https://tribe-handoff-v1.preview.emergentagent.com")
 MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
 DB_NAME = os.environ.get("DB_NAME", "your_database_name")
 

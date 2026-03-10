@@ -20,7 +20,7 @@ import random
 import json
 import sys
 
-API = "https://pages-ultimate-gate.preview.emergentagent.com/api"
+API = "https://tribe-handoff-v1.preview.emergentagent.com/api"
 SCORES = {}
 DETAILS = {}
 

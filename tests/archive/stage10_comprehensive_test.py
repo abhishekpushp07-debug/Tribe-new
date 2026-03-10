@@ -9,7 +9,7 @@ import time
 import sys
 from datetime import datetime
 
-BASE_URL = "https://pages-ultimate-gate.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-handoff-v1.preview.emergentagent.com/api"
 
 results = []
 test_num = 0
