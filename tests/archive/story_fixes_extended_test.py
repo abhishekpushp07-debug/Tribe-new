@@ -22,7 +22,7 @@ import uuid
 import subprocess
 import sys
 
-BASE_URL = "https://tribe-pages.preview.emergentagent.com/api"
+BASE_URL = "https://pages-ultimate-gate.preview.emergentagent.com/api"
 TIMEOUT = 30
 
 class TestResult:

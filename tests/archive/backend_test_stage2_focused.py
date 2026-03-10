@@ -5,7 +5,7 @@ TRIBE Stage 2: Security & Session Hardening — Focused Test Suite
 This test validates key Stage 2 security hardening features with minimal API calls 
 to avoid rate limiting issues.
 
-Base URL: https://tribe-pages.preview.emergentagent.com/api
+Base URL: https://pages-ultimate-gate.preview.emergentagent.com/api
 """
 
 import requests
@@ -16,7 +16,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://tribe-pages.preview.emergentagent.com/api"
+BASE_URL = "https://pages-ultimate-gate.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 class FocusedTestRunner:

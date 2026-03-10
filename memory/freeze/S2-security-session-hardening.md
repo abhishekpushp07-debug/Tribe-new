@@ -348,7 +348,7 @@
 
 ### H.1 Security Headers Proof (curl)
 ```
-$ curl -D - https://tribe-pages.preview.emergentagent.com/api/healthz
+$ curl -D - https://pages-ultimate-gate.preview.emergentagent.com/api/healthz
 
 x-content-type-options: nosniff
 x-frame-options: DENY

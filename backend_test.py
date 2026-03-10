@@ -22,7 +22,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
 # Configuration
-API_BASE_URL = "https://tribe-pages.preview.emergentagent.com/api"
+API_BASE_URL = "https://pages-ultimate-gate.preview.emergentagent.com/api"
 TIMEOUT = 30
 
 class TribeTestClient:
