@@ -1,5 +1,16 @@
 # Tribe — Changelog
 
+## 2026-03-10: Stage B3-U — Ultimate World-Best Test Gate (PASS)
+### Verdict: PASS
+- **107 tests, 0 failures** across all 19 phases
+- Covered: route/contract, identity, lifecycle, roles, follow/counters, publishing/audit, post mutation, content reads, feed, search, notifications, contract snapshots, security/abuse, concurrency, failure/rollback, performance/index, migration, backward compat, observability
+- Fixed 8 previously failing tests (429 rate limiting) by distributing writes across dedicated per-phase users
+- Added 17 new tests: Phase 11 (notifications, 4), Phase 15 (failure/rollback, 4), Phase 16 (performance/index, 6), Phase 13 (verification field protection, 1), Phase 14 (follow/unfollow race + duplicate archive, 2)
+- Full suite: **561/561 passed**, 2x idempotent (104s, 48s)
+- Proof pack: `/app/memory/b3u_proof_pack.md`
+
+---
+
 ## 2026-03-10: Stage B3 — Pages System (COMPLETE)
 ### New Features
 - **Pages as first-class entities**: Full CRUD with slug-based identity, 12 page categories

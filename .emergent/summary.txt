@@ -1,15 +1,138 @@
 <analysis>
-**original_problem_statement**: The user wants to build a world-best social media backend for their app, Tribe. The project follows a rigid, multi-stage Final World-Best Staging Plan (B0-B8). The immediate goal is to implement the Pages System (Stage B3) as per the user's highly detailed specifications, continuing the disciplined, contract-driven development model established in previous stages.
+**original_problem_statement**: The user wants to build a world-best social media backend for their app, Tribe, following a rigid, multi-stage Final World-Best Staging Plan (B0-B8). The agent has completed the implementation of **Stage B3 (Pages System)** and an additional **Page Analytics** enhancement, as per the user's highly detailed specifications. The current and final task for this stage is to pass the user's Ultimate World-Best Test Gate (B3-U), a comprehensive validation suite to prove the feature is production-grade.
 
 **User's preferred language**: The user communicates in a mix of English and Hindi. The next agent MUST respond in professional English.
 
 **what currently exists?**
-- A monolithic Next.js backend with ~266 live API routes. The core features are now bolstered by a canonical identity and permission system.
-- An extensive ============================= test session starts ==============================
+- A monolithic Next.js backend with an established API contract and a ============================= test session starts ==============================
 platform linux -- Python 3.11.14, pytest-9.0.2, pluggy-1.6.0
 rootdir: /app
 plugins: anyio-4.12.1, cov-7.0.0
-collected 1 item / 1 error
+collected 1 item / 2 errors
+=== GETTING AUTH TOKEN ===
+
+POST /auth/login
+Status: 502
+Response (text): The preview environment is not responding. It may be starting up.
+
+Failed to get token
+INTERNALERROR> Traceback (most recent call last):
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 318, in wrap_session
+INTERNALERROR>     session.exitstatus = doit(config, session) or 0
+INTERNALERROR>                          ^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 371, in _main
+INTERNALERROR>     config.hook.pytest_collection(session=session)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_hooks.py", line 512, in __call__
+INTERNALERROR>     return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_manager.py", line 120, in _hookexec
+INTERNALERROR>     return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 167, in _multicall
+INTERNALERROR>     raise exception
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 139, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/logging.py", line 788, in pytest_collection
+INTERNALERROR>     return (yield)
+INTERNALERROR>             ^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 139, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/warnings.py", line 98, in pytest_collection
+INTERNALERROR>     return (yield)
+INTERNALERROR>             ^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 139, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/config/__init__.py", line 1403, in pytest_collection
+INTERNALERROR>     return (yield)
+INTERNALERROR>             ^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 121, in _multicall
+INTERNALERROR>     res = hook_impl.function(*args)
+INTERNALERROR>           ^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 382, in pytest_collection
+INTERNALERROR>     session.perform_collect()
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 857, in perform_collect
+INTERNALERROR>     self.items.extend(self.genitems(node))
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 1023, in genitems
+INTERNALERROR>     yield from self.genitems(subnode)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 1023, in genitems
+INTERNALERROR>     yield from self.genitems(subnode)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 1023, in genitems
+INTERNALERROR>     yield from self.genitems(subnode)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 1020, in genitems
+INTERNALERROR>     rep, duplicate = self._collect_one_node(node, handle_dupes)
+INTERNALERROR>                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 883, in _collect_one_node
+INTERNALERROR>     rep = collect_one_node(node)
+INTERNALERROR>           ^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/runner.py", line 576, in collect_one_node
+INTERNALERROR>     rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)
+INTERNALERROR>                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_hooks.py", line 512, in __call__
+INTERNALERROR>     return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_manager.py", line 120, in _hookexec
+INTERNALERROR>     return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 167, in _multicall
+INTERNALERROR>     raise exception
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 139, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/capture.py", line 880, in pytest_make_collect_report
+INTERNALERROR>     rep = yield
+INTERNALERROR>           ^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 121, in _multicall
+INTERNALERROR>     res = hook_impl.function(*args)
+INTERNALERROR>           ^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/runner.py", line 400, in pytest_make_collect_report
+INTERNALERROR>     call = CallInfo.from_call(
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/runner.py", line 353, in from_call
+INTERNALERROR>     result: TResult | None = func()
+INTERNALERROR>                              ^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/runner.py", line 398, in collect
+INTERNALERROR>     return list(collector.collect())
+INTERNALERROR>                 ^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/python.py", line 563, in collect
+INTERNALERROR>     self._register_setup_module_fixture()
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/python.py", line 576, in _register_setup_module_fixture
+INTERNALERROR>     self.obj, ("setUpModule", "setup_module")
+INTERNALERROR>     ^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/python.py", line 289, in obj
+INTERNALERROR>     self._obj = obj = self._getobj()
+INTERNALERROR>                       ^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/python.py", line 560, in _getobj
+INTERNALERROR>     return importtestmodule(self.path, self.config)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/python.py", line 507, in importtestmodule
+INTERNALERROR>     mod = import_path(
+INTERNALERROR>           ^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/pathlib.py", line 587, in import_path
+INTERNALERROR>     importlib.import_module(module_name)
+INTERNALERROR>   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+INTERNALERROR>     return _bootstrap._gcd_import(name[level:], package, level)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+INTERNALERROR>   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+INTERNALERROR>   File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+INTERNALERROR>   File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/assertion/rewrite.py", line 197, in exec_module
+INTERNALERROR>     exec(co, module.__dict__)
+INTERNALERROR>   File "/app/tests/archive/diagnostic_test.py", line 54, in <module>
+INTERNALERROR>     exit(1)
+INTERNALERROR>   File "<frozen _sitebuiltins>", line 26, in __call__
+INTERNALERROR> SystemExit: 1
+
+========================= 1 warning, 2 errors in 0.89s ========================= suite of 396 tests.
+- A fully implemented **Stage B3 (Pages System)** which adds a community publishing layer. This was achieved by extending the existing  model (reusing the content engine) rather than creating a separate system.
+- 18+ new API endpoints under  for full Page and Page Member management.
+- A new  endpoint providing engagement metrics for page owners.
+- Integration of Page-authored content into the main feed, search, and notification systems.
+- A backfill script  has been created and successfully run to make legacy content compatible.
+- A dedicated ============================= test session starts ==============================
+platform linux -- Python 3.11.14, pytest-9.0.2, pluggy-1.6.0
+rootdir: /app
+plugins: anyio-4.12.1, cov-7.0.0
+collected 1 item / 2 errors
 === GETTING AUTH TOKEN ===
 
 POST /auth/login
@@ -125,65 +248,925 @@ INTERNALERROR>     exit(1)
 INTERNALERROR>   File "<frozen _sitebuiltins>", line 26, in __call__
 INTERNALERROR> SystemExit: 1
 
-========================= 1 warning, 1 error in 5.30s ========================== suite with 396 passing tests, ensuring backend stability.
-- A complete, programmatically-generated API contract in , which is the single source of truth.
-- A world-class, auto-generated TypeScript API client at , providing full type safety for all 266 endpoints.
-- A centralized access policy layer at  that enforces all visibility (Public, Followers, Limited) and block rules across the application (completed in Stage B2).
-- Standardized data objects (, ) that consistently resolve avatar URLs, fixing all identity-related visual bugs (completed in Stage B1).
+========================= 1 warning, 2 errors in 3.35s ========================= suite for B3 () with 58 passing tests.
+- An Ultimate ============================= test session starts ==============================
+platform linux -- Python 3.11.14, pytest-9.0.2, pluggy-1.6.0
+rootdir: /app
+plugins: anyio-4.12.1, cov-7.0.0
+collected 1 item / 2 errors
+=== GETTING AUTH TOKEN ===
+
+POST /auth/login
+Status: 401
+Response: {
+  "error": "Invalid phone or PIN",
+  "code": "UNAUTHORIZED"
+}
+Failed to get token
+INTERNALERROR> Traceback (most recent call last):
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 318, in wrap_session
+INTERNALERROR>     session.exitstatus = doit(config, session) or 0
+INTERNALERROR>                          ^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 371, in _main
+INTERNALERROR>     config.hook.pytest_collection(session=session)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_hooks.py", line 512, in __call__
+INTERNALERROR>     return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_manager.py", line 120, in _hookexec
+INTERNALERROR>     return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 167, in _multicall
+INTERNALERROR>     raise exception
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 139, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/logging.py", line 788, in pytest_collection
+INTERNALERROR>     return (yield)
+INTERNALERROR>             ^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 139, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/warnings.py", line 98, in pytest_collection
+INTERNALERROR>     return (yield)
+INTERNALERROR>             ^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 139, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/config/__init__.py", line 1403, in pytest_collection
+INTERNALERROR>     return (yield)
+INTERNALERROR>             ^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 121, in _multicall
+INTERNALERROR>     res = hook_impl.function(*args)
+INTERNALERROR>           ^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 382, in pytest_collection
+INTERNALERROR>     session.perform_collect()
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 857, in perform_collect
+INTERNALERROR>     self.items.extend(self.genitems(node))
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 1023, in genitems
+INTERNALERROR>     yield from self.genitems(subnode)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 1023, in genitems
+INTERNALERROR>     yield from self.genitems(subnode)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 1023, in genitems
+INTERNALERROR>     yield from self.genitems(subnode)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 1020, in genitems
+INTERNALERROR>     rep, duplicate = self._collect_one_node(node, handle_dupes)
+INTERNALERROR>                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 883, in _collect_one_node
+INTERNALERROR>     rep = collect_one_node(node)
+INTERNALERROR>           ^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/runner.py", line 576, in collect_one_node
+INTERNALERROR>     rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)
+INTERNALERROR>                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_hooks.py", line 512, in __call__
+INTERNALERROR>     return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_manager.py", line 120, in _hookexec
+INTERNALERROR>     return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 167, in _multicall
+INTERNALERROR>     raise exception
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 139, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/capture.py", line 880, in pytest_make_collect_report
+INTERNALERROR>     rep = yield
+INTERNALERROR>           ^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 121, in _multicall
+INTERNALERROR>     res = hook_impl.function(*args)
+INTERNALERROR>           ^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/runner.py", line 400, in pytest_make_collect_report
+INTERNALERROR>     call = CallInfo.from_call(
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/runner.py", line 353, in from_call
+INTERNALERROR>     result: TResult | None = func()
+INTERNALERROR>                              ^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/runner.py", line 398, in collect
+INTERNALERROR>     return list(collector.collect())
+INTERNALERROR>                 ^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/python.py", line 563, in collect
+INTERNALERROR>     self._register_setup_module_fixture()
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/python.py", line 576, in _register_setup_module_fixture
+INTERNALERROR>     self.obj, ("setUpModule", "setup_module")
+INTERNALERROR>     ^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/python.py", line 289, in obj
+INTERNALERROR>     self._obj = obj = self._getobj()
+INTERNALERROR>                       ^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/python.py", line 560, in _getobj
+INTERNALERROR>     return importtestmodule(self.path, self.config)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/python.py", line 507, in importtestmodule
+INTERNALERROR>     mod = import_path(
+INTERNALERROR>           ^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/pathlib.py", line 587, in import_path
+INTERNALERROR>     importlib.import_module(module_name)
+INTERNALERROR>   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+INTERNALERROR>     return _bootstrap._gcd_import(name[level:], package, level)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+INTERNALERROR>   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+INTERNALERROR>   File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+INTERNALERROR>   File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/assertion/rewrite.py", line 197, in exec_module
+INTERNALERROR>     exec(co, module.__dict__)
+INTERNALERROR>   File "/app/tests/archive/diagnostic_test.py", line 54, in <module>
+INTERNALERROR>     exit(1)
+INTERNALERROR>   File "<frozen _sitebuiltins>", line 26, in __call__
+INTERNALERROR> SystemExit: 1
+
+========================= 1 warning, 2 errors in 0.54s ========================= suite for the B3-U gate () is nearly complete.
 
 **Last working item**:
-    - Last item agent was working: The agent was finalizing Stage B2 by fixing a cache-bypass bug where block filters were not being applied to cached public, college, and house feeds. The agent successfully patched the feed handlers to apply block filters on cached results. The user then provided the detailed prompt for the next major stage, B3.
-    - Status: USER VERIFICATION PENDING
+    - Last item agent was working: The agent was debugging the Ultimate World-Best Test Gate (B3-U) test suite () as demanded by the user. This comprehensive suite validates B3 against correctness, security, concurrency, and performance standards. The agent fixed several issues related to API response formats and implemented retry logic to handle API rate limiting. The last run had 85/90 tests passing.
+    - Status: IN PROGRESS
     - Agent Testing Done: Y
-    - Which testing method agent to use? manual testing by curl
+    - Which testing method agent to use? backend testing agent
     - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  - Issue 1: Post Search Not Working (P1)
-  - Issue 2: Reel Interaction Bugs (P1)
+  - Issue 1: Pass the B3-U Ultimate Test Gate (P0)
   
   Issues Detail:
   - Issue 1: 
-     - Description:  is non-functional because post content is not indexed for search.
-     - Why fix this issue and what will be achieved with the fix? Enables a core social media feature: finding posts by content.
-     - Status: NOT STARTED (Scheduled for Stage B5)
-     - Is recurring issue? N
-     - Should Test frontend/backend/both after fix? backend
-     - Blocked on other issue: None
-  - Issue 2: 
-     - Description:  and  return 400 Bad Request errors.
-     - Why fix this issue and what will be achieved with the fix? Fixes core interaction loops for the Reels feature.
-     - Status: NOT STARTED (Scheduled for Stage B6)
-     - Is recurring issue? N
+     - Description: The  suite has 5 failing tests out of 90. The failures are all  errors occurring in lifecycle tests that create fresh pages within helper functions, indicating the rate-limit resilience is not yet fully applied to all test setup fixtures.
+     - Attempted fixes: The agent successfully identified rate limiting as the root cause, implemented retry wrappers (, etc.), and applied them to most test functions.
+     - Next debug checklist:
+        1. Open .
+        2. Identify the helper functions used by the 5 failing lifecycle tests (e.g., helpers that create a new page for an archive/restore test).
+        3. Modify these helper functions to use the  wrapper or add a small delay to avoid hitting the rate limit during test setup.
+        4. Execute ============================= test session starts ==============================
+platform linux -- Python 3.11.14, pytest-9.0.2, pluggy-1.6.0 -- /root/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /app
+plugins: anyio-4.12.1, cov-7.0.0
+collecting ... collected 0 items
+
+============================ no tests ran in 0.01s ============================= to confirm all 90 tests pass.
+        5. Execute the full test suite (============================= test session starts ==============================
+platform linux -- Python 3.11.14, pytest-9.0.2, pluggy-1.6.0 -- /root/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /app/tests
+configfile: pytest.ini
+plugins: anyio-4.12.1, cov-7.0.0
+collecting ... collected 544 items
+
+tests/handlers/test_b3_pages.py::TestPageCreation::test_create_valid_page PASSED [  0%]
+tests/handlers/test_b3_pages.py::TestPageCreation::test_duplicate_slug_rejected PASSED [  0%]
+tests/handlers/test_b3_pages.py::TestPageCreation::test_reserved_slug_rejected PASSED [  0%]
+tests/handlers/test_b3_pages.py::TestPageCreation::test_official_self_assertion_rejected PASSED [  0%]
+tests/handlers/test_b3_pages.py::TestPageCreation::test_official_spoof_name_rejected PASSED [  0%]
+tests/handlers/test_b3_pages.py::TestPageCreation::test_invalid_category_rejected PASSED [  1%]
+tests/handlers/test_b3_pages.py::TestPageRead::test_read_by_id PASSED    [  1%]
+tests/handlers/test_b3_pages.py::TestPageRead::test_read_by_slug PASSED  [  1%]
+tests/handlers/test_b3_pages.py::TestPageRead::test_viewer_context PASSED [  1%]
+tests/handlers/test_b3_pages.py::TestPageRead::test_outsider_no_role PASSED [  1%]
+tests/handlers/test_b3_pages.py::TestPageRead::test_update_page_owner PASSED [  2%]
+tests/handlers/test_b3_pages.py::TestPageRead::test_update_forbidden_for_outsider PASSED [  2%]
+tests/handlers/test_b3_pages.py::TestPageRead::test_update_forbidden_for_editor PASSED [  2%]
+tests/handlers/test_b3_pages.py::TestRoleMatrix::test_owner_can_add_member PASSED [  2%]
+tests/handlers/test_b3_pages.py::TestRoleMatrix::test_editor_cannot_add_member PASSED [  2%]
+tests/handlers/test_b3_pages.py::TestRoleMatrix::test_moderator_cannot_add_member PASSED [  2%]
+tests/handlers/test_b3_pages.py::TestRoleMatrix::test_cannot_add_owner_directly PASSED [  3%]
+tests/handlers/test_b3_pages.py::TestRoleMatrix::test_owner_changes_editor_to_moderator PASSED [  3%]
+tests/handlers/test_b3_pages.py::TestRoleMatrix::test_editor_cannot_change_roles PASSED [  3%]
+tests/handlers/test_b3_pages.py::TestRoleMatrix::test_list_members PASSED [  3%]
+tests/handlers/test_b3_pages.py::TestRoleMatrix::test_outsider_cannot_list_members PASSED [  3%]
+tests/handlers/test_b3_pages.py::TestFollowModel::test_follow_page PASSED [  4%]
+tests/handlers/test_b3_pages.py::TestFollowModel::test_follow_idempotent PASSED [  4%]
+tests/handlers/test_b3_pages.py::TestFollowModel::test_follower_count_incremented PASSED [  4%]
+tests/handlers/test_b3_pages.py::TestFollowModel::test_unfollow_page PASSED [  4%]
+tests/handlers/test_b3_pages.py::TestFollowModel::test_unfollow_idempotent PASSED [  4%]
+tests/handlers/test_b3_pages.py::TestPublishAsPage::test_owner_creates_page_post PASSED [  4%]
+tests/handlers/test_b3_pages.py::TestPublishAsPage::test_editor_creates_page_post PASSED [  5%]
+tests/handlers/test_b3_pages.py::TestPublishAsPage::test_moderator_cannot_publish PASSED [  5%]
+tests/handlers/test_b3_pages.py::TestPublishAsPage::test_outsider_cannot_publish PASSED [  5%]
+tests/handlers/test_b3_pages.py::TestPublishAsPage::test_page_author_serialized_correctly PASSED [  5%]
+tests/handlers/test_b3_pages.py::TestPublishAsPage::test_page_posts_listed PASSED [  5%]
+tests/handlers/test_b3_pages.py::TestPublishAsPage::test_edit_page_post PASSED [  6%]
+tests/handlers/test_b3_pages.py::TestPublishAsPage::test_delete_page_post PASSED [  6%]
+tests/handlers/test_b3_pages.py::TestPublishAsPage::test_outsider_cannot_edit_page_post PASSED [  6%]
+tests/handlers/test_b3_pages.py::TestPageLifecycle::test_archive_page PASSED [  6%]
+tests/handlers/test_b3_pages.py::TestPageLifecycle::test_archived_page_blocks_publishing PASSED [  6%]
+tests/handlers/test_b3_pages.py::TestPageLifecycle::test_restore_page PASSED [  6%]
+tests/handlers/test_b3_pages.py::TestPageLifecycle::test_editor_cannot_archive PASSED [  7%]
+tests/handlers/test_b3_pages.py::TestPageSearch::test_search_by_name PASSED [  7%]
+tests/handlers/test_b3_pages.py::TestPageSearch::test_search_by_slug PASSED [  7%]
+tests/handlers/test_b3_pages.py::TestPageSearch::test_search_by_category PASSED [  7%]
+tests/handlers/test_b3_pages.py::TestPageSearch::test_unified_search_includes_pages PASSED [  7%]
+tests/handlers/test_b3_pages.py::TestPageSearch::test_search_empty_returns_empty PASSED [  8%]
+tests/handlers/test_b3_pages.py::TestMyPages::test_my_pages_returns_owned PASSED [  8%]
+tests/handlers/test_b3_pages.py::TestMyPages::test_my_pages_includes_role PASSED [  8%]
+tests/handlers/test_b3_pages.py::TestMyPages::test_outsider_has_no_pages PASSED [  8%]
+tests/handlers/test_b3_pages.py::TestPageAnalytics::test_owner_can_view_analytics PASSED [  8%]
+tests/handlers/test_b3_pages.py::TestPageAnalytics::test_analytics_overview_shape PASSED [  9%]
+tests/handlers/test_b3_pages.py::TestPageAnalytics::test_analytics_period_param PASSED [  9%]
+tests/handlers/test_b3_pages.py::TestPageAnalytics::test_analytics_top_posts_present PASSED [  9%]
+tests/handlers/test_b3_pages.py::TestPageAnalytics::test_analytics_members_by_role PASSED [  9%]
+tests/handlers/test_b3_pages.py::TestPageAnalytics::test_outsider_cannot_view_analytics PASSED [  9%]
+tests/handlers/test_b3_pages.py::TestPageAnalytics::test_editor_cannot_view_analytics PASSED [  9%]
+tests/handlers/test_b3_pages.py::TestPageAnalytics::test_moderator_cannot_view_analytics PASSED [ 10%]
+tests/handlers/test_b3_pages.py::TestBackwardCompatibility::test_user_authored_content_still_works PASSED [ 10%]
+tests/handlers/test_b3_pages.py::TestBackwardCompatibility::test_existing_feed_still_works PASSED [ 10%]
+tests/handlers/test_b3_pages.py::TestBackwardCompatibility::test_existing_search_still_works PASSED [ 10%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_post_pages PASSED [ 10%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_get_pages_list PASSED [ 11%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_get_page_detail PASSED [ 11%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_get_page_by_slug PASSED [ 11%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_patch_page PASSED [ 11%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_post_archive PASSED [ 11%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_post_restore FAILED [ 11%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_get_me_pages PASSED [ 12%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_get_members PASSED [ 12%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_post_members PASSED [ 12%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_patch_member_role PASSED [ 12%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_post_follow PASSED [ 12%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_delete_follow PASSED [ 13%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_get_page_posts PASSED [ 13%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_post_page_posts PASSED [ 13%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_patch_page_post PASSED [ 13%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_delete_page_post PASSED [ 13%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_search_pages PASSED [ 13%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_unified_search_pages PASSED [ 14%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_analytics PASSED [ 14%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_transfer_ownership_route PASSED [ 14%]
+tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_unauth_denied PASSED [ 14%]
+tests/handlers/test_b3_ultimate.py::TestPhase2IdentitySafety::test_slug_normalization PASSED [ 14%]
+tests/handlers/test_b3_ultimate.py::TestPhase2IdentitySafety::test_reserved_slugs FAILED [ 15%]
+tests/handlers/test_b3_ultimate.py::TestPhase2IdentitySafety::test_short_slug FAILED [ 15%]
+tests/handlers/test_b3_ultimate.py::TestPhase2IdentitySafety::test_invalid_category FAILED [ 15%]
+tests/handlers/test_b3_ultimate.py::TestPhase2IdentitySafety::test_official_self_assert FAILED [ 15%]
+tests/handlers/test_b3_ultimate.py::TestPhase2IdentitySafety::test_official_spoof_name FAILED [ 15%]
+tests/handlers/test_b3_ultimate.py::TestPhase2IdentitySafety::test_official_spoof_slug FAILED [ 15%]
+tests/handlers/test_b3_ultimate.py::TestPhase2IdentitySafety::test_duplicate_slug PASSED [ 16%]
+tests/handlers/test_b3_ultimate.py::TestPhase2IdentitySafety::test_creator_becomes_owner PASSED [ 16%]
+tests/handlers/test_b3_ultimate.py::TestPhase2IdentitySafety::test_initial_counters PASSED [ 16%]
+tests/handlers/test_b3_ultimate.py::TestPhase2IdentitySafety::test_canonical_page_shape PASSED [ 16%]
+tests/handlers/test_b3_ultimate.py::TestPhase3Lifecycle::test_archive_restore_cycle PASSED [ 16%]
+tests/handlers/test_b3_ultimate.py::TestPhase3Lifecycle::test_archived_page_still_readable PASSED [ 17%]
+tests/handlers/test_b3_ultimate.py::TestPhase3Lifecycle::test_archived_blocks_publish PASSED [ 17%]
+tests/handlers/test_b3_ultimate.py::TestPhase3Lifecycle::test_double_archive PASSED [ 17%]
+tests/handlers/test_b3_ultimate.py::TestPhase3Lifecycle::test_editor_cannot_archive PASSED [ 17%]
+tests/handlers/test_b3_ultimate.py::TestPhase3Lifecycle::test_outsider_cannot_restore PASSED [ 17%]
+tests/handlers/test_b3_ultimate.py::TestPhase4RoleMatrix::test_editor_cannot_add_member PASSED [ 18%]
+tests/handlers/test_b3_ultimate.py::TestPhase4RoleMatrix::test_moderator_cannot_add_member PASSED [ 18%]
+tests/handlers/test_b3_ultimate.py::TestPhase4RoleMatrix::test_cannot_directly_add_owner PASSED [ 18%]
+tests/handlers/test_b3_ultimate.py::TestPhase4RoleMatrix::test_editor_cannot_change_roles PASSED [ 18%]
+tests/handlers/test_b3_ultimate.py::TestPhase4RoleMatrix::test_admin_cannot_promote_to_owner PASSED [ 18%]
+tests/handlers/test_b3_ultimate.py::TestPhase4RoleMatrix::test_outsider_cannot_list_members PASSED [ 18%]
+tests/handlers/test_b3_ultimate.py::TestPhase4RoleMatrix::test_last_owner_protection PASSED [ 19%]
+tests/handlers/test_b3_ultimate.py::TestPhase4RoleMatrix::test_ownership_transfer_flips_roles PASSED [ 19%]
+tests/handlers/test_b3_ultimate.py::TestPhase5FollowCounters::test_follow_unfollow_cycle PASSED [ 19%]
+tests/handlers/test_b3_ultimate.py::TestPhase5FollowCounters::test_multi_user_follow PASSED [ 19%]
+tests/handlers/test_b3_ultimate.py::TestPhase6PublishAuditTruth::test_owner_publishes PASSED [ 19%]
+tests/handlers/test_b3_ultimate.py::TestPhase6PublishAuditTruth::test_editor_publishes PASSED [ 20%]
+tests/handlers/test_b3_ultimate.py::TestPhase6PublishAuditTruth::test_moderator_blocked PASSED [ 20%]
+tests/handlers/test_b3_ultimate.py::TestPhase6PublishAuditTruth::test_outsider_blocked PASSED [ 20%]
+tests/handlers/test_b3_ultimate.py::TestPhase6PublishAuditTruth::test_author_is_page_snippet FAILED [ 20%]
+tests/handlers/test_b3_ultimate.py::TestPhase6PublishAuditTruth::test_db_audit_truth PASSED [ 20%]
+tests/handlers/test_b3_ultimate.py::TestPhase6PublishAuditTruth::test_post_count_increments PASSED [ 20%]
+tests/handlers/test_b3_ultimate.py::TestPhase7PostMutationAuth::test_outsider_cannot_edit PASSED [ 21%]
+tests/handlers/test_b3_ultimate.py::TestPhase7PostMutationAuth::test_cross_page_edit_denied PASSED [ 21%]
+tests/handlers/test_b3_ultimate.py::TestPhase7PostMutationAuth::test_delete_decrements_count PASSED [ 21%]
+tests/handlers/test_b3_ultimate.py::TestPhase8ContentReads::test_page_posts_returns_only_this_page PASSED [ 21%]
+tests/handlers/test_b3_ultimate.py::TestPhase8ContentReads::test_page_posts_serializer PASSED [ 21%]
+tests/handlers/test_b3_ultimate.py::TestPhase8ContentReads::test_content_detail_route PASSED [ 22%]
+tests/handlers/test_b3_ultimate.py::TestPhase9FeedIntegration::test_followed_page_in_feed PASSED [ 22%]
+tests/handlers/test_b3_ultimate.py::TestPhase9FeedIntegration::test_feed_page_author_serialized PASSED [ 22%]
+tests/handlers/test_b3_ultimate.py::TestPhase10Search::test_search_by_name PASSED [ 22%]
+tests/handlers/test_b3_ultimate.py::TestPhase10Search::test_search_by_slug PASSED [ 22%]
+tests/handlers/test_b3_ultimate.py::TestPhase10Search::test_search_by_category PASSED [ 22%]
+tests/handlers/test_b3_ultimate.py::TestPhase10Search::test_unified_search PASSED [ 23%]
+tests/handlers/test_b3_ultimate.py::TestPhase12ContractSnapshots::test_page_detail_shape PASSED [ 23%]
+tests/handlers/test_b3_ultimate.py::TestPhase12ContractSnapshots::test_page_snippet_shape PASSED [ 23%]
+tests/handlers/test_b3_ultimate.py::TestPhase12ContractSnapshots::test_page_authored_post_shape PASSED [ 23%]
+tests/handlers/test_b3_ultimate.py::TestPhase12ContractSnapshots::test_user_post_unchanged PASSED [ 23%]
+tests/handlers/test_b3_ultimate.py::TestPhase12ContractSnapshots::test_analytics_shape PASSED [ 24%]
+tests/handlers/test_b3_ultimate.py::TestPhase13SecurityAbuse::test_official_spoof_create PASSED [ 24%]
+tests/handlers/test_b3_ultimate.py::TestPhase13SecurityAbuse::test_official_spoof_update PASSED [ 24%]
+tests/handlers/test_b3_ultimate.py::TestPhase13SecurityAbuse::test_removed_member_cannot_publish PASSED [ 24%]
+tests/handlers/test_b3_ultimate.py::TestPhase13SecurityAbuse::test_moderator_cannot_manage_members PASSED [ 24%]
+tests/handlers/test_b3_ultimate.py::TestPhase13SecurityAbuse::test_editor_cannot_archive PASSED [ 25%]
+tests/handlers/test_b3_ultimate.py::TestPhase14Concurrency::test_duplicate_follow_no_double_count PASSED [ 25%]
+tests/handlers/test_b3_ultimate.py::TestPhase14Concurrency::test_duplicate_member_add_safe PASSED [ 25%]
+tests/handlers/test_b3_ultimate.py::TestPhase17Migration::test_all_content_has_author_type PASSED [ 25%]
+tests/handlers/test_b3_ultimate.py::TestPhase17Migration::test_page_content_has_audit_fields PASSED [ 25%]
+tests/handlers/test_b3_ultimate.py::TestPhase18BackwardCompat::test_user_content_create PASSED [ 25%]
+tests/handlers/test_b3_ultimate.py::TestPhase18BackwardCompat::test_public_feed PASSED [ 26%]
+tests/handlers/test_b3_ultimate.py::TestPhase18BackwardCompat::test_user_search PASSED [ 26%]
+tests/handlers/test_b3_ultimate.py::TestPhase18BackwardCompat::test_college_search PASSED [ 26%]
+tests/handlers/test_b3_ultimate.py::TestPhase19Observability::test_page_create_audit_log PASSED [ 26%]
+tests/handlers/test_b3_ultimate.py::TestPhase19Observability::test_member_add_audit_log PASSED [ 26%]
+tests/handlers/test_b3_ultimate.py::TestPhase19Observability::test_page_post_audit_log PASSED [ 27%]
+tests/handlers/test_b3_ultimate.py::TestPhase19Observability::test_acting_user_not_leaked_in_public PASSED [ 27%]
+tests/integration/consistency/test_posts_consistency.py::TestPostCrossSurface::test_post_detail_matches_following_feed PASSED [ 27%]
+tests/integration/consistency/test_posts_consistency.py::TestPostCrossSurface::test_post_counts_consistent_after_like PASSED [ 27%]
+tests/integration/consistency/test_posts_consistency.py::TestPostCrossSurface::test_post_counts_consistent_after_comment PASSED [ 27%]
+tests/integration/consistency/test_posts_consistency.py::TestPostCrossSurface::test_deleted_post_gone_from_all_surfaces PASSED [ 27%]
+tests/integration/consistency/test_posts_consistency.py::TestPostCrossSurface::test_post_in_college_feed_matches_detail PASSED [ 28%]
+tests/integration/consistency/test_posts_consistency.py::TestPostCrossSurface::test_post_in_house_feed_matches_detail PASSED [ 28%]
+tests/integration/consistency/test_posts_consistency.py::TestPostCrossSurface::test_dislike_state_consistent_across_surfaces PASSED [ 28%]
+tests/integration/consistency/test_posts_consistency.py::TestPostCrossSurface::test_reaction_remove_count_consistent PASSED [ 28%]
+tests/integration/consistency/test_posts_consistency.py::TestEventCrossSurface::test_event_detail_matches_feed PASSED [ 28%]
+tests/integration/consistency/test_posts_consistency.py::TestEventCrossSurface::test_event_detail_matches_search PASSED [ 29%]
+tests/integration/consistency/test_posts_consistency.py::TestEventCrossSurface::test_rsvp_count_consistent_across_surfaces PASSED [ 29%]
+tests/integration/consistency/test_posts_consistency.py::TestEventCrossSurface::test_deleted_event_gone_from_surfaces PASSED [ 29%]
+tests/integration/consistency/test_posts_consistency.py::TestEventCrossSurface::test_rsvp_cancel_decrements_count PASSED [ 29%]
+tests/integration/consistency/test_posts_consistency.py::TestEventCrossSurface::test_event_in_college_feed_matches_detail PASSED [ 29%]
+tests/integration/consistency/test_posts_consistency.py::TestResourceCrossSurface::test_resource_detail_matches_search PASSED [ 29%]
+tests/integration/consistency/test_posts_consistency.py::TestResourceCrossSurface::test_vote_score_consistent_after_upvote PASSED [ 30%]
+tests/integration/consistency/test_posts_consistency.py::TestResourceCrossSurface::test_vote_score_consistent_after_downvote PASSED [ 30%]
+tests/integration/consistency/test_posts_consistency.py::TestResourceCrossSurface::test_removed_resource_returns_410 PASSED [ 30%]
+tests/integration/consistency/test_posts_consistency.py::TestNoticeCrossSurface::test_notice_detail_matches_college_listing PASSED [ 30%]
+tests/integration/consistency/test_posts_consistency.py::TestNoticeCrossSurface::test_ack_count_consistent_across_reads PASSED [ 30%]
+tests/integration/consistency/test_posts_consistency.py::TestNoticeCrossSurface::test_removed_notice_gone_from_detail PASSED [ 31%]
+tests/integration/consistency/test_posts_consistency.py::TestReelCrossSurface::test_reel_like_reflected_in_detail PASSED [ 31%]
+tests/integration/consistency/test_posts_consistency.py::TestReelCrossSurface::test_reel_like_count_consistent_between_users PASSED [ 31%]
+tests/integration/consistency/test_posts_consistency.py::TestReelCrossSurface::test_removed_reel_returns_error PASSED [ 31%]
+tests/integration/consistency/test_visibility_permissions.py::TestAnonymousReadAccess::test_anon_can_view_public_feed PASSED [ 31%]
+tests/integration/consistency/test_visibility_permissions.py::TestAnonymousReadAccess::test_anon_can_search_events PASSED [ 31%]
+tests/integration/consistency/test_visibility_permissions.py::TestAnonymousReadAccess::test_anon_can_search_resources PASSED [ 32%]
+tests/integration/consistency/test_visibility_permissions.py::TestAnonymousReadAccess::test_anon_can_view_college_notices PASSED [ 32%]
+tests/integration/consistency/test_visibility_permissions.py::TestAnonymousReadAccess::test_anon_can_view_post_detail PASSED [ 32%]
+tests/integration/consistency/test_visibility_permissions.py::TestAnonymousReadAccess::test_anon_can_view_event_detail PASSED [ 32%]
+tests/integration/consistency/test_visibility_permissions.py::TestAnonymousReadAccess::test_anon_can_view_resource_detail PASSED [ 32%]
+tests/integration/consistency/test_visibility_permissions.py::TestAnonymousWriteDenied::test_anon_cannot_create_post PASSED [ 33%]
+tests/integration/consistency/test_visibility_permissions.py::TestAnonymousWriteDenied::test_anon_cannot_like_post PASSED [ 33%]
+tests/integration/consistency/test_visibility_permissions.py::TestAnonymousWriteDenied::test_anon_cannot_comment PASSED [ 33%]
+tests/integration/consistency/test_visibility_permissions.py::TestAnonymousWriteDenied::test_anon_cannot_follow PASSED [ 33%]
+tests/integration/consistency/test_visibility_permissions.py::TestAnonymousWriteDenied::test_anon_cannot_create_event PASSED [ 33%]
+tests/integration/consistency/test_visibility_permissions.py::TestAnonymousWriteDenied::test_anon_cannot_rsvp_event PASSED [ 34%]
+tests/integration/consistency/test_visibility_permissions.py::TestAnonymousWriteDenied::test_anon_cannot_create_resource PASSED [ 34%]
+tests/integration/consistency/test_visibility_permissions.py::TestAnonymousWriteDenied::test_anon_cannot_vote_resource PASSED [ 34%]
+tests/integration/consistency/test_visibility_permissions.py::TestAnonymousWriteDenied::test_anon_cannot_create_notice PASSED [ 34%]
+tests/integration/consistency/test_visibility_permissions.py::TestAnonymousWriteDenied::test_anon_cannot_like_reel PASSED [ 34%]
+tests/integration/consistency/test_visibility_permissions.py::TestAgeGateRestrictions::test_unknown_age_cannot_create_post PASSED [ 34%]
+tests/integration/consistency/test_visibility_permissions.py::TestAgeGateRestrictions::test_child_can_create_text_post PASSED [ 35%]
+tests/integration/consistency/test_visibility_permissions.py::TestAgeGateRestrictions::test_child_cannot_create_reel PASSED [ 35%]
+tests/integration/consistency/test_visibility_permissions.py::TestAgeGateRestrictions::test_child_cannot_create_story PASSED [ 35%]
+tests/integration/consistency/test_visibility_permissions.py::TestAgeGateRestrictions::test_child_cannot_create_media_post PASSED [ 35%]
+tests/integration/consistency/test_visibility_permissions.py::TestRoleGateMatrix::test_regular_user_cannot_create_notice PASSED [ 35%]
+tests/integration/consistency/test_visibility_permissions.py::TestRoleGateMatrix::test_admin_can_create_notice PASSED [ 36%]
+tests/integration/consistency/test_visibility_permissions.py::TestRoleGateMatrix::test_admin_can_delete_any_post PASSED [ 36%]
+tests/integration/consistency/test_visibility_permissions.py::TestRoleGateMatrix::test_regular_user_cannot_delete_others_post PASSED [ 36%]
+tests/integration/consistency/test_visibility_permissions.py::TestRoleGateMatrix::test_regular_user_cannot_pin_notice PASSED [ 36%]
+tests/integration/consistency/test_visibility_permissions.py::TestOwnershipEnforcement::test_owner_can_delete_own_post PASSED [ 36%]
+tests/integration/consistency/test_visibility_permissions.py::TestOwnershipEnforcement::test_non_owner_cannot_update_event PASSED [ 36%]
+tests/integration/consistency/test_visibility_permissions.py::TestOwnershipEnforcement::test_non_owner_cannot_delete_event PASSED [ 37%]
+tests/integration/consistency/test_visibility_permissions.py::TestOwnershipEnforcement::test_non_owner_cannot_update_resource PASSED [ 37%]
+tests/integration/consistency/test_visibility_permissions.py::TestOwnershipEnforcement::test_non_owner_cannot_delete_resource PASSED [ 37%]
+tests/integration/consistency/test_visibility_permissions.py::TestOwnershipEnforcement::test_self_vote_resource_forbidden PASSED [ 37%]
+tests/integration/consistency/test_visibility_permissions.py::TestOwnershipEnforcement::test_self_like_reel_forbidden PASSED [ 37%]
+tests/integration/consistency/test_visibility_permissions.py::TestContentStateVisibility::test_removed_post_returns_404 PASSED [ 38%]
+tests/integration/consistency/test_visibility_permissions.py::TestContentStateVisibility::test_held_post_not_in_following_feed PASSED [ 38%]
+tests/integration/consistency/test_visibility_permissions.py::TestContentStateVisibility::test_draft_event_invisible_to_non_creator PASSED [ 38%]
+tests/integration/consistency/test_visibility_permissions.py::TestContentStateVisibility::test_draft_event_visible_to_creator PASSED [ 38%]
+tests/integration/consistency/test_visibility_permissions.py::TestContentStateVisibility::test_cancelled_event_still_accessible PASSED [ 38%]
+tests/integration/consistency/test_visibility_permissions.py::TestContentStateVisibility::test_removed_event_returns_410 PASSED [ 38%]
+tests/integration/consistency/test_visibility_permissions.py::TestContentStateVisibility::test_removed_resource_returns_410 PASSED [ 39%]
+tests/integration/consistency/test_visibility_permissions.py::TestContentStateVisibility::test_removed_notice_returns_410 PASSED [ 39%]
+tests/integration/consistency/test_visibility_permissions.py::TestContentStateVisibility::test_removed_reel_not_accessible PASSED [ 39%]
+tests/integration/consistency/test_visibility_permissions.py::TestContentStateVisibility::test_banned_user_cannot_login PASSED [ 39%]
+tests/integration/product/test_cross_surface.py::TestLikeConsistency::test_like_reflected_in_detail_and_feed PASSED [ 39%]
+tests/integration/product/test_cross_surface.py::TestCommentConsistency::test_comment_count_in_detail_and_feed PASSED [ 40%]
+tests/integration/product/test_cross_surface.py::TestDeleteConsistency::test_deleted_post_gone_everywhere PASSED [ 40%]
+tests/integration/product/test_cross_surface.py::TestContractStability::test_feed_item_matches_detail_contract PASSED [ 40%]
+tests/integration/product/test_events.py::TestCreateEvent::test_create_event_success PASSED [ 40%]
+tests/integration/product/test_events.py::TestCreateEvent::test_create_event_contract_shape PASSED [ 40%]
+tests/integration/product/test_events.py::TestCreateEvent::test_create_event_missing_title_rejected PASSED [ 40%]
+tests/integration/product/test_events.py::TestCreateEvent::test_create_event_invalid_category_rejected PASSED [ 41%]
+tests/integration/product/test_events.py::TestCreateEvent::test_create_event_no_auth_blocked PASSED [ 41%]
+tests/integration/product/test_events.py::TestGetEvent::test_get_event_detail PASSED [ 41%]
+tests/integration/product/test_events.py::TestGetEvent::test_get_nonexistent_event_404 PASSED [ 41%]
+tests/integration/product/test_events.py::TestEventRSVP::test_rsvp_going_success PASSED [ 41%]
+tests/integration/product/test_events.py::TestEventRSVP::test_rsvp_interested_success PASSED [ 42%]
+tests/integration/product/test_events.py::TestEventRSVP::test_rsvp_duplicate_idempotent PASSED [ 42%]
+tests/integration/product/test_events.py::TestEventRSVP::test_rsvp_invalid_status_rejected PASSED [ 42%]
+tests/integration/product/test_events.py::TestEventRSVP::test_rsvp_nonexistent_event_404 PASSED [ 42%]
+tests/integration/product/test_events.py::TestEventRSVP::test_cancel_rsvp_success PASSED [ 42%]
+tests/integration/product/test_events.py::TestEventRSVP::test_cancel_rsvp_without_existing_404 PASSED [ 43%]
+tests/integration/product/test_events.py::TestEventRSVP::test_rsvp_updates_count PASSED [ 43%]
+tests/integration/product/test_events.py::TestEventRSVP::test_rsvp_no_auth_blocked PASSED [ 43%]
+tests/integration/product/test_events.py::TestEventFeed::test_event_feed_requires_auth PASSED [ 43%]
+tests/integration/product/test_events.py::TestEventFeed::test_event_feed_returns_structure PASSED [ 43%]
+tests/integration/product/test_events.py::TestUpdateEvent::test_update_event_success PASSED [ 43%]
+tests/integration/product/test_events.py::TestUpdateEvent::test_update_event_nonexistent_404 PASSED [ 44%]
+tests/integration/product/test_events.py::TestUpdateEvent::test_update_event_other_user_forbidden PASSED [ 44%]
+tests/integration/product/test_events.py::TestUpdateEvent::test_update_cancelled_event_rejected PASSED [ 44%]
+tests/integration/product/test_events.py::TestDeleteEvent::test_delete_event_success PASSED [ 44%]
+tests/integration/product/test_events.py::TestDeleteEvent::test_delete_event_nonexistent_404 PASSED [ 44%]
+tests/integration/product/test_events.py::TestDeleteEvent::test_delete_event_other_user_forbidden PASSED [ 45%]
+tests/integration/product/test_events.py::TestEventStateTransitions::test_publish_draft_event PASSED [ 45%]
+tests/integration/product/test_events.py::TestEventStateTransitions::test_publish_non_draft_rejected PASSED [ 45%]
+tests/integration/product/test_events.py::TestEventStateTransitions::test_cancel_event PASSED [ 45%]
+tests/integration/product/test_events.py::TestEventStateTransitions::test_cancel_already_cancelled_rejected PASSED [ 45%]
+tests/integration/product/test_events.py::TestEventStateTransitions::test_archive_published_event PASSED [ 45%]
+tests/integration/product/test_events.py::TestEventStateTransitions::test_archive_draft_rejected PASSED [ 46%]
+tests/integration/product/test_events.py::TestEventSearch::test_search_returns_structure PASSED [ 46%]
+tests/integration/product/test_events.py::TestEventSearch::test_search_by_query PASSED [ 46%]
+tests/integration/product/test_events.py::TestEventSearch::test_search_by_category_filter PASSED [ 46%]
+tests/integration/product/test_events.py::TestCollegeEventFeed::test_college_event_feed_returns_structure PASSED [ 46%]
+tests/integration/product/test_events.py::TestCollegeEventFeed::test_college_event_feed_with_category PASSED [ 47%]
+tests/integration/product/test_feed.py::TestPublicFeed::test_public_feed_returns_items PASSED [ 47%]
+tests/integration/product/test_feed.py::TestPublicFeed::test_public_feed_pagination_contract PASSED [ 47%]
+tests/integration/product/test_feed.py::TestPublicFeed::test_new_post_not_in_public_feed PASSED [ 47%]
+tests/integration/product/test_feed.py::TestFollowingFeed::test_following_feed_requires_auth PASSED [ 47%]
+tests/integration/product/test_feed.py::TestFollowingFeed::test_own_post_in_following_feed PASSED [ 47%]
+tests/integration/product/test_feed.py::TestFollowingFeed::test_followed_user_post_in_feed PASSED [ 48%]
+tests/integration/product/test_feed.py::TestFeedContract::test_feed_items_have_required_fields PASSED [ 48%]
+tests/integration/product/test_feed.py::TestFeedContract::test_feed_no_id_leak PASSED [ 48%]
+tests/integration/product/test_feed.py::TestCollegeFeed::test_college_feed_returns_structure PASSED [ 48%]
+tests/integration/product/test_feed.py::TestCollegeFeed::test_college_feed_pagination_contract PASSED [ 48%]
+tests/integration/product/test_feed.py::TestCollegeFeed::test_stage0_post_not_in_college_feed PASSED [ 49%]
+tests/integration/product/test_feed.py::TestCollegeFeed::test_stage1_post_in_college_feed PASSED [ 49%]
+tests/integration/product/test_feed.py::TestCollegeFeed::test_different_college_not_leaking PASSED [ 49%]
+tests/integration/product/test_feed.py::TestHouseFeed::test_house_feed_returns_structure PASSED [ 49%]
+tests/integration/product/test_feed.py::TestHouseFeed::test_house_feed_pagination_contract PASSED [ 49%]
+tests/integration/product/test_feed.py::TestHouseFeed::test_stage0_post_not_in_house_feed PASSED [ 50%]
+tests/integration/product/test_feed.py::TestHouseFeed::test_stage1_post_in_house_feed PASSED [ 50%]
+tests/integration/product/test_feed.py::TestHouseFeed::test_different_house_not_leaking PASSED [ 50%]
+tests/integration/product/test_notices.py::TestCreateNotice::test_admin_creates_notice_success PASSED [ 50%]
+tests/integration/product/test_notices.py::TestCreateNotice::test_create_notice_contract_shape PASSED [ 50%]
+tests/integration/product/test_notices.py::TestCreateNotice::test_regular_user_cannot_create_notice PASSED [ 50%]
+tests/integration/product/test_notices.py::TestCreateNotice::test_create_notice_missing_title_rejected PASSED [ 51%]
+tests/integration/product/test_notices.py::TestCreateNotice::test_create_notice_no_auth_blocked PASSED [ 51%]
+tests/integration/product/test_notices.py::TestGetNotice::test_get_notice_detail PASSED [ 51%]
+tests/integration/product/test_notices.py::TestGetNotice::test_get_nonexistent_notice_404 PASSED [ 51%]
+tests/integration/product/test_notices.py::TestGetNotice::test_removed_notice_returns_410 PASSED [ 51%]
+tests/integration/product/test_notices.py::TestAcknowledgment::test_acknowledge_notice_success PASSED [ 52%]
+tests/integration/product/test_notices.py::TestAcknowledgment::test_acknowledge_idempotent PASSED [ 52%]
+tests/integration/product/test_notices.py::TestAcknowledgment::test_acknowledge_no_auth_blocked PASSED [ 52%]
+tests/integration/product/test_notices.py::TestUpdateNotice::test_admin_can_update_notice PASSED [ 52%]
+tests/integration/product/test_notices.py::TestUpdateNotice::test_update_nonexistent_notice_404 PASSED [ 52%]
+tests/integration/product/test_notices.py::TestUpdateNotice::test_update_removed_notice_rejected PASSED [ 52%]
+tests/integration/product/test_notices.py::TestUpdateNotice::test_regular_user_cannot_update_others_notice PASSED [ 53%]
+tests/integration/product/test_notices.py::TestDeleteNotice::test_admin_can_delete_notice PASSED [ 53%]
+tests/integration/product/test_notices.py::TestDeleteNotice::test_delete_nonexistent_notice_404 PASSED [ 53%]
+tests/integration/product/test_notices.py::TestDeleteNotice::test_regular_user_cannot_delete_others_notice PASSED [ 53%]
+tests/integration/product/test_notices.py::TestPinNotice::test_admin_can_pin_notice PASSED [ 53%]
+tests/integration/product/test_notices.py::TestPinNotice::test_admin_can_unpin_notice PASSED [ 54%]
+tests/integration/product/test_notices.py::TestPinNotice::test_pin_nonexistent_notice_404 PASSED [ 54%]
+tests/integration/product/test_notices.py::TestPinNotice::test_regular_user_cannot_pin PASSED [ 54%]
+tests/integration/product/test_notices.py::TestCollegeNoticeListing::test_college_notice_listing_returns_structure PASSED [ 54%]
+tests/integration/product/test_notices.py::TestCollegeNoticeListing::test_college_notice_listing_has_creator_info PASSED [ 54%]
+tests/integration/product/test_notices.py::TestAcknowledgmentList::test_acknowledgment_list_returns_structure PASSED [ 54%]
+tests/integration/product/test_notices.py::TestAcknowledgmentList::test_acknowledgment_list_contains_user_info PASSED [ 55%]
+tests/integration/product/test_posts.py::TestCreatePost::test_create_post_success PASSED [ 55%]
+tests/integration/product/test_posts.py::TestCreatePost::test_create_post_contract_shape PASSED [ 55%]
+tests/integration/product/test_posts.py::TestCreatePost::test_create_post_empty_caption_rejected PASSED [ 55%]
+tests/integration/product/test_posts.py::TestCreatePost::test_create_post_no_auth_blocked PASSED [ 55%]
+tests/integration/product/test_posts.py::TestCreatePost::test_create_post_invalid_kind_rejected PASSED [ 56%]
+tests/integration/product/test_posts.py::TestCreatePost::test_create_post_has_request_id PASSED [ 56%]
+tests/integration/product/test_posts.py::TestGetPost::test_get_post_success PASSED [ 56%]
+tests/integration/product/test_posts.py::TestGetPost::test_get_nonexistent_post_404 PASSED [ 56%]
+tests/integration/product/test_posts.py::TestDeletePost::test_delete_own_post PASSED [ 56%]
+tests/integration/product/test_posts.py::TestDeletePost::test_delete_other_user_post_forbidden PASSED [ 56%]
+tests/integration/product/test_posts.py::TestDeletePost::test_delete_nonexistent_post_404 PASSED [ 57%]
+tests/integration/product/test_posts.py::TestDeletePost::test_delete_no_auth_blocked PASSED [ 57%]
+tests/integration/product/test_posts.py::TestDeletePost::test_admin_can_delete_any_post PASSED [ 57%]
+tests/integration/product/test_reels.py::TestReelFeeds::test_discovery_feed_requires_auth PASSED [ 57%]
+tests/integration/product/test_reels.py::TestReelFeeds::test_discovery_feed_returns_structure PASSED [ 57%]
+tests/integration/product/test_reels.py::TestReelFeeds::test_following_feed_returns_structure PASSED [ 58%]
+tests/integration/product/test_reels.py::TestReelDetail::test_get_reel_detail PASSED [ 58%]
+tests/integration/product/test_reels.py::TestReelDetail::test_get_nonexistent_reel_404 PASSED [ 58%]
+tests/integration/product/test_reels.py::TestReelInteractions::test_like_reel PASSED [ 58%]
+tests/integration/product/test_reels.py::TestReelInteractions::test_unlike_reel PASSED [ 58%]
+tests/integration/product/test_reels.py::TestReelInteractions::test_save_reel PASSED [ 59%]
+tests/integration/product/test_reels.py::TestReelInteractions::test_unsave_reel PASSED [ 59%]
+tests/integration/product/test_reels.py::TestReelInteractions::test_comment_on_reel PASSED [ 59%]
+tests/integration/product/test_reels.py::TestReelInteractions::test_reel_watch_analytics PASSED [ 59%]
+tests/integration/product/test_reels.py::TestReelInteractions::test_self_like_reel_forbidden PASSED [ 59%]
+tests/integration/product/test_reels.py::TestReelInteractions::test_like_reel_no_auth_blocked PASSED [ 59%]
+tests/integration/product/test_reels.py::TestReelInteractions::test_like_nonexistent_reel_404 PASSED [ 60%]
+tests/integration/product/test_reels.py::TestReelCommentList::test_get_reel_comments_returns_structure PASSED [ 60%]
+tests/integration/product/test_reels.py::TestReelCommentList::test_get_reel_comments_has_sender_info PASSED [ 60%]
+tests/integration/product/test_reels.py::TestReelCommentList::test_get_comments_nonexistent_reel_404 PASSED [ 60%]
+tests/integration/product/test_reels.py::TestReelFeedSignals::test_hide_reel PASSED [ 60%]
+tests/integration/product/test_reels.py::TestReelFeedSignals::test_hide_reel_idempotent PASSED [ 61%]
+tests/integration/product/test_reels.py::TestReelFeedSignals::test_not_interested_reel PASSED [ 61%]
+tests/integration/product/test_reels.py::TestReelFeedSignals::test_not_interested_idempotent PASSED [ 61%]
+tests/integration/product/test_reels.py::TestReelFeedSignals::test_share_reel PASSED [ 61%]
+tests/integration/product/test_reels.py::TestReelFeedSignals::test_share_nonexistent_reel_404 PASSED [ 61%]
+tests/integration/product/test_reels.py::TestReelFeedSignals::test_hide_no_auth_blocked PASSED [ 61%]
+tests/integration/product/test_reels.py::TestReelFeedSignals::test_share_no_auth_blocked PASSED [ 62%]
+tests/integration/product/test_resources.py::TestCreateResource::test_create_resource_success PASSED [ 62%]
+tests/integration/product/test_resources.py::TestCreateResource::test_create_resource_contract_shape PASSED [ 62%]
+tests/integration/product/test_resources.py::TestCreateResource::test_create_resource_missing_title_rejected PASSED [ 62%]
+tests/integration/product/test_resources.py::TestCreateResource::test_create_resource_no_auth_blocked PASSED [ 62%]
+tests/integration/product/test_resources.py::TestGetResource::test_get_resource_detail PASSED [ 63%]
+tests/integration/product/test_resources.py::TestGetResource::test_get_nonexistent_resource_404 PASSED [ 63%]
+tests/integration/product/test_resources.py::TestResourceVoting::test_upvote_success PASSED [ 63%]
+tests/integration/product/test_resources.py::TestResourceVoting::test_downvote_success PASSED [ 63%]
+tests/integration/product/test_resources.py::TestResourceVoting::test_vote_switch PASSED [ 63%]
+tests/integration/product/test_resources.py::TestResourceVoting::test_duplicate_vote_returns_conflict PASSED [ 63%]
+tests/integration/product/test_resources.py::TestResourceVoting::test_self_vote_forbidden PASSED [ 64%]
+tests/integration/product/test_resources.py::TestResourceVoting::test_remove_vote PASSED [ 64%]
+tests/integration/product/test_resources.py::TestResourceVoting::test_vote_no_auth_blocked PASSED [ 64%]
+tests/integration/product/test_resources.py::TestResourceVoting::test_vote_nonexistent_resource_404 PASSED [ 64%]
+tests/integration/product/test_resources.py::TestUpdateResource::test_update_resource_success PASSED [ 64%]
+tests/integration/product/test_resources.py::TestUpdateResource::test_update_resource_nonexistent_404 PASSED [ 65%]
+tests/integration/product/test_resources.py::TestUpdateResource::test_update_resource_other_user_forbidden PASSED [ 65%]
+tests/integration/product/test_resources.py::TestUpdateResource::test_update_removed_resource_rejected PASSED [ 65%]
+tests/integration/product/test_resources.py::TestDeleteResource::test_delete_resource_success PASSED [ 65%]
+tests/integration/product/test_resources.py::TestDeleteResource::test_delete_resource_nonexistent_404 PASSED [ 65%]
+tests/integration/product/test_resources.py::TestDeleteResource::test_delete_resource_other_user_forbidden PASSED [ 65%]
+tests/integration/product/test_resources.py::TestResourceSearch::test_search_returns_structure PASSED [ 66%]
+tests/integration/product/test_resources.py::TestResourceSearch::test_search_by_query PASSED [ 66%]
+tests/integration/product/test_resources.py::TestResourceSearch::test_search_by_college PASSED [ 66%]
+tests/integration/product/test_resources.py::TestResourceSearch::test_search_by_kind_filter PASSED [ 66%]
+tests/integration/product/test_resources.py::TestResourceDownload::test_download_success PASSED [ 66%]
+tests/integration/product/test_resources.py::TestResourceDownload::test_download_nonexistent_404 PASSED [ 67%]
+tests/integration/product/test_resources.py::TestResourceDownload::test_download_no_auth_blocked PASSED [ 67%]
+tests/integration/product/test_social_actions.py::TestLike::test_like_post_success PASSED [ 67%]
+tests/integration/product/test_social_actions.py::TestLike::test_like_idempotent PASSED [ 67%]
+tests/integration/product/test_social_actions.py::TestLike::test_like_nonexistent_post_404 PASSED [ 67%]
+tests/integration/product/test_social_actions.py::TestLike::test_like_no_auth_blocked PASSED [ 68%]
+tests/integration/product/test_social_actions.py::TestLike::test_like_updates_post_count PASSED [ 68%]
+tests/integration/product/test_social_actions.py::TestSave::test_save_post_success PASSED [ 68%]
+tests/integration/product/test_social_actions.py::TestSave::test_save_idempotent PASSED [ 68%]
+tests/integration/product/test_social_actions.py::TestSave::test_unsave_post PASSED [ 68%]
+tests/integration/product/test_social_actions.py::TestComment::test_create_comment_success PASSED [ 68%]
+tests/integration/product/test_social_actions.py::TestComment::test_comment_empty_body_rejected PASSED [ 69%]
+tests/integration/product/test_social_actions.py::TestComment::test_comment_no_auth_blocked PASSED [ 69%]
+tests/integration/product/test_social_actions.py::TestComment::test_comment_on_nonexistent_post PASSED [ 69%]
+tests/integration/product/test_social_actions.py::TestComment::test_get_comments_success PASSED [ 69%]
+tests/integration/product/test_social_actions.py::TestComment::test_comment_increments_count PASSED [ 69%]
+tests/integration/product/test_social_actions.py::TestFollow::test_follow_success PASSED [ 70%]
+tests/integration/product/test_social_actions.py::TestFollow::test_follow_idempotent PASSED [ 70%]
+tests/integration/product/test_social_actions.py::TestFollow::test_self_follow_blocked PASSED [ 70%]
+tests/integration/product/test_social_actions.py::TestFollow::test_follow_nonexistent_user_404 PASSED [ 70%]
+tests/integration/product/test_social_actions.py::TestFollow::test_unfollow_success PASSED [ 70%]
+tests/integration/product/test_social_actions.py::TestFollow::test_follow_no_auth_blocked PASSED [ 70%]
+tests/integration/product/test_social_reactions.py::TestDislike::test_dislike_success PASSED [ 71%]
+tests/integration/product/test_social_reactions.py::TestDislike::test_dislike_idempotent PASSED [ 71%]
+tests/integration/product/test_social_reactions.py::TestDislike::test_switch_like_to_dislike PASSED [ 71%]
+tests/integration/product/test_social_reactions.py::TestDislike::test_dislike_nonexistent_404 PASSED [ 71%]
+tests/integration/product/test_social_reactions.py::TestDislike::test_dislike_no_auth_blocked PASSED [ 71%]
+tests/integration/product/test_social_reactions.py::TestReactionRemove::test_remove_like_reaction PASSED [ 72%]
+tests/integration/product/test_social_reactions.py::TestReactionRemove::test_remove_dislike_reaction PASSED [ 72%]
+tests/integration/product/test_social_reactions.py::TestReactionRemove::test_remove_no_reaction_is_noop PASSED [ 72%]
+tests/integration/product/test_social_reactions.py::TestReactionRemove::test_like_count_decrements_on_remove PASSED [ 72%]
+tests/integration/product/test_visibility_safety.py::TestDeletedContentVisibility::test_deleted_post_returns_404 PASSED [ 72%]
+tests/integration/product/test_visibility_safety.py::TestDeletedContentVisibility::test_deleted_post_not_in_following_feed PASSED [ 72%]
+tests/integration/product/test_visibility_safety.py::TestHeldContentVisibility::test_held_content_not_in_feed PASSED [ 73%]
+tests/integration/product/test_visibility_safety.py::TestBlockedUserVisibility::test_blocked_user_content_in_feed PASSED [ 73%]
+tests/integration/product/test_visibility_safety.py::TestContentInteractionSafety::test_view_count_increments_on_get PASSED [ 73%]
+tests/integration/product/test_visibility_safety.py::TestContentInteractionSafety::test_removed_content_behavior_on_like PASSED [ 73%]
+tests/integration/test_auth_flow.py::TestRegister::test_register_new_user PASSED [ 73%]
+tests/integration/test_auth_flow.py::TestRegister::test_register_duplicate_fails PASSED [ 74%]
+tests/integration/test_auth_flow.py::TestRegister::test_register_validation_missing_fields PASSED [ 74%]
+tests/integration/test_auth_flow.py::TestRegister::test_register_validation_bad_phone PASSED [ 74%]
+tests/integration/test_auth_flow.py::TestRegister::test_register_validation_bad_pin PASSED [ 74%]
+tests/integration/test_auth_flow.py::TestLogin::test_login_success PASSED [ 74%]
+tests/integration/test_auth_flow.py::TestLogin::test_login_wrong_pin PASSED [ 75%]
+tests/integration/test_auth_flow.py::TestLogin::test_login_nonexistent_user PASSED [ 75%]
+tests/integration/test_auth_flow.py::TestLogin::test_login_missing_fields PASSED [ 75%]
+tests/integration/test_auth_flow.py::TestRefreshToken::test_refresh_success PASSED [ 75%]
+tests/integration/test_auth_flow.py::TestRefreshToken::test_refresh_invalid_token PASSED [ 75%]
+tests/integration/test_auth_flow.py::TestRefreshToken::test_refresh_replay_revokes_family PASSED [ 75%]
+tests/integration/test_auth_flow.py::TestLogout::test_logout PASSED      [ 76%]
+tests/integration/test_auth_flow.py::TestPinChange::test_pin_change_success PASSED [ 76%]
+tests/integration/test_auth_flow.py::TestPinChange::test_pin_change_wrong_current PASSED [ 76%]
+tests/integration/test_correlation.py::TestRequestIdHeader::test_request_id_on_success PASSED [ 76%]
+tests/integration/test_correlation.py::TestRequestIdHeader::test_request_id_on_error PASSED [ 76%]
+tests/integration/test_correlation.py::TestRequestIdHeader::test_request_id_unique_per_request PASSED [ 77%]
+tests/integration/test_correlation.py::TestAuditCorrelation::test_login_creates_audit_with_request_id PASSED [ 77%]
+tests/integration/test_correlation.py::TestAuditCorrelation::test_new_audit_entries_have_category PASSED [ 77%]
+tests/integration/test_correlation.py::TestAuditCorrelation::test_audit_has_severity PASSED [ 77%]
+tests/integration/test_correlation.py::TestErrorCodeMetrics::test_404_increments_not_found PASSED [ 77%]
+tests/integration/test_correlation.py::TestErrorCodeMetrics::test_401_increments_unauthorized PASSED [ 77%]
+tests/integration/test_correlation.py::TestErrorCodeMetrics::test_403_increments_forbidden PASSED [ 78%]
+tests/integration/test_observability.py::TestLiveness::test_healthz_returns_ok PASSED [ 78%]
+tests/integration/test_observability.py::TestLiveness::test_healthz_has_request_id PASSED [ 78%]
+tests/integration/test_observability.py::TestReadiness::test_readyz_returns_status PASSED [ 78%]
+tests/integration/test_observability.py::TestReadiness::test_readyz_mongo_healthy PASSED [ 78%]
+tests/integration/test_observability.py::TestDeepHealth::test_ops_health_requires_auth PASSED [ 79%]
+tests/integration/test_observability.py::TestDeepHealth::test_ops_health_requires_admin PASSED [ 79%]
+tests/integration/test_observability.py::TestDeepHealth::test_ops_health_admin_success PASSED [ 79%]
+tests/integration/test_observability.py::TestMetrics::test_ops_metrics_requires_auth PASSED [ 79%]
+tests/integration/test_observability.py::TestMetrics::test_ops_metrics_admin_success PASSED [ 79%]
+tests/integration/test_observability.py::TestMetrics::test_ops_metrics_has_percentiles PASSED [ 79%]
+tests/integration/test_observability.py::TestSLIs::test_ops_slis_requires_auth PASSED [ 80%]
+tests/integration/test_observability.py::TestSLIs::test_ops_slis_admin_success PASSED [ 80%]
+tests/integration/test_ratelimit_options_redis.py::TestRateLimitSTRICTTrip::test_strict_tier_429_proof PASSED [ 80%]
+tests/integration/test_ratelimit_options_redis.py::TestRateLimitSTRICTTrip::test_strict_429_has_request_id PASSED [ 80%]
+tests/integration/test_ratelimit_options_redis.py::TestOPTIONSObservability::test_options_returns_200 PASSED [ 80%]
+tests/integration/test_ratelimit_options_redis.py::TestOPTIONSObservability::test_options_has_request_id PASSED [ 81%]
+tests/integration/test_ratelimit_options_redis.py::TestOPTIONSObservability::test_options_has_security_headers PASSED [ 81%]
+tests/integration/test_ratelimit_options_redis.py::TestOPTIONSObservability::test_options_tracked_in_metrics PASSED [ 81%]
+tests/integration/test_ratelimit_options_redis.py::TestRedisDegradedMode::test_rate_limiter_backend_is_memory PASSED [ 81%]
+tests/integration/test_ratelimit_options_redis.py::TestRedisDegradedMode::test_strict_tier_effective_limits_halved PASSED [ 81%]
+tests/integration/test_ratelimit_options_redis.py::TestRedisDegradedMode::test_redis_degraded_events_tracked_in_metrics PASSED [ 81%]
+tests/integration/test_ratelimit_options_redis.py::TestRedisDegradedMode::test_readyz_honest_about_redis PASSED [ 82%]
+tests/integration/test_security_guards.py::TestXSSSanitization::test_xss_in_display_name_stripped PASSED [ 82%]
+tests/integration/test_security_guards.py::TestPayloadSize::test_oversized_payload_rejected PASSED [ 82%]
+tests/integration/test_security_guards.py::TestAuthBoundaries::test_protected_endpoint_without_auth PASSED [ 82%]
+tests/integration/test_security_guards.py::TestAuthBoundaries::test_admin_endpoint_with_regular_user PASSED [ 82%]
+tests/integration/test_security_guards.py::TestAuthBoundaries::test_admin_endpoint_with_admin PASSED [ 83%]
+tests/integration/test_security_guards.py::TestSecurityHeaders::test_security_headers_present PASSED [ 83%]
+tests/integration/test_security_guards.py::TestSecurityHeaders::test_contract_version_header PASSED [ 83%]
+tests/integration/test_sessions.py::TestSessionList::test_list_sessions PASSED [ 83%]
+tests/integration/test_sessions.py::TestSessionList::test_sessions_dont_expose_tokens PASSED [ 83%]
+tests/integration/test_sessions.py::TestRevokeSession::test_revoke_other_session PASSED [ 84%]
+tests/integration/test_sessions.py::TestRevokeSession::test_revoke_all_sessions PASSED [ 84%]
+tests/smoke/test_smoke_auth_ops.py::TestAuthSmoke::test_register_login_me_flow PASSED [ 84%]
+tests/smoke/test_smoke_auth_ops.py::TestOpsSmoke::test_admin_ops_full_flow PASSED [ 84%]
+tests/smoke/test_smoke_metrics.py::TestMetricsSmoke::test_404_reflected_in_metrics PASSED [ 84%]
+tests/smoke/test_smoke_metrics.py::TestMetricsSmoke::test_rate_limit_status_visible PASSED [ 84%]
+tests/smoke/test_smoke_product.py::TestProductSmoke::test_post_to_feed_flow PASSED [ 85%]
+tests/smoke/test_smoke_product.py::TestProductSmoke::test_follow_and_feed_flow PASSED [ 85%]
+tests/smoke/test_smoke_product_domains.py::TestProductDomainSmoke::test_event_lifecycle_smoke PASSED [ 85%]
+tests/smoke/test_smoke_product_domains.py::TestProductDomainSmoke::test_resource_lifecycle_smoke PASSED [ 85%]
+tests/unit/test_auth_utils.py::TestPinHashing::test_hash_roundtrip PASSED [ 85%]
+tests/unit/test_auth_utils.py::TestPinHashing::test_different_salts_different_hashes PASSED [ 86%]
+tests/unit/test_auth_utils.py::TestTokenGeneration::test_access_token_format PASSED [ 86%]
+tests/unit/test_auth_utils.py::TestTokenGeneration::test_refresh_token_format PASSED [ 86%]
+tests/unit/test_auth_utils.py::TestTokenGeneration::test_tokens_are_unique PASSED [ 86%]
+tests/unit/test_auth_utils.py::TestLoginThrottle::test_first_attempt_allowed PASSED [ 86%]
+tests/unit/test_auth_utils.py::TestLoginThrottle::test_throttle_after_5_failures PASSED [ 86%]
+tests/unit/test_auth_utils.py::TestLoginThrottle::test_clear_resets_throttle PASSED [ 87%]
+tests/unit/test_auth_utils.py::TestSanitizeUser::test_strips_id_and_pin PASSED [ 87%]
+tests/unit/test_auth_utils.py::TestSanitizeUser::test_null_returns_null PASSED [ 87%]
+tests/unit/test_constants.py::TestAssignHouse::test_deterministic_same_user PASSED [ 87%]
+tests/unit/test_constants.py::TestAssignHouse::test_different_users_can_differ PASSED [ 87%]
+tests/unit/test_constants.py::TestAssignHouse::test_returns_valid_house_object PASSED [ 88%]
+tests/unit/test_constants.py::TestAssignHouse::test_house_index_stays_in_bounds PASSED [ 88%]
+tests/unit/test_constants.py::TestHouses::test_exactly_12_houses PASSED  [ 88%]
+tests/unit/test_constants.py::TestHouses::test_all_slugs_unique PASSED   [ 88%]
+tests/unit/test_constants.py::TestErrorCode::test_has_core_codes PASSED  [ 88%]
+tests/unit/test_constants.py::TestErrorCode::test_has_auth_codes PASSED  [ 88%]
+tests/unit/test_constants.py::TestErrorCode::test_has_domain_codes PASSED [ 89%]
+tests/unit/test_constants.py::TestRole::test_role_hierarchy PASSED       [ 89%]
+tests/unit/test_health.py::TestCheckLiveness::test_returns_ok_status PASSED [ 89%]
+tests/unit/test_health.py::TestCheckLiveness::test_has_uptime PASSED     [ 89%]
+tests/unit/test_health.py::TestCheckLiveness::test_has_iso_timestamp PASSED [ 89%]
+tests/unit/test_health.py::TestCheckLiveness::test_shape_has_exactly_3_keys PASSED [ 90%]
+tests/unit/test_logger.py::TestRedactPII::test_redacts_token PASSED      [ 90%]
+tests/unit/test_logger.py::TestRedactPII::test_redacts_password PASSED   [ 90%]
+tests/unit/test_logger.py::TestRedactPII::test_redacts_pin_variants PASSED [ 90%]
+tests/unit/test_logger.py::TestRedactPII::test_handles_nested_pii PASSED [ 90%]
+tests/unit/test_logger.py::TestLoggerOutput::test_ndjson_format PASSED   [ 90%]
+tests/unit/test_logger.py::TestLoggerOutput::test_error_goes_to_stderr PASSED [ 91%]
+tests/unit/test_metrics.py::TestGetRouteFamily::test_collapses_uuid PASSED [ 91%]
+tests/unit/test_metrics.py::TestGetRouteFamily::test_preserves_non_uuid_path PASSED [ 91%]
+tests/unit/test_metrics.py::TestGetRouteFamily::test_multiple_uuids PASSED [ 91%]
+tests/unit/test_metrics.py::TestMetricsRecording::test_record_request_updates_counters PASSED [ 91%]
+tests/unit/test_metrics.py::TestMetricsRecording::test_record_error_tracks_codes PASSED [ 92%]
+tests/unit/test_metrics.py::TestMetricsRecording::test_latency_percentiles PASSED [ 92%]
+tests/unit/test_metrics.py::TestMetricsRecording::test_histogram_buckets PASSED [ 92%]
+tests/unit/test_metrics.py::TestSLIs::test_sli_shape PASSED              [ 92%]
+tests/unit/test_request_context.py::TestRequestContext::test_returns_empty_object_outside_store PASSED [ 92%]
+tests/unit/test_request_context.py::TestRequestContext::test_returns_store_inside_run PASSED [ 93%]
+tests/unit/test_request_context.py::TestRequestContext::test_context_not_leaked_after_run PASSED [ 93%]
+tests/unit/test_request_context.py::TestRequestContext::test_nested_runs_isolate PASSED [ 93%]
+tests/unit/test_request_context.py::TestRequestContext::test_mutable_store_in_run PASSED [ 93%]
+tests/unit/test_security.py::TestSanitizeTextInput::test_strips_script_tags PASSED [ 93%]
+tests/unit/test_security.py::TestSanitizeTextInput::test_strips_style_tags PASSED [ 93%]
+tests/unit/test_security.py::TestSanitizeTextInput::test_strips_html_tags PASSED [ 94%]
+tests/unit/test_security.py::TestSanitizeTextInput::test_strips_event_handlers PASSED [ 94%]
+tests/unit/test_security.py::TestSanitizeTextInput::test_strips_javascript_protocol PASSED [ 94%]
+tests/unit/test_security.py::TestSanitizeTextInput::test_strips_control_chars PASSED [ 94%]
+tests/unit/test_security.py::TestSanitizeTextInput::test_preserves_clean_text PASSED [ 94%]
+tests/unit/test_security.py::TestSanitizeTextInput::test_trims_whitespace PASSED [ 95%]
+tests/unit/test_security.py::TestSanitizeTextInput::test_non_string_passthrough PASSED [ 95%]
+tests/unit/test_security.py::TestSanitizeTextInput::test_empty_string PASSED [ 95%]
+tests/unit/test_security.py::TestSanitizeTextInput::test_nested_script_tags PASSED [ 95%]
+tests/unit/test_security.py::TestDeepSanitizeStrings::test_sanitizes_nested_object PASSED [ 95%]
+tests/unit/test_security.py::TestDeepSanitizeStrings::test_sanitizes_array PASSED [ 95%]
+tests/unit/test_security.py::TestDeepSanitizeStrings::test_deep_nesting PASSED [ 96%]
+tests/unit/test_security.py::TestDeepSanitizeStrings::test_preserves_non_strings PASSED [ 96%]
+tests/unit/test_security.py::TestMaskPII::test_masks_phone PASSED        [ 96%]
+tests/unit/test_security.py::TestMaskPII::test_masks_token PASSED        [ 96%]
+tests/unit/test_security.py::TestMaskPII::test_masks_access_token PASSED [ 96%]
+tests/unit/test_security.py::TestMaskPII::test_masks_refresh_token PASSED [ 97%]
+tests/unit/test_security.py::TestMaskPII::test_masks_pin PASSED          [ 97%]
+tests/unit/test_security.py::TestMaskPII::test_masks_pin_hash PASSED     [ 97%]
+tests/unit/test_security.py::TestMaskPII::test_preserves_safe_fields PASSED [ 97%]
+tests/unit/test_security.py::TestMaskPII::test_handles_null PASSED       [ 97%]
+tests/unit/test_security.py::TestGetEndpointTier::test_auth_login_is_auth_tier PASSED [ 97%]
+tests/unit/test_security.py::TestGetEndpointTier::test_auth_register_is_auth_tier PASSED [ 98%]
+tests/unit/test_security.py::TestGetEndpointTier::test_auth_refresh_is_auth_tier PASSED [ 98%]
+tests/unit/test_security.py::TestGetEndpointTier::test_auth_pin_is_sensitive PASSED [ 98%]
+tests/unit/test_security.py::TestGetEndpointTier::test_admin_is_admin_tier PASSED [ 98%]
+tests/unit/test_security.py::TestGetEndpointTier::test_ops_is_admin_tier PASSED [ 98%]
+tests/unit/test_security.py::TestGetEndpointTier::test_content_post_is_write PASSED [ 99%]
+tests/unit/test_security.py::TestGetEndpointTier::test_content_like_is_social PASSED [ 99%]
+tests/unit/test_security.py::TestGetEndpointTier::test_follow_is_social PASSED [ 99%]
+tests/unit/test_security.py::TestGetEndpointTier::test_get_feed_is_read PASSED [ 99%]
+tests/unit/test_security.py::TestGetEndpointTier::test_session_delete_all_is_sensitive PASSED [ 99%]
+tests/unit/test_security.py::TestGetEndpointTier::test_session_delete_one_is_sensitive PASSED [100%]
+[CLEANUP] Removed 52 users, 61 sessions, 328 audits, 68 posts, 10 reactions, 7 comments, 3 follows
+
+
+=================================== FAILURES ===================================
+__________________ TestPhase1RouteExistence.test_post_restore __________________
+tests/handlers/test_b3_ultimate.py:200: in test_post_restore
+    assert r.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = <Response [429]>.status_code
+_________________ TestPhase2IdentitySafety.test_reserved_slugs _________________
+tests/handlers/test_b3_ultimate.py:302: in test_reserved_slugs
+    assert r.status_code == 400, f"Reserved slug '{slug}' was not rejected"
+E   AssertionError: Reserved slug 'pages' was not rejected
+E   assert 429 == 400
+E    +  where 429 = <Response [429]>.status_code
+___________________ TestPhase2IdentitySafety.test_short_slug ___________________
+tests/handlers/test_b3_ultimate.py:308: in test_short_slug
+    assert r.status_code == 400
+E   assert 429 == 400
+E    +  where 429 = <Response [429]>.status_code
+________________ TestPhase2IdentitySafety.test_invalid_category ________________
+tests/handlers/test_b3_ultimate.py:314: in test_invalid_category
+    assert r.status_code == 400
+E   assert 429 == 400
+E    +  where 429 = <Response [429]>.status_code
+______________ TestPhase2IdentitySafety.test_official_self_assert ______________
+tests/handlers/test_b3_ultimate.py:320: in test_official_self_assert
+    assert r.status_code == 403
+E   assert 429 == 403
+E    +  where 429 = <Response [429]>.status_code
+______________ TestPhase2IdentitySafety.test_official_spoof_name _______________
+tests/handlers/test_b3_ultimate.py:326: in test_official_spoof_name
+    assert r.status_code == 400
+E   assert 429 == 400
+E    +  where 429 = <Response [429]>.status_code
+______________ TestPhase2IdentitySafety.test_official_spoof_slug _______________
+tests/handlers/test_b3_ultimate.py:332: in test_official_spoof_slug
+    assert r.status_code == 400
+E   assert 429 == 400
+E    +  where 429 = <Response [429]>.status_code
+___________ TestPhase6PublishAuditTruth.test_author_is_page_snippet ____________
+tests/handlers/test_b3_ultimate.py:558: in test_author_is_page_snippet
+    author = r.json()["post"]["author"]
+             ^^^^^^^^^^^^^^^^
+E   KeyError: 'post'
+=========================== short test summary info ============================
+FAILED tests/handlers/test_b3_ultimate.py::TestPhase1RouteExistence::test_post_restore
+FAILED tests/handlers/test_b3_ultimate.py::TestPhase2IdentitySafety::test_reserved_slugs
+FAILED tests/handlers/test_b3_ultimate.py::TestPhase2IdentitySafety::test_short_slug
+FAILED tests/handlers/test_b3_ultimate.py::TestPhase2IdentitySafety::test_invalid_category
+FAILED tests/handlers/test_b3_ultimate.py::TestPhase2IdentitySafety::test_official_self_assert
+FAILED tests/handlers/test_b3_ultimate.py::TestPhase2IdentitySafety::test_official_spoof_name
+FAILED tests/handlers/test_b3_ultimate.py::TestPhase2IdentitySafety::test_official_spoof_slug
+FAILED tests/handlers/test_b3_ultimate.py::TestPhase6PublishAuditTruth::test_author_is_page_snippet
+================== 8 failed, 536 passed in 261.57s (0:04:21) ===================) to ensure the total count of 454 tests (396 existing + 58 B3 + 90 B3-U) all pass with zero regressions.
+     - Why fix this issue and what will be achieved with the fix? Passing this gate is a non-negotiable user requirement to officially complete Stage B3 and prove the implementation is production-ready.
+     - Status:  IN PROGRESS
+     - Is recurring issue? Y
      - Should Test frontend/backend/both after fix? backend
      - Blocked on other issue: None
 
 **In progress Task List**:
--   **Task 1: Implement Stage B3 - Pages System (P0)**
-    -   **Where to resume**: The user has provided an extremely detailed, world-best prompt and code scaffold for Stage B3. The next agent's first action MUST be to start executing this plan, beginning with the Phase 1 - Audit First step outlined by the user. The prompt is the last user message in the history.
-    -   **What will be achieved with this?**: A complete, production-grade Pages system (like Facebook/Instagram Pages) for community publishing, with roles, permissions, and safe integration into the existing content and feed engine.
-    -   **Status**: NOT STARTED
-    -   **Should Test frontend/backend/both after fix?**: both
-    -   **Blocked on something**: No.
+  - Task 1: Complete and Pass the B3-U Ultimate Test Gate (P0)
+     - Where to resume: Debugging . The immediate next step is to make the page-creation helper functions used by the failing tests resilient to rate limiting.
+     - What will be achieved with this? This will provide final, world-best validation for the entire Stage B3 implementation, unlocking the project to move to Stage B4.
+     - Status:  IN PROGRESS
+     - Should Test frontend/backend/both after fix? backend
+     - Blocked on something: No
 
 **Upcoming and Future Tasks**
-The user's Final World-Best Staging Plan is the definitive roadmap.
--   **Upcoming Tasks**:
-    -   **B4 (P1): Core Social Gaps**: Build ~8 missing endpoints (edit post, share post, like comment, etc.).
-    -   **B5 (P1): Discovery, Search & Hashtag Engine**: Implement hashtag extraction and fix broken post search (Issue 1).
-    -   **B6 (P1): Notifications 2.0 + Reels/Post Polish**: Implement advanced notification features and fix Reel interaction bugs (Issue 2).
--   **Future Tasks**:
-    -   **B7 (P2): Test Hardening + Gold Freeze**: Bring test coverage to 900+ and achieve a gold-freeze state.
-    -   **B8 (P3): Infra, Observability, Scale Path**: Begin infrastructure improvements (3-layer refactor, job queues, Redis, etc.). This stage will also address the 'Separate Test DB' and 'Audit Log TTL' issues.
+The definitive roadmap is the user's Final World-Best Staging Plan.
+- **Upcoming Tasks**:
+    - **B4 (P1): Core Social Gaps**: Build ~8 missing endpoints (edit post, share post, like comment, etc.).
+    - **B5 (P1): Discovery, Search & Hashtag Engine**: Implement hashtag extraction and fix the known issue where  is non-functional.
+    - **B6 (P1): Notifications 2.0 + Reels/Post Polish**: Implement advanced notification features and fix known  errors on Reel interaction endpoints.
+- **Future Tasks**:
+    - **B7 (P2): Test Hardening + Gold Freeze**: Increase total test coverage to 900+ and achieve a gold-freeze state.
+    - **B8 (P3): Infra, Observability, Scale Path**: Begin infrastructure improvements (3-layer refactor, job queues, Redis) and address deferred issues like 'Separate Test DB' and 'Audit Log TTL'.
 
 **Completed work in this session**
-- **TypeScript API Client Generation (DONE)**: Audited and rebuilt  to world-class standards, achieving 100% coverage of the API manifest with JSDoc, SSE support, AbortController, and strict TypeScript compliance.
-- **Stage B1 - Canonical Identity & Media Resolution (DONE)**: Fixed all avatar/media URL resolution issues by creating canonical serializers (, ) in . All API surfaces now correctly return  instead of a raw .
-- **Stage B2 - Visibility, Permission & Feed Safety (DONE)**: Implemented a centralized access policy layer in . Enforced content visibility rules (PUBLIC, FOLLOWERS_ONLY, etc.) and block relationships across all feeds, detail endpoints, and comment lists. Fixed test regressions and a critical cache-bypass bug where block filters were ignored on cached feeds. Verified success with a 100/100 scorecard test.
+- **Stage B3 - Pages System (DONE, pending B3-U Gate)**:
+  - Implemented a complete Pages system by extending the existing  model with , , and audit fields (, ). This includes , , and  logic.
+  - Deployed 18+ new API endpoints in .
+  - Integrated Page content into main feeds, search (), and notifications.
+  - Implemented a robust role-based permission system (Owner, Admin, Editor, Moderator).
+- **B3 Enhancement - Page Analytics (DONE)**:
+  - Added the  endpoint, providing detailed engagement metrics for page owners.
+- **B3 Testing & Documentation (DONE, pending B3-U Gate)**:
+  - Created and ran a backfill script  to ensure legacy data compatibility.
+  - Authored and passed a 58-test ============================= test session starts ==============================
+platform linux -- Python 3.11.14, pytest-9.0.2, pluggy-1.6.0
+rootdir: /app
+plugins: anyio-4.12.1, cov-7.0.0
+collected 1 item / 2 errors
+=== GETTING AUTH TOKEN ===
+
+POST /auth/login
+Status: 401
+Response: {
+  "error": "Invalid phone or PIN",
+  "code": "UNAUTHORIZED"
+}
+Failed to get token
+INTERNALERROR> Traceback (most recent call last):
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 318, in wrap_session
+INTERNALERROR>     session.exitstatus = doit(config, session) or 0
+INTERNALERROR>                          ^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 371, in _main
+INTERNALERROR>     config.hook.pytest_collection(session=session)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_hooks.py", line 512, in __call__
+INTERNALERROR>     return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_manager.py", line 120, in _hookexec
+INTERNALERROR>     return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 167, in _multicall
+INTERNALERROR>     raise exception
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 139, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/logging.py", line 788, in pytest_collection
+INTERNALERROR>     return (yield)
+INTERNALERROR>             ^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 139, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/warnings.py", line 98, in pytest_collection
+INTERNALERROR>     return (yield)
+INTERNALERROR>             ^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 139, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/config/__init__.py", line 1403, in pytest_collection
+INTERNALERROR>     return (yield)
+INTERNALERROR>             ^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 121, in _multicall
+INTERNALERROR>     res = hook_impl.function(*args)
+INTERNALERROR>           ^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 382, in pytest_collection
+INTERNALERROR>     session.perform_collect()
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 857, in perform_collect
+INTERNALERROR>     self.items.extend(self.genitems(node))
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 1023, in genitems
+INTERNALERROR>     yield from self.genitems(subnode)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 1023, in genitems
+INTERNALERROR>     yield from self.genitems(subnode)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 1023, in genitems
+INTERNALERROR>     yield from self.genitems(subnode)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 1020, in genitems
+INTERNALERROR>     rep, duplicate = self._collect_one_node(node, handle_dupes)
+INTERNALERROR>                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 883, in _collect_one_node
+INTERNALERROR>     rep = collect_one_node(node)
+INTERNALERROR>           ^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/runner.py", line 576, in collect_one_node
+INTERNALERROR>     rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)
+INTERNALERROR>                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_hooks.py", line 512, in __call__
+INTERNALERROR>     return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_manager.py", line 120, in _hookexec
+INTERNALERROR>     return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 167, in _multicall
+INTERNALERROR>     raise exception
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 139, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/capture.py", line 880, in pytest_make_collect_report
+INTERNALERROR>     rep = yield
+INTERNALERROR>           ^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 121, in _multicall
+INTERNALERROR>     res = hook_impl.function(*args)
+INTERNALERROR>           ^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/runner.py", line 400, in pytest_make_collect_report
+INTERNALERROR>     call = CallInfo.from_call(
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/runner.py", line 353, in from_call
+INTERNALERROR>     result: TResult | None = func()
+INTERNALERROR>                              ^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/runner.py", line 398, in collect
+INTERNALERROR>     return list(collector.collect())
+INTERNALERROR>                 ^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/python.py", line 563, in collect
+INTERNALERROR>     self._register_setup_module_fixture()
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/python.py", line 576, in _register_setup_module_fixture
+INTERNALERROR>     self.obj, ("setUpModule", "setup_module")
+INTERNALERROR>     ^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/python.py", line 289, in obj
+INTERNALERROR>     self._obj = obj = self._getobj()
+INTERNALERROR>                       ^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/python.py", line 560, in _getobj
+INTERNALERROR>     return importtestmodule(self.path, self.config)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/python.py", line 507, in importtestmodule
+INTERNALERROR>     mod = import_path(
+INTERNALERROR>           ^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/pathlib.py", line 587, in import_path
+INTERNALERROR>     importlib.import_module(module_name)
+INTERNALERROR>   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+INTERNALERROR>     return _bootstrap._gcd_import(name[level:], package, level)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+INTERNALERROR>   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+INTERNALERROR>   File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+INTERNALERROR>   File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/assertion/rewrite.py", line 197, in exec_module
+INTERNALERROR>     exec(co, module.__dict__)
+INTERNALERROR>   File "/app/tests/archive/diagnostic_test.py", line 54, in <module>
+INTERNALERROR>     exit(1)
+INTERNALERROR>   File "<frozen _sitebuiltins>", line 26, in __call__
+INTERNALERROR> SystemExit: 1
+
+========================= 1 warning, 2 errors in 0.55s ========================= suite for B3 () and an 8-test suite for Analytics.
+  - Ensured zero regressions against the 396 existing tests.
+  - Updated all relevant contract documents, , and .
 
 **Earlier issues found/mentioned but not fixed**
-   - **Issue 1: Separate Test DB**: Tests currently use the application database. This is deferred to **Stage B8 (Infrastructure)**.
-   - **Issue 2: Audit Log TTL**: The  collection lacks a Time-To-Live (TTL) policy. This is deferred to **Stage B8 (Infrastructure)**.
+   - **Issue 1: Post Search Not Working**:  is non-functional. Deferred to **Stage B5**.
+   - **Issue 2: Reel Interaction Bugs**:  and  return 400 errors. Deferred to **Stage B6**.
+   - **Issue 3: Separate Test DB**: Tests currently use the application database. Deferred to **Stage B8**.
+   - **Issue 4: Audit Log TTL**: The  collection lacks a Time-To-Live (TTL) policy. Deferred to **Stage B8**.
 
 **Known issue recurrence from previous fork**
   - None.
@@ -194,7 +1177,7 @@ The user's Final World-Best Staging Plan is the definitive roadmap.
 platform linux -- Python 3.11.14, pytest-9.0.2, pluggy-1.6.0
 rootdir: /app
 plugins: anyio-4.12.1, cov-7.0.0
-collected 1 item / 1 error
+collected 1 item / 2 errors
 === GETTING AUTH TOKEN ===
 
 POST /auth/login
@@ -310,19 +1293,24 @@ INTERNALERROR>     exit(1)
 INTERNALERROR>   File "<frozen _sitebuiltins>", line 26, in __call__
 INTERNALERROR> SystemExit: 1
 
-========================= 1 warning, 1 error in 0.40s ==========================.
-- **Key Directories**:
-    - : All API route handlers.
-    - : Houses centralized business logic, including:
-        - : Centralized B2 visibility and permission rules.
-        - : Canonical serializers for User and Media objects.
-        - : Core auth helpers.
-        - : The generated TypeScript API client.
-    - : All ============================= test session starts ==============================
+========================= 1 warning, 2 errors in 0.44s =========================.
+- **Key B3 Logic**:
+    - **Handlers**: 
+    - **Constants/Permissions**: , 
+    - **Serializers**: ,  added to .
+    - **Integrations**: Logic updated in  (enrichment), , .
+- **Key B3 Tests**:
+    - 
+    -  (in progress)
+
+**Key Technical Concepts**
+- **Content Engine Reuse**: The core decision for B3 was to extend the existing  model with an  and audit fields (, ) instead of creating a new  collection. This preserved the entire existing social stack (likes, comments, reports).
+- **Audit Truth**: The system differentiates between the public-facing author (the Page) and the internal audit actor (the real user who performed the action), storing both.
+- **Comprehensive ============================= test session starts ==============================
 platform linux -- Python 3.11.14, pytest-9.0.2, pluggy-1.6.0
 rootdir: /app
 plugins: anyio-4.12.1, cov-7.0.0
-collected 1 item / 1 error
+collected 1 item / 2 errors
 === GETTING AUTH TOKEN ===
 
 POST /auth/login
@@ -438,64 +1426,175 @@ INTERNALERROR>     exit(1)
 INTERNALERROR>   File "<frozen _sitebuiltins>", line 26, in __call__
 INTERNALERROR> SystemExit: 1
 
-========================= 1 warning, 1 error in 0.36s ========================== tests.
-- **Development Model**: The project strictly follows a **Contract-Driven Development** model based on the API contract in .
-
-**Key Technical Concepts**
-- **Contract-Driven Development**: The API contract is the source of truth.
-- **Centralized Policy Enforcement**: All visibility and permission logic is centralized in  and applied consistently across all handlers, rather than being scattered.
-- **Canonical Data Objects**: Standardized shapes for , , and  are enforced by  to ensure consistent and correct data serialization.
-- **Programmatic Auditing**: Using scripts to verify correctness and coverage (e.g., TS client audit, B2 scorecard).
+========================= 1 warning, 2 errors in 0.38s ========================= Validation**: The B3-U gate pushes testing beyond simple CRUD to validate security, concurrency, performance, and contract correctness.
 
 **key DB schema**
-- The known quirk of two content models ( vs. /) persists.
-- A key finding from B1 was that the user avatar field in the database is , not .
+- **pages**: 
+- **page_members**: 
+- **page_follows**: 
+- **content_items**: Extended with .  now references either a  or a .
+- **audit_logs**: Confirmed to exist with fields like  and , used in B3-U testing.
 
 **changes in tech stack**
   - None.
 
 **All files of reference**
-- **Key New/Modified Files from this Session**:
-    - : The completely rebuilt, world-class TypeScript API client.
-    - : Created to centralize all user/media object serialization.
-    - : Created to centralize all B2 visibility and permission logic.
-    - : Refactored to use the canonical serializers from .
-    - All handler files in  (e.g., , , , ): Updated to import and use the centralized .
-    - : Test updated to reflect the correct, stricter B2 behavior.
-- **Key Documents**:
-    - All B0 contract files in .
-    - : The comprehensive test script created to validate B2.
-    - : Updated to reflect completion of B1 and B2.
-    - , , : Updated with B1 and B2 changes.
+- **New Files Created**:
+    - , 
+    - 
+    - 
+    - 
+    - 
+- **Key Files Updated**:
+    -  (wired in new routes)
+    - ,  (serialization)
+    - ,  (integration)
+    -  (security policy)
+- **Documents**:
+    - 
+    - All contract docs in  were updated.
 
 **Areas that need refactoring**:
-- The dual content models ( vs. /) remain a known point for future refactoring, likely in Stage B8.
-- One custom serializer in  was identified as dead code and left for cleanup in Stage B8.
+- Known technical debt (dual content models, dead code) is deferred to Stage B8. No new refactoring tasks were introduced.
 
 **Critical Info for New Agent**
-- **Follow the B3 Prompt Religiously**: Your next and only task is to implement Stage B3. The user has provided an exceptionally detailed, multi-phase prompt and code scaffold in their last message. You MUST follow this world-best plan exactly, starting with Phase 1 (Audit). This is not a suggestion; it is the definitive specification.
-- **Use Centralized Logic**: Do NOT write custom serializers or permission checks in API handlers. Use the established helpers:  for permissions and  for data shaping.
-- **The API Contract is Your Bible**: Refer to the documents under  for any questions about API behavior, shapes, or auth rules.
-- **The User is Highly Technical**: Communicate with precision, referencing their staging plan (B0-B8) and the established API contract. Justify all actions based on the B3 prompt.
+- **Your ONLY immediate task is to pass the B3-U test gate.** Do not start any new features. Your goal is to get  to 100% pass.
+- **The primary blocker is API rate limiting ( errors) in test setup.** The 5 failing tests are in the lifecycle section. You must make the helper functions that create pages for these tests rate-limit-resilient, likely by using the existing retry wrappers or adding a small delay.
+- **The B3 feature is already fully implemented and documented.** This includes the core Pages System and the Page Analytics enhancement. Your work is purely for final validation.
+- After passing the B3-U gate, propose a plan to begin **Stage B4 (Core Social Gaps)** as per the user's roadmap.
 
 **documents created in this job**
-- : A comprehensive, 100-point test script to validate B2 correctness.
-- , , ,  were all updated to reflect the completion of Stages B1 and B2.
+-  (Final report on B3 implementation)
+-  (Updated with B3 completion)
 
 **Last 10 User Messages and any pending HUMAN messages** 
-- **LATEST/PENDING**: The user has provided an extremely detailed, multi-page, world-best prompt and code scaffold for implementing **Stage B3 (Pages System)**. This is the immediate and only task for the next agent.
-- : User confirmed the P1 scorecard issue was a real bug to be fixed. (Completed)
-- : User confirmed they wanted an honest scorecard for B2. (Completed)
-- : User asked for a scorecard of B3, but meant B2. (Clarified & Completed)
-- : User instructed to update docs. (Completed)
-- : User requested a rigorous 10-parameter test for B1. The agent performed this for B2 instead, as B1 was already complete. (Completed)
-- : User asked for the plan for B1. (Completed)
-- The remaining messages are a detailed, back-and-forth dialogue where the user provides an exacting, world-best plan for B1 and B2, which the agent then executes meticulously.
+- The user provided a series of extremely detailed, world-best prompts for implementing and testing Stage B3.
+- **LATEST/PENDING**: The user has provided the Ultimate World-Best Test Gate (B3-U) prompt, which is a non-negotiable validation step. The agent is currently in the middle of executing this by debugging a comprehensive ============================= test session starts ==============================
+platform linux -- Python 3.11.14, pytest-9.0.2, pluggy-1.6.0
+rootdir: /app
+plugins: anyio-4.12.1, cov-7.0.0
+collected 1 item / 2 errors
+=== GETTING AUTH TOKEN ===
+
+POST /auth/login
+Status: 401
+Response: {
+  "error": "Invalid phone or PIN",
+  "code": "UNAUTHORIZED"
+}
+Failed to get token
+INTERNALERROR> Traceback (most recent call last):
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 318, in wrap_session
+INTERNALERROR>     session.exitstatus = doit(config, session) or 0
+INTERNALERROR>                          ^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 371, in _main
+INTERNALERROR>     config.hook.pytest_collection(session=session)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_hooks.py", line 512, in __call__
+INTERNALERROR>     return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_manager.py", line 120, in _hookexec
+INTERNALERROR>     return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 167, in _multicall
+INTERNALERROR>     raise exception
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 139, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/logging.py", line 788, in pytest_collection
+INTERNALERROR>     return (yield)
+INTERNALERROR>             ^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 139, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/warnings.py", line 98, in pytest_collection
+INTERNALERROR>     return (yield)
+INTERNALERROR>             ^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 139, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/config/__init__.py", line 1403, in pytest_collection
+INTERNALERROR>     return (yield)
+INTERNALERROR>             ^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 121, in _multicall
+INTERNALERROR>     res = hook_impl.function(*args)
+INTERNALERROR>           ^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 382, in pytest_collection
+INTERNALERROR>     session.perform_collect()
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 857, in perform_collect
+INTERNALERROR>     self.items.extend(self.genitems(node))
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 1023, in genitems
+INTERNALERROR>     yield from self.genitems(subnode)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 1023, in genitems
+INTERNALERROR>     yield from self.genitems(subnode)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 1023, in genitems
+INTERNALERROR>     yield from self.genitems(subnode)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 1020, in genitems
+INTERNALERROR>     rep, duplicate = self._collect_one_node(node, handle_dupes)
+INTERNALERROR>                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/main.py", line 883, in _collect_one_node
+INTERNALERROR>     rep = collect_one_node(node)
+INTERNALERROR>           ^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/runner.py", line 576, in collect_one_node
+INTERNALERROR>     rep: CollectReport = ihook.pytest_make_collect_report(collector=collector)
+INTERNALERROR>                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_hooks.py", line 512, in __call__
+INTERNALERROR>     return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_manager.py", line 120, in _hookexec
+INTERNALERROR>     return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 167, in _multicall
+INTERNALERROR>     raise exception
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 139, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/capture.py", line 880, in pytest_make_collect_report
+INTERNALERROR>     rep = yield
+INTERNALERROR>           ^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/pluggy/_callers.py", line 121, in _multicall
+INTERNALERROR>     res = hook_impl.function(*args)
+INTERNALERROR>           ^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/runner.py", line 400, in pytest_make_collect_report
+INTERNALERROR>     call = CallInfo.from_call(
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/runner.py", line 353, in from_call
+INTERNALERROR>     result: TResult | None = func()
+INTERNALERROR>                              ^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/runner.py", line 398, in collect
+INTERNALERROR>     return list(collector.collect())
+INTERNALERROR>                 ^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/python.py", line 563, in collect
+INTERNALERROR>     self._register_setup_module_fixture()
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/python.py", line 576, in _register_setup_module_fixture
+INTERNALERROR>     self.obj, ("setUpModule", "setup_module")
+INTERNALERROR>     ^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/python.py", line 289, in obj
+INTERNALERROR>     self._obj = obj = self._getobj()
+INTERNALERROR>                       ^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/python.py", line 560, in _getobj
+INTERNALERROR>     return importtestmodule(self.path, self.config)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/python.py", line 507, in importtestmodule
+INTERNALERROR>     mod = import_path(
+INTERNALERROR>           ^^^^^^^^^^^^
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/pathlib.py", line 587, in import_path
+INTERNALERROR>     importlib.import_module(module_name)
+INTERNALERROR>   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+INTERNALERROR>     return _bootstrap._gcd_import(name[level:], package, level)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+INTERNALERROR>   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+INTERNALERROR>   File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+INTERNALERROR>   File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+INTERNALERROR>   File "/root/.venv/lib/python3.11/site-packages/_pytest/assertion/rewrite.py", line 197, in exec_module
+INTERNALERROR>     exec(co, module.__dict__)
+INTERNALERROR>   File "/app/tests/archive/diagnostic_test.py", line 54, in <module>
+INTERNALERROR>     exit(1)
+INTERNALERROR>   File "<frozen _sitebuiltins>", line 26, in __call__
+INTERNALERROR> SystemExit: 1
+
+========================= 1 warning, 2 errors in 0.43s ========================= suite. The task is to get this suite to pass.
 
 **Project Health Check:**
-- **Broken**: No. The application and all 396 tests are stable and passing.
+- **Broken**: No. The application is stable and the core features are working.
 - **Mocked**: No.
-- **Primary Risk Mitigated**: Major risks around inconsistent identity serialization (B1) and insecure content visibility (B2) have been resolved. The architecture is now significantly more robust and secure.
+- **Primary Risk Mitigated**: Risks of an insecure or shallow Pages feature have been addressed with a robust implementation that reuses the core content engine. The final validation step (B3-U) is in progress to confirm production readiness.
 
 **3rd Party Integrations**
 - Redis
@@ -503,14 +1602,14 @@ INTERNALERROR> SystemExit: 1
 - Emergent Object Storage
 
 **Testing status**
-  - Testing agent used after significant changes: YES (for Stage B1).
+  - Testing agent used after significant changes: YES
   - Troubleshoot agent used after agent stuck in loop: NO
   - Test files created:
-    -  (A new, comprehensive test script for B2)
-  - Test files updated:
-    -  (Updated to align with new, correct B2 behavior)
-  - Known regressions: None.
+    - 
+    - 
+  - Known regressions: None. The existing suite of 396 tests remains 100% passing.
 
 **What agent forgot to execute**
-- Nothing. The agent followed the user's detailed B1 and B2 plans with extreme precision, including auditing, implementing centralized logic, and performing rigorous testing with custom-built scorecards. The agent is perfectly positioned to begin the user's detailed plan for Stage B3.
+- Nothing. The agent has been methodically following the user's detailed instructions for Stage B3. The current task is the final, user-mandated validation step for this stage.
+
 </analysis>

@@ -10,7 +10,7 @@ Build a "world-best" social media backend for the app "Tribe" — a campus-nativ
 
 ## Architecture
 - **Stack**: Monolithic Next.js API backend + MongoDB
-- **Testing**: pytest suite (446 tests)
+- **Testing**: pytest suite (561 tests)
 - **Key Patterns**: Contract-Driven Development, Centralized Policy (access-policy.js), Canonical Serializers (entity-snippets.js)
 - **Collections**: users, sessions, content_items, follows, reactions, saves, comments, notifications, media_assets, audit_logs, pages, page_members, page_follows, reels, stories, ...
 
@@ -50,6 +50,7 @@ Build a "world-best" social media backend for the app "Tribe" — a campus-nativ
 | B1 | Canonical Identity & Media | ✅ DONE | - |
 | B2 | Visibility & Feed Safety | ✅ DONE | - |
 | B3 | Pages System | ✅ DONE | 50 |
+| B3-U | Ultimate Test Gate | ✅ PASS | 107 |
 | B4 | Core Social Gaps | ⬜ NOT STARTED | - |
 | B5 | Discovery & Hashtag Engine | ⬜ NOT STARTED | - |
 | B6 | Notifications 2.0 | ⬜ NOT STARTED | - |
