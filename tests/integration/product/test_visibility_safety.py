@@ -70,12 +70,11 @@ class TestBlockedUserVisibility:
         from tests.helpers.product import block_user
         block_user(db, product_user_b['userId'], social_user['userId'])
 
-        # Check feed after block — document actual behavior
+        # Check feed after block — B2: blocked user content now filtered
         resp, data = get_feed(api_url, 'following', token=product_user_b['token'])
         feed_ids = [p['id'] for p in data['items']]
-        # Currently: blocked user posts STILL appear in following feed
-        # This is a known limitation: feed handler doesn't check blocks table
-        assert post_id in feed_ids, 'Feed now filters blocked users (behavior changed!)'
+        # B2 ENFORCED: blocked user posts are excluded from following feed
+        assert post_id not in feed_ids, 'B2: Blocked user posts must be excluded from feed'
 
 
 class TestContentInteractionSafety:
