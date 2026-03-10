@@ -83,6 +83,7 @@ Build a "world-best" social media backend for the app "Tribe" — a campus-nativ
 | /api/pages/:id/posts | POST | User | OWNER/ADMIN/EDITOR |
 | /api/pages/:id/posts/:postId | PATCH | User | OWNER/ADMIN/EDITOR |
 | /api/pages/:id/posts/:postId | DELETE | User | OWNER/ADMIN/EDITOR |
+| /api/pages/:id/analytics | GET | User | OWNER/ADMIN |
 | /api/me/pages | GET | User | - |
 
 ## B3 Data Model

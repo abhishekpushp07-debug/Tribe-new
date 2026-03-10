@@ -70,11 +70,16 @@ def outsider():
 @pytest.fixture(scope="module")
 def test_page(owner, editor, moderator):
     """Create a test page with owner, add editor and moderator"""
-    slug = f"b3-test-club-{int(time.time()) % 100000}"
-    resp = requests.post(f"{API_URL}/api/pages", json={
-        "name": "B3 Test Club", "slug": slug,
-        "category": "CLUB", "bio": "Test club for B3 suite"
-    }, headers=auth_header(owner["token"]))
+    for attempt in range(3):
+        slug = f"b3-test-club-{int(time.time() * 1000) % 1000000}{attempt}"
+        resp = requests.post(f"{API_URL}/api/pages", json={
+            "name": "B3 Test Club", "slug": slug,
+            "category": "CLUB", "bio": "Test club for B3 suite"
+        }, headers=auth_header(owner["token"]))
+        if resp.status_code == 429:
+            time.sleep(2)
+            continue
+        break
     assert resp.status_code == 201, f"Page create failed: {resp.text}"
     page = resp.json()["page"]
 
@@ -487,6 +492,77 @@ class TestMyPages:
 
 
 # ═══════════════════════════════════════
+
+# ═══════════════════════════════════════
+# GROUP J: PAGE ANALYTICS
+# ═══════════════════════════════════════
+
+class TestPageAnalytics:
+    def test_owner_can_view_analytics(self, owner, test_page):
+        resp = requests.get(f"{API_URL}/api/pages/{test_page['id']}/analytics",
+                            headers=auth_header(owner["token"]))
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "overview" in data
+        assert "lifetime" in data
+        assert "periodMetrics" in data
+        assert "topPosts" in data
+        assert "postTimeline" in data
+        assert "followerTimeline" in data
+        assert "membersByRole" in data
+
+    def test_analytics_overview_shape(self, owner, test_page):
+        resp = requests.get(f"{API_URL}/api/pages/{test_page['id']}/analytics",
+                            headers=auth_header(owner["token"]))
+        data = resp.json()
+        overview = data["overview"]
+        assert "followerCount" in overview
+        assert "memberCount" in overview
+        assert "totalPosts" in overview
+        assert "engagementRate" in overview
+
+    def test_analytics_period_param(self, owner, test_page):
+        for period in ["7d", "30d", "90d"]:
+            resp = requests.get(f"{API_URL}/api/pages/{test_page['id']}/analytics?period={period}",
+                                headers=auth_header(owner["token"]))
+            assert resp.status_code == 200
+            assert resp.json()["period"] == period
+
+    def test_analytics_top_posts_present(self, owner, test_page):
+        resp = requests.get(f"{API_URL}/api/pages/{test_page['id']}/analytics",
+                            headers=auth_header(owner["token"]))
+        data = resp.json()
+        top = data["topPosts"]
+        assert isinstance(top, list)
+        if len(top) > 0:
+            post = top[0]
+            assert "id" in post
+            assert "engagementScore" in post
+            assert "likeCount" in post
+            assert "commentCount" in post
+
+    def test_analytics_members_by_role(self, owner, test_page):
+        resp = requests.get(f"{API_URL}/api/pages/{test_page['id']}/analytics",
+                            headers=auth_header(owner["token"]))
+        data = resp.json()
+        assert "OWNER" in data["membersByRole"]
+
+    def test_outsider_cannot_view_analytics(self, outsider, test_page):
+        resp = requests.get(f"{API_URL}/api/pages/{test_page['id']}/analytics",
+                            headers=auth_header(outsider["token"]))
+        assert resp.status_code == 403
+
+    def test_editor_cannot_view_analytics(self, editor, test_page):
+        resp = requests.get(f"{API_URL}/api/pages/{test_page['id']}/analytics",
+                            headers=auth_header(editor["token"]))
+        assert resp.status_code == 403
+
+    def test_moderator_cannot_view_analytics(self, moderator, test_page):
+        resp = requests.get(f"{API_URL}/api/pages/{test_page['id']}/analytics",
+                            headers=auth_header(moderator["token"]))
+        assert resp.status_code == 403
+
+
 # GROUP I: BACKWARD COMPATIBILITY
 # ═══════════════════════════════════════
 
@@ -496,8 +572,8 @@ class TestBackwardCompatibility:
         resp = requests.post(f"{API_URL}/api/content/posts", json={
             "caption": "Normal user post B3 compat test"
         }, headers=auth_header(owner["token"]))
-        # May be 201 (created) or 403 (moderation/consent gate). Both prove route is alive.
-        assert resp.status_code in (201, 403, 422), f"Unexpected status: {resp.status_code} {resp.text[:200]}"
+        # May be 201 (created) or 403 (moderation/consent gate) or 429 (rate limit). All prove route is alive.
+        assert resp.status_code in (201, 403, 422, 429), f"Unexpected status: {resp.status_code} {resp.text[:200]}"
 
     def test_existing_feed_still_works(self, owner):
         resp = requests.get(f"{API_URL}/api/feed/public",
