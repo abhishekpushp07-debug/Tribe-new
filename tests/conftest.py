@@ -220,6 +220,14 @@ def consistency_user_b(api_url, db):
     return user
 
 
+@pytest.fixture(scope='session')
+def consistency_resource_user(api_url, db):
+    """Dedicated user for Stage 4C resource consistency tests — separate WRITE budget."""
+    user = _register_or_login(api_url, _next_phone(19), display_name='Consistency Resource User')
+    db.users.update_one({'phone': user['phone']}, {'$set': {'ageStatus': 'ADULT'}})
+    return user
+
+
 @pytest.fixture
 def test_ip():
     """A unique IP for the current test (use in X-Forwarded-For)."""

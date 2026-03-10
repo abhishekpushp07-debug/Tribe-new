@@ -10,7 +10,7 @@ import random
 import base64
 from datetime import datetime
 
-BASE_URL = "https://tribe-audit-4b.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-p0a-perfect.preview.emergentagent.com/api"
 
 class FocusedTester:
     def __init__(self):

@@ -154,6 +154,35 @@ class TestPostCrossSurface:
             assert detail['post'][field] == house_item[field], \
                 f'House feed INCONSISTENCY: {field}'
 
+    def test_dislike_count_consistent_across_surfaces(self, api_url, consistency_user_a, consistency_user_b):
+        """Dislike → dislikeCount consistent between detail and feed."""
+        _, created = create_post(api_url, consistency_user_a['token'], 'Dislike consistency')
+        post_id = created['post']['id']
+        dislike_post(api_url, post_id, consistency_user_b['token'])
+
+        _, detail = get_post(api_url, post_id, consistency_user_a['token'])
+        _, feed = get_feed(api_url, 'following', token=consistency_user_a['token'])
+        feed_item = next((p for p in feed['items'] if p['id'] == post_id), None)
+        assert feed_item is not None
+        assert detail['post']['dislikeCount'] == feed_item['dislikeCount'], \
+            f'dislikeCount inconsistent: detail={detail["post"]["dislikeCount"]} feed={feed_item["dislikeCount"]}'
+        assert detail['post']['dislikeCount'] >= 1
+
+    def test_reaction_remove_count_consistent(self, api_url, consistency_user_a, consistency_user_b):
+        """Like then remove → likeCount returns to 0, consistent across surfaces."""
+        _, created = create_post(api_url, consistency_user_a['token'], 'Reaction remove consistency')
+        post_id = created['post']['id']
+        like_post(api_url, post_id, consistency_user_b['token'])
+        remove_reaction(api_url, post_id, consistency_user_b['token'])
+
+        _, detail = get_post(api_url, post_id, consistency_user_a['token'])
+        _, feed = get_feed(api_url, 'following', token=consistency_user_a['token'])
+        feed_item = next((p for p in feed['items'] if p['id'] == post_id), None)
+        assert feed_item is not None
+        assert detail['post']['likeCount'] == feed_item['likeCount'], \
+            'likeCount inconsistent after reaction remove'
+        assert detail['post']['likeCount'] == 0, 'likeCount should be 0 after remove'
+
 
 # ═══════════════════════════════════════════════════════════════════
 # EVENT CROSS-SURFACE CONSISTENCY
@@ -220,6 +249,39 @@ class TestEventCrossSurface:
         resp, _ = get_event(api_url, event_id, consistency_user_a['token'])
         assert resp.status_code == 410, 'Deleted event should return 410'
 
+    def test_rsvp_cancel_decrements_count(self, api_url, consistency_user_a, consistency_user_b):
+        """RSVP → cancel RSVP → goingCount decrements consistently."""
+        _, created = create_event(api_url, consistency_user_a['token'], title='RSVP cancel count')
+        event_id = created['event']['id']
+        rsvp_event(api_url, event_id, consistency_user_b['token'], 'GOING')
+        _, before = get_event(api_url, event_id, consistency_user_a['token'])
+        going_before = before['event']['goingCount']
+
+        cancel_rsvp(api_url, event_id, consistency_user_b['token'])
+        _, after = get_event(api_url, event_id, consistency_user_a['token'])
+        going_after = after['event']['goingCount']
+        assert going_after < going_before, \
+            f'goingCount should decrement after RSVP cancel: before={going_before} after={going_after}'
+
+    def test_event_in_college_feed_matches_detail(self, api_url, consistency_user_a, db):
+        """Event in college feed matches detail for core truth fields."""
+        _, created = create_event(api_url, consistency_user_a['token'], title='College event match')
+        event_id = created['event']['id']
+        # Set college on event
+        db.events.update_one({'id': event_id}, {'$set': {'collegeId': CONSISTENCY_COLLEGE}})
+
+        _, detail = get_event(api_url, event_id, consistency_user_a['token'])
+        h = _make_headers()
+        resp = __import__('requests').get(f'{api_url}/events/college/{CONSISTENCY_COLLEGE}', headers=h)
+        assert resp.status_code == 200
+        college_events = resp.json()
+        college_item = next((e for e in college_events.get('items', []) if e['id'] == event_id), None)
+
+        if college_item:
+            for field in ['id', 'title', 'category']:
+                assert detail['event'][field] == college_item[field], \
+                    f'College event feed INCONSISTENCY: {field}'
+
 
 # ═══════════════════════════════════════════════════════════════════
 # RESOURCE CROSS-SURFACE CONSISTENCY
@@ -228,17 +290,31 @@ class TestEventCrossSurface:
 class TestResourceCrossSurface:
     """Resource entity must appear consistently across detail + search."""
 
-    def test_resource_detail_matches_search(self, api_url, consistency_user_a, db):
+    RESOURCE_COLLEGE = 'consistency-resource-college-4c'
+
+    @pytest.fixture(scope='class', autouse=True)
+    def setup_resource_college(self, db, consistency_resource_user, consistency_user_b):
+        db.colleges.update_one(
+            {'id': self.RESOURCE_COLLEGE},
+            {'$setOnInsert': {'id': self.RESOURCE_COLLEGE, 'name': 'Resource Consistency College'}},
+            upsert=True
+        )
+        db.users.update_one({'id': consistency_resource_user['userId']},
+                            {'$set': {'collegeId': self.RESOURCE_COLLEGE}})
+        db.users.update_one({'id': consistency_user_b['userId']},
+                            {'$set': {'collegeId': self.RESOURCE_COLLEGE}})
+        yield
+        db.colleges.delete_one({'id': self.RESOURCE_COLLEGE})
+
+    def test_resource_detail_matches_search(self, api_url, consistency_resource_user):
         """Resource in detail must match search result."""
-        db.users.update_one({'id': consistency_user_a['userId']},
-                            {'$set': {'collegeId': CONSISTENCY_COLLEGE}})
-        _, created = create_resource(api_url, consistency_user_a['token'],
-                                     title='Resource search consistency')
-        if 'resource' not in created:
-            pytest.skip(f'Resource creation failed (rate limit?): {created}')
+        _, created = create_resource(api_url, consistency_resource_user['token'],
+                                     title='Resource search consistency',
+                                     college_id=self.RESOURCE_COLLEGE)
+        assert 'resource' in created, f'Resource creation failed: {created}'
         resource_id = created['resource']['id']
 
-        _, detail = get_resource(api_url, resource_id, consistency_user_a['token'])
+        _, detail = get_resource(api_url, resource_id, consistency_resource_user['token'])
         _, search = search_resources(api_url)
         search_item = next((r for r in search.get('items', []) if r['id'] == resource_id), None)
 
@@ -246,23 +322,51 @@ class TestResourceCrossSurface:
             for field in ['id', 'title', 'kind']:
                 assert detail['resource'][field] == search_item[field], \
                     f'Resource search INCONSISTENCY: {field}'
+        else:
+            # Search may not index immediately — document as known behavior
+            pass
 
-    def test_vote_count_consistent_after_action(self, api_url, consistency_user_a, consistency_user_b, db):
-        """Vote → voteCount consistent in detail re-read."""
-        db.users.update_one({'id': consistency_user_a['userId']},
-                            {'$set': {'collegeId': CONSISTENCY_COLLEGE}})
-        _, created = create_resource(api_url, consistency_user_a['token'],
-                                     title='Vote consistency resource')
-        if 'resource' not in created:
-            pytest.skip(f'Resource creation failed: {created}')
+    def test_vote_count_consistent_after_upvote(self, api_url, consistency_resource_user, consistency_user_b):
+        """Vote → voteCount consistent in detail re-read by different users."""
+        _, created = create_resource(api_url, consistency_resource_user['token'],
+                                     title='Vote consistency resource',
+                                     college_id=self.RESOURCE_COLLEGE)
+        assert 'resource' in created, f'Resource creation failed: {created}'
         resource_id = created['resource']['id']
 
         vote_resource(api_url, resource_id, consistency_user_b['token'], 'UP')
-        _, detail1 = get_resource(api_url, resource_id, consistency_user_a['token'])
+        _, detail1 = get_resource(api_url, resource_id, consistency_resource_user['token'])
         _, detail2 = get_resource(api_url, resource_id, consistency_user_b['token'])
         assert detail1['resource']['upvoteCount'] == detail2['resource']['upvoteCount'], \
             'upvoteCount inconsistent between users'
         assert detail1['resource']['upvoteCount'] >= 1
+
+    def test_vote_count_consistent_after_downvote(self, api_url, consistency_resource_user, consistency_user_b):
+        """Downvote → downvoteCount consistent in detail re-read."""
+        _, created = create_resource(api_url, consistency_resource_user['token'],
+                                     title='Downvote consistency',
+                                     college_id=self.RESOURCE_COLLEGE)
+        assert 'resource' in created, f'Resource creation failed: {created}'
+        resource_id = created['resource']['id']
+
+        vote_resource(api_url, resource_id, consistency_user_b['token'], 'DOWN')
+        _, detail1 = get_resource(api_url, resource_id, consistency_resource_user['token'])
+        _, detail2 = get_resource(api_url, resource_id, consistency_user_b['token'])
+        assert detail1['resource']['downvoteCount'] == detail2['resource']['downvoteCount'], \
+            'downvoteCount inconsistent between users'
+        assert detail1['resource']['downvoteCount'] >= 1
+
+    def test_removed_resource_returns_410(self, api_url, consistency_resource_user, db):
+        """REMOVED resource → 410 on detail."""
+        _, created = create_resource(api_url, consistency_resource_user['token'],
+                                     title='Remove consistency',
+                                     college_id=self.RESOURCE_COLLEGE)
+        assert 'resource' in created, f'Resource creation failed: {created}'
+        resource_id = created['resource']['id']
+        db.resources.update_one({'id': resource_id}, {'$set': {'status': 'REMOVED'}})
+
+        resp, _ = get_resource(api_url, resource_id, consistency_resource_user['token'])
+        assert resp.status_code == 410, f'REMOVED resource should return 410, got {resp.status_code}'
 
 
 # ═══════════════════════════════════════════════════════════════════

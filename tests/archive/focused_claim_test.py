@@ -7,7 +7,7 @@ Testing after understanding the current system state
 import requests
 import json
 
-BASE_URL = "https://tribe-audit-4b.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-p0a-perfect.preview.emergentagent.com/api"
 
 # Test Users
 REGULAR_USER = {"phone": "9000000001", "pin": "1234"}  

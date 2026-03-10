@@ -1,7 +1,7 @@
 {
   "timestamp": "2026-03-09T13:12:30.485869",
   "stage": "Stage 2: Security & Session Hardening",
-  "base_url": "https://tribe-audit-4b.preview.emergentagent.com/api",
+  "base_url": "https://tribe-p0a-perfect.preview.emergentagent.com/api",
   "total_tests": 30,
   "passed": 8,
   "failed": 22,

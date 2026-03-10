@@ -7,7 +7,7 @@ Quick check of specific failing endpoints to provide detailed error information
 import requests
 import json
 
-BASE_URL = "https://tribe-audit-4b.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-p0a-perfect.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 def make_request(method: str, endpoint: str, data=None, token=None):

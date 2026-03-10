@@ -17,7 +17,7 @@
 
 set -e
 
-API="${1:-https://tribe-audit-4b.preview.emergentagent.com}"
+API="${1:-https://tribe-p0a-perfect.preview.emergentagent.com}"
 PASS=0
 FAIL=0
 TOTAL=0
