@@ -1,0 +1,445 @@
+{
+  "timestamp": "2026-03-11 22:03:52",
+  "total_tests": 37,
+  "passed_tests": 32,
+  "failed_tests": 5,
+  "success_rate": 86.5,
+  "categories": {
+    "Story Edit": {
+      "passed": 3,
+      "total": 3
+    },
+    "Story Mutes": {
+      "passed": 3,
+      "total": 5
+    },
+    "View Duration": {
+      "passed": 4,
+      "total": 4
+    },
+    "Bulk Moderation": {
+      "passed": 3,
+      "total": 3
+    },
+    "Drafts & Scheduling": {
+      "passed": 7,
+      "total": 7
+    },
+    "Carousel": {
+      "passed": 1,
+      "total": 1
+    },
+    "Reel Trending": {
+      "passed": 3,
+      "total": 3
+    },
+    "Reel Personalized": {
+      "passed": 2,
+      "total": 2
+    },
+    "Creator Analytics": {
+      "passed": 3,
+      "total": 3
+    },
+    "Page Endpoints": {
+      "passed": 2,
+      "total": 4
+    },
+    "Rate Limit": {
+      "passed": 1,
+      "total": 2
+    }
+  },
+  "results": [
+    {
+      "name": "Story Creation (for edit)",
+      "success": true,
+      "status_code": 201,
+      "error": null,
+      "duration_ms": 439,
+      "category": "Story Edit",
+      "details": {
+        "id": "6d91a11a-d457-480b-ab8e-2df4504aa313",
+        "type": "TEXT"
+      }
+    },
+    {
+      "name": "Story Edit",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 951,
+      "category": "Story Edit",
+      "details": {
+        "id": "6d91a11a-d457-480b-ab8e-2df4504aa313",
+        "caption": "New caption after edit",
+        "privacy": "CLOSE_FRIENDS"
+      }
+    },
+    {
+      "name": "Story Edit (Other User - Should Fail)",
+      "success": true,
+      "status_code": 403,
+      "error": null,
+      "duration_ms": 82,
+      "category": "Story Edit",
+      "details": null
+    },
+    {
+      "name": "Mute User Stories",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 86,
+      "category": "Story Mutes",
+      "details": null
+    },
+    {
+      "name": "List Muted Users",
+      "success": false,
+      "status_code": 200,
+      "error": "Muted user not in list",
+      "duration_ms": 100,
+      "category": "Story Mutes",
+      "details": {
+        "mutedCount": 0
+      }
+    },
+    {
+      "name": "Unmute User Stories",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 98,
+      "category": "Story Mutes",
+      "details": null
+    },
+    {
+      "name": "Verify Empty Mutes List",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 100,
+      "category": "Story Mutes",
+      "details": null
+    },
+    {
+      "name": "Self-Mute (Should Fail)",
+      "success": false,
+      "status_code": 404,
+      "error": "Expected 400, got 404",
+      "duration_ms": 105,
+      "category": "Story Mutes",
+      "details": null
+    },
+    {
+      "name": "Record View Duration",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 73,
+      "category": "View Duration",
+      "details": null
+    },
+    {
+      "name": "View Analytics",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 63,
+      "category": "View Duration",
+      "details": {
+        "totalViews": 1,
+        "avgViewDuration": null,
+        "completionRate": 0
+      }
+    },
+    {
+      "name": "Invalid Duration (Should Fail)",
+      "success": true,
+      "status_code": 400,
+      "error": null,
+      "duration_ms": 70,
+      "category": "View Duration",
+      "details": null
+    },
+    {
+      "name": "Duration Too Long (Should Fail)",
+      "success": true,
+      "status_code": 400,
+      "error": null,
+      "duration_ms": 86,
+      "category": "View Duration",
+      "details": null
+    },
+    {
+      "name": "Bulk Moderation (Admin)",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 78,
+      "category": "Bulk Moderation",
+      "details": {
+        "moderatedCount": 2
+      }
+    },
+    {
+      "name": "Bulk Moderation (Non-Admin - Should Fail)",
+      "success": true,
+      "status_code": 403,
+      "error": null,
+      "duration_ms": 79,
+      "category": "Bulk Moderation",
+      "details": null
+    },
+    {
+      "name": "Invalid Action (Should Fail)",
+      "success": true,
+      "status_code": 400,
+      "error": null,
+      "duration_ms": 92,
+      "category": "Bulk Moderation",
+      "details": null
+    },
+    {
+      "name": "Create Draft",
+      "success": true,
+      "status_code": 201,
+      "error": null,
+      "duration_ms": 279,
+      "category": "Drafts & Scheduling",
+      "details": {
+        "id": "73fec831-6ddd-4045-b538-8137ed7d9be0",
+        "status": null
+      }
+    },
+    {
+      "name": "List Drafts",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 83,
+      "category": "Drafts & Scheduling",
+      "details": {
+        "draftsCount": 2
+      }
+    },
+    {
+      "name": "Create Scheduled Post",
+      "success": true,
+      "status_code": 201,
+      "error": null,
+      "duration_ms": 255,
+      "category": "Drafts & Scheduling",
+      "details": {
+        "id": "1c732ad0-ed40-4073-a655-b05f8e243de4",
+        "publishAt": "2026-03-12T00:03:48.788Z"
+      }
+    },
+    {
+      "name": "List Scheduled",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 112,
+      "category": "Drafts & Scheduling",
+      "details": {
+        "scheduledCount": 1
+      }
+    },
+    {
+      "name": "Publish Draft",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 80,
+      "category": "Drafts & Scheduling",
+      "details": null
+    },
+    {
+      "name": "Reschedule Post",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 85,
+      "category": "Drafts & Scheduling",
+      "details": null
+    },
+    {
+      "name": "Past PublishAt (Should Fail)",
+      "success": true,
+      "status_code": 400,
+      "error": null,
+      "duration_ms": 72,
+      "category": "Drafts & Scheduling",
+      "details": null
+    },
+    {
+      "name": "Create Carousel Post",
+      "success": true,
+      "status_code": 201,
+      "error": null,
+      "duration_ms": 294,
+      "category": "Carousel",
+      "details": {
+        "id": "701ed9e7-84d9-4512-adf5-a7885557da27",
+        "mediaCount": 0,
+        "carouselOrder": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "name": "Trending Feed (Default)",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 110,
+      "category": "Reel Trending",
+      "details": {
+        "itemsCount": 20,
+        "hasTrendingScore": true,
+        "trendingScore": 13.454011455997325
+      }
+    },
+    {
+      "name": "Trending Feed (7d Window)",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 132,
+      "category": "Reel Trending",
+      "details": {
+        "itemsCount": 20,
+        "timeWindow": "7d"
+      }
+    },
+    {
+      "name": "Trending Feed (Limit=5)",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 95,
+      "category": "Reel Trending",
+      "details": {
+        "itemsCount": 5,
+        "limitApplied": true
+      }
+    },
+    {
+      "name": "Personalized Feed (Default)",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 99,
+      "category": "Reel Personalized",
+      "details": {
+        "itemsCount": 20,
+        "feedType": "personalized"
+      }
+    },
+    {
+      "name": "Personalized Feed (Limit=5)",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 77,
+      "category": "Reel Personalized",
+      "details": {
+        "itemsCount": 5,
+        "limitApplied": true
+      }
+    },
+    {
+      "name": "Detailed Analytics (30 days)",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 89,
+      "category": "Creator Analytics",
+      "details": {
+        "hasTotals": true,
+        "hasDailyViews": true,
+        "hasDailyLikes": true,
+        "hasRetention": true,
+        "hasTopEngagers": true,
+        "hasWeeklyPerformance": true
+      }
+    },
+    {
+      "name": "Detailed Analytics (7 days)",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 95,
+      "category": "Creator Analytics",
+      "details": null
+    },
+    {
+      "name": "Detailed Analytics (90 days)",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 112,
+      "category": "Creator Analytics",
+      "details": null
+    },
+    {
+      "name": "Report Page",
+      "success": false,
+      "status_code": 409,
+      "error": "You have already reported this page",
+      "duration_ms": 66,
+      "category": "Page Endpoints",
+      "details": null
+    },
+    {
+      "name": "Request Verification",
+      "success": true,
+      "status_code": 403,
+      "error": "Not page owner (expected)",
+      "duration_ms": 139,
+      "category": "Page Endpoints",
+      "details": null
+    },
+    {
+      "name": "Admin Verification List",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 86,
+      "category": "Page Endpoints",
+      "details": null
+    },
+    {
+      "name": "Invite User to Page",
+      "success": false,
+      "status_code": 201,
+      "error": "HTTP 201",
+      "duration_ms": 292,
+      "category": "Page Endpoints",
+      "details": null
+    },
+    {
+      "name": "Normal Sticker Response",
+      "success": false,
+      "status_code": 404,
+      "error": "Route /stories/6d91a11a-d457-480b-ab8e-2df4504aa313/sticker-respond [POST] not found",
+      "duration_ms": 80,
+      "category": "Rate Limit",
+      "details": null
+    },
+    {
+      "name": "Sticker Rate Limit Trigger",
+      "success": true,
+      "status_code": 429,
+      "error": null,
+      "duration_ms": 0,
+      "category": "Rate Limit",
+      "details": {
+        "requestsBeforeLimit": 0
+      }
+    }
+  ]
+}

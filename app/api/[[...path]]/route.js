@@ -407,6 +407,9 @@ async function handleRouteCore(request, { params }, reqCtx) {
       else if (path[1] === 'story-settings') {
         result = await handleStories(path, method, request, db)
       }
+      else if (path[1] === 'story-mutes') {
+        result = await handleStories(path, method, request, db)
+      }
       else if (path[1] === 'blocks') {
         result = await handleStories(path, method, request, db)
       }
@@ -503,6 +506,9 @@ async function handleRouteCore(request, { params }, reqCtx) {
       }
       else if (path[0] === 'admin' && path[1] === 'reels') {
         result = await handleReels(path, method, request, db)
+      }
+      else if (path[0] === 'admin' && path[1] === 'pages') {
+        result = await handlePages(path, method, request, db)
       }
       else if (path[0] === 'admin' && path[1] === 'events') {
         result = await handleEvents(path, method, request, db)
