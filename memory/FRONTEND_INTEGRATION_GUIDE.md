@@ -900,30 +900,118 @@ GET /api/me/events/rsvps                  → my RSVPs
 
 ## <a name="media"></a>18. Media Upload & Rendering
 
-### Upload
+### Supabase Direct Upload (Recommended — All New Uploads)
+
+**Step 1: Initialize Upload**
 ```
-POST /api/media/upload
-Content-Type: multipart/form-data
-Body: file field
+POST /api/media/upload-init
+Authorization: Bearer <token>
+Body: {
+  "kind": "image" | "video",
+  "mimeType": "image/jpeg",    // image/jpeg, image/png, image/webp, video/mp4, video/quicktime
+  "sizeBytes": 12345,          // 1 byte to 200MB
+  "scope": "posts"             // posts | reels | stories | thumbnails
+}
+```
+**Response (201):**
+```json
+{
+  "mediaId": "uuid",
+  "uploadUrl": "https://xxx.supabase.co/storage/v1/upload/sign/...",
+  "token": "upload-token",
+  "path": "posts/userId/mediaId.jpeg",
+  "publicUrl": "https://xxx.supabase.co/storage/v1/object/public/tribe-media/...",
+  "expiresIn": 7200
+}
+```
+
+**Step 2: Upload File Directly to Supabase**
+```javascript
+// Client uploads binary directly — NOT through our backend
+await fetch(uploadUrl, {
+  method: 'PUT',
+  headers: { 'Content-Type': mimeType },
+  body: fileBlob
+});
+```
+
+**Step 3: Finalize Upload**
+```
+POST /api/media/upload-complete
+Authorization: Bearer <token>
+Body: {
+  "mediaId": "uuid",
+  "width": 1080,      // optional
+  "height": 1920,     // optional
+  "duration": 15.5    // optional, seconds (for video)
+}
+```
+**Response (200):**
+```json
+{
+  "id": "uuid",
+  "url": "https://xxx.supabase.co/.../file.jpeg",
+  "publicUrl": "https://xxx.supabase.co/.../file.jpeg",
+  "thumbnailUrl": "https://..." | null,
+  "thumbnailStatus": "NONE" | "READY" | "FAILED",
+  "type": "IMAGE",
+  "kind": "IMAGE",
+  "mimeType": "image/jpeg",
+  "size": 12345,
+  "storageType": "SUPABASE",
+  "status": "READY"
+}
+```
+
+**Step 4: Check Upload Status (Optional)**
+```
+GET /api/media/upload-status/:mediaId
+Authorization: Bearer <token>
 ```
 **Response:**
 ```json
 {
-  "id": "media-uuid",
-  "url": "/api/media/media-uuid",
+  "id": "uuid",
+  "status": "PENDING_UPLOAD" | "READY",
+  "thumbnailStatus": "NONE" | "PENDING" | "READY" | "FAILED",
+  "thumbnailUrl": null | "https://...",
+  "expiresAt": "2026-03-11T17:00:00.000Z",
+  "publicUrl": "https://...",
   "type": "IMAGE",
+  "kind": "IMAGE",
   "mimeType": "image/jpeg",
   "size": 12345,
-  "width": 1080,
-  "height": 1920
+  "storageType": "SUPABASE"
 }
 ```
+
+### Delete Media (NEW)
+```
+DELETE /api/media/:id
+Authorization: Bearer <token>
+```
+**Response (200):** `{ "id": "uuid", "status": "DELETED" }`
+**Errors:** 403 (not yours), 404 (not found), 409 (attached to content — remove from post/reel/story first)
+
+### Media Serve
+```
+GET /api/media/:id (no auth required)
+```
+- Supabase: 302 redirect to CDN URL
+- Legacy: 200 with binary body
 
 ### Rendering Rules
 - **`avatarUrl`**: Pre-resolved URL for display. Use directly in `<img src>`.
 - **`avatarUrl === null`**: Show default placeholder avatar.
-- **`media[].url`**: Always present when `media[].id` exists.
+- **`media[].url`**: Always present when `media[].id` exists. Direct Supabase CDN URL.
 - **Reels**: Use `playbackUrl`/`thumbnailUrl` directly (NOT MediaObject pattern).
+- **Frontend does NOT need to distinguish old/new** — `url` field always works.
+
+### Thumbnail Status (Video uploads)
+- After `upload-complete`, video thumbnails are auto-generated
+- `thumbnailStatus`: `NONE` → `PENDING` → `READY`/`FAILED`
+- Poll `upload-status` to check `thumbnailStatus` if needed
+- `thumbnailUrl` available when `thumbnailStatus === "READY"`
 
 ---
 

@@ -156,13 +156,61 @@ POST /api/content/posts
 - Mixed feeds with old+new media serialize safely
 - Frontend does NOT need to distinguish old/new — `url` field always works
 
-## 8. Cleanup / Orphan Policy
-- PENDING_UPLOAD records older than 24h automatically cleaned
+## 8. Media Deletion Contract (NEW)
+```
+DELETE /api/media/:id
+Authorization: Bearer <token>
+
+Response 200:
+{
+  "id": uuid,
+  "status": "DELETED"
+}
+
+Rules:
+- Owner-only (or ADMIN/SUPER_ADMIN)
+- Attachment safety: returns 409 MEDIA_ATTACHED if media is used in any:
+  - content_items (posts) → media[].id
+  - reels → mediaId
+  - stories → mediaIds[]
+- Cascade: associated thumbnail also deleted
+- Supabase file deleted (best-effort)
+- Soft-delete: isDeleted=true, status=DELETED, deletedAt set
+
+Errors:
+- 401: not authenticated
+- 403: FORBIDDEN (not your media)
+- 404: media not found or already deleted
+- 409: MEDIA_ATTACHED (media is referenced in content)
+  Response: { "error": "Cannot delete...", "code": "MEDIA_ATTACHED", "attachments": [{ "type": "post|reel|story", "id": "..." }] }
+```
+
+## 9. Cleanup / Orphan Policy
+- PENDING_UPLOAD records cleaned when `expiresAt` has passed (default 2h from upload-init)
+- Legacy records without `expiresAt` cleaned after 24h via `createdAt` fallback
 - Cleanup runs every 30 minutes via lazy-init worker
 - Remote Supabase objects deleted for orphans
 - DB records marked as `ORPHAN_CLEANED` + `isDeleted: true`
 - READY media NEVER touched by cleanup
 - Admin endpoint: `POST /api/admin/media/cleanup` (dry-run + execute modes)
+
+## 10. Thumbnail Lifecycle
+```
+Status transitions: NONE → PENDING → READY | FAILED
+
+Fields on media_assets:
+- thumbnailStatus: "NONE" | "PENDING" | "READY" | "FAILED"
+- thumbnailUrl: string | null (set when READY)
+- thumbnailMediaId: string | null (ID of thumbnail media_asset)
+- thumbnailError: string | null (reason when FAILED)
+
+Behavior:
+- Set to NONE on upload-init
+- Transitions to PENDING when thumbnail generation starts (on upload-complete for videos)
+- Transitions to READY with thumbnailUrl on success
+- Transitions to FAILED with thumbnailError on failure
+- Images never trigger thumbnail generation (stay NONE)
+```
 
 ## 9. Allowed MIME Types
 - image/jpeg, image/png, image/webp
