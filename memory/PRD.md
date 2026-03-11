@@ -9,8 +9,8 @@ Build a "world-best" social media backend for the app "Tribe" — a campus-nativ
 - **Admins**: Moderate content, verify official pages, manage platform.
 
 ## Architecture
-- **Stack**: Monolithic Next.js API backend + MongoDB
-- **Testing**: pytest suite (633 tests)
+- **Stack**: Monolithic Next.js API backend + MongoDB + Supabase Storage
+- **Testing**: pytest suite (962+ tests)
 - **Key Patterns**: Contract-Driven Development, Centralized Policy (access-policy.js), Canonical Serializers (entity-snippets.js)
 - **Collections**: users, sessions, content_items, follows, reactions, saves, comments, notifications, media_assets, audit_logs, pages, page_members, page_follows, reels, stories, ...
 
@@ -19,7 +19,7 @@ Build a "world-best" social media backend for the app "Tribe" — a campus-nativ
 ### Content Engine
 - User-authored posts (authorType=USER)
 - Page-authored posts (authorType=PAGE) — B3
-- Media upload, moderation pipeline, visibility control
+- Media upload via Supabase Storage (signed URL direct upload), moderation pipeline, visibility control
 
 ### Social Graph
 - Follow/unfollow users
@@ -39,8 +39,20 @@ Build a "world-best" social media backend for the app "Tribe" — a campus-nativ
 ### Pages System (B3)
 - 18 API endpoints for full CRUD, team management, publishing, lifecycle
 - Categories: COLLEGE_OFFICIAL, DEPARTMENT, CLUB, TRIBE_OFFICIAL, FEST, MEME, STUDY_GROUP, etc.
-- Official page verification guards
-- Reuses existing content engine for page-authored posts
+
+### Media Infrastructure (NEW — Supabase Storage)
+- **Provider**: Supabase Storage with public CDN bucket `tribe-media`
+- **Upload Flow**: Signed URL direct-to-Supabase (client never sends bytes to app server)
+- **Endpoints**:
+  - `POST /api/media/upload-init` → Returns signed URL + mediaId
+  - `POST /api/media/upload-complete` → Finalizes upload, returns public CDN URL
+  - `GET /api/media/upload-status/:id` → Check upload status
+  - `POST /api/media/upload` → Legacy base64 (now also routes to Supabase)
+  - `GET /api/media/:id` → 302 redirect to Supabase CDN
+- **Scopes**: reels/, stories/, posts/, thumbnails/
+- **Allowed MIME**: image/jpeg, image/png, image/webp, video/mp4, video/quicktime
+- **Max size**: 50MB (Supabase free tier)
+- **Legacy compatibility**: Existing base64 and Emergent Object Storage media still served
 
 ## Stage Completion Status
 
@@ -51,95 +63,35 @@ Build a "world-best" social media backend for the app "Tribe" — a campus-nativ
 | B2 | Visibility & Feed Safety | ✅ DONE | - |
 | B3 | Pages System | ✅ DONE | 50 |
 | B3-U | Ultimate Test Gate | ✅ PASS | 107 |
-| B4 | Core Social Gaps | ✅ DONE | - |
+| B4 | Core Social Gaps | ✅ DONE | 72 |
 | B5 | Discovery & Hashtag Engine | ✅ DONE (PROVEN) | 77 |
 | B5.1 | Search Quality Upgrade | ✅ DONE (PROVEN) | 27 |
 | B6 | Notifications 2.0 | ✅ DONE (GOLD PROOF) | 78 |
+| **Media Infra** | **Supabase Storage Integration** | **✅ DONE** | **36** |
 | B7 | Test Hardening | ⬜ NOT STARTED | - |
 | B8 | Infra & Scale | ⬜ NOT STARTED | - |
 
-**Total test suite: 926/926 PASS** (80 B5 + 27 B5.1 + 819 existing)
+**Total test suite: 962+ tests**
 
 ## Known Issues
-1. ~~**Post Search Not Working**~~ (FIXED in B5)
-2. ~~**Reel Interaction Bugs**~~ (FIXED in B6-P1/P2/P3)
-3. **Separate Test DB** — deferred to B8
-4. **Audit Log TTL** — deferred to B8
-5. **B6-P3 rate-limit flake** (low) — `test_hide_not_interested_work` intermittent 429
-6. ~~**Seed users lost on fork**~~ (FIXED — auto-seed on startup via `lib/seed.js`)
+1. **Separate Test DB** — deferred to B8
+2. **Audit Log TTL** — deferred to B8
+3. **B6-P3 rate-limit flake** (low) — intermittent 429
+4. **House → Tribe data mismatch** — legacy "Rani Laxmibai" house names still appear
 
-## B3 New API Surface (18 endpoints)
-| Endpoint | Method | Auth | Role |
-|---|---|---|---|
-| /api/pages | POST | User | - |
-| /api/pages | GET | Public | - |
-| /api/pages/:idOrSlug | GET | Public | - |
-| /api/pages/:id | PATCH | User | OWNER/ADMIN |
-| /api/pages/:id/archive | POST | User | OWNER |
-| /api/pages/:id/restore | POST | User | OWNER |
-| /api/pages/:id/members | GET | User | Any member |
-| /api/pages/:id/members | POST | User | OWNER/ADMIN |
-| /api/pages/:id/members/:userId | PATCH | User | OWNER/ADMIN |
-| /api/pages/:id/members/:userId | DELETE | User | OWNER/ADMIN |
-| /api/pages/:id/transfer-ownership | POST | User | OWNER |
-| /api/pages/:id/follow | POST | User | - |
-| /api/pages/:id/follow | DELETE | User | - |
-| /api/pages/:id/followers | GET | User | Any member |
-| /api/pages/:id/posts | GET | Public | - |
-| /api/pages/:id/posts | POST | User | OWNER/ADMIN/EDITOR |
-| /api/pages/:id/posts/:postId | PATCH | User | OWNER/ADMIN/EDITOR |
-| /api/pages/:id/posts/:postId | DELETE | User | OWNER/ADMIN/EDITOR |
-| /api/pages/:id/analytics | GET | User | OWNER/ADMIN |
-| /api/me/pages | GET | User | - |
-
-## B3 Data Model
-
-### pages collection
-id (UUID), slug (unique), name, bio, category, subcategory, avatarMediaId, coverMediaId, status (DRAFT|ACTIVE|ARCHIVED|SUSPENDED), isOfficial, verificationStatus, linkedEntityType, linkedEntityId, collegeId, tribeId, createdByUserId, followerCount, memberCount, postCount, archivedAt, suspendedAt, createdAt, updatedAt
-
-### page_members collection
-id, pageId, userId (unique pair), role (OWNER|ADMIN|EDITOR|MODERATOR), status (ACTIVE|REMOVED), addedByUserId
-
-### page_follows collection
-id, pageId, userId (unique pair), createdAt
-
-### content_items extensions (B3)
-authorType (USER|PAGE), pageId, actingUserId, actingRole, createdAs (USER|PAGE)
-
-### content_items extensions (B4)
-editedAt (timestamp, set on caption edit)
-originalContentId (string, set for reposts — links to original post)
-isRepost (boolean, true for repost items)
-
-### comment_likes collection (B4)
-id, userId, commentId, contentId, createdAt (unique: userId+commentId)
-
-## Completed Stages
-| Stage | Name | Status | Tests |
-|---|---|---|---|
-| B0 | Foundation | ✅ DONE | — |
-| B1 | Identity/Media | ✅ DONE | — |
-| B2 | Visibility/Permissions | ✅ DONE | — |
-| B3 | Pages System | ✅ DONE | 58 |
-| B3-U | Ultimate Test Gate | ✅ PASS | 107 |
-| B4 | Core Social Gaps | ✅ DONE | 72 |
-| B4-U | Ultimate Test Gate | ✅ PASS | 72 |
-| FH1-U | Frontend Readiness Gate | ✅ PASS | — |
-| B6-P1 | Reels Polish (bugs) | ✅ PASS | 31 |
-| B6-P2 | Reels Hardening | ✅ PASS | 28 |
-| B6-P3 | Reels Launch Readiness | ✅ PASS | 49 |
-|| B6-P4 | Notifications 2.0 | ✅ PASS | 59 |
-|| B6-P4G | Notifications Gold Proof | ✅ PASS | 19 |
+## 3rd Party Integrations
+- **Supabase Storage**: Public bucket `tribe-media` for all media uploads (images, videos)
+  - Keys: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
+- **Emergent Object Storage**: Legacy, still functional as fallback
+- **Redis**: Present but not actively used
 
 ## Next Priority
-**B5 — Discovery, Search & Hashtag Engine**: Implement hashtag extraction and fix non-functional post search
+- **P1: Integrate content creation (Reels, Stories, Posts) with new media pipeline** — Accept `mediaId` from completed uploads
+- **P2: Fix B — Tribe/House Cutover** — Migrate legacy house data
+- **P3: B7 — Test Hardening + Gold Freeze** — 950+ tests
 
-## Frontend Handoff Docs (FH1-U)
-- `/app/memory/API_REFERENCE.md` — Full route reference by domain
-- `/app/memory/SERIALIZER_CONTRACTS.md` — Canonical object shapes (frozen)
-- `/app/memory/SCREEN_TO_ENDPOINT_MAP.md` — Screen-by-screen backend mapping
-- `/app/memory/STATE_AND_PERMISSIONS.md` — Permission matrix + state guide
-- `/app/memory/NOTIFICATION_EVENT_GUIDE.md` — All notification types
-- `/app/memory/FE_KNOWN_GOTCHAS.md` — 20 documented edge cases/traps
-- `/app/memory/FRONTEND_INTEGRATION_GUIDE.md` — Complete integration guide
-- `/app/memory/FINAL_APP_AGENT_HANDOFF.md` — **MASTER consolidated handoff (818 lines, v3.0 FINAL)**
+## Key Files
+- `/app/lib/supabase-storage.js` — Supabase Storage client (bucket init, signed URLs, public URLs)
+- `/app/lib/handlers/media.js` — Media upload/serve handler (Supabase + legacy)
+- `/app/lib/storage.js` — Legacy Emergent Object Storage (kept for backward compat)
+- `/app/tests/handlers/test_media_supabase.py` — 36 comprehensive media tests
