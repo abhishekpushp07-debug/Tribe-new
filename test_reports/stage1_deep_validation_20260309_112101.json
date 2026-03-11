@@ -1,7 +1,7 @@
 {
   "test_type": "Stage 1 Canonical Contract Freeze v2 - Deep Validation",
   "timestamp": "2026-03-09T11:21:01.984814",
-  "base_url": "https://gap-closure-phase-c.preview.emergentagent.com/api",
+  "base_url": "https://tribe-feed-engine-1.preview.emergentagent.com/api",
   "summary": {
     "tests_run": 33,
     "tests_passed": 30,

@@ -15,7 +15,7 @@ import requests
 import time
 import random
 
-BASE_URL = "https://gap-closure-phase-c.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-feed-engine-1.preview.emergentagent.com/api"
 
 def random_ip():
     return f"10.{random.randint(1,254)}.{random.randint(1,254)}.{random.randint(1,254)}"

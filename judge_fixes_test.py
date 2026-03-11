@@ -12,7 +12,7 @@ import time
 from datetime import datetime
 
 # Base URL from environment
-BASE_URL = "https://gap-closure-phase-c.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-feed-engine-1.preview.emergentagent.com/api"
 
 class JudgeFixesTester:
     def __init__(self):

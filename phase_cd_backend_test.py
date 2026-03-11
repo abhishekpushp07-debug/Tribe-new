@@ -7,7 +7,7 @@ Testing comprehensive backend API functionality focusing on:
 - Phase D: Poll Posts, Thread Posts, Link Preview Posts
 - Regression testing of existing features
 
-Base URL: https://gap-closure-phase-c.preview.emergentagent.com/api
+Base URL: https://tribe-feed-engine-1.preview.emergentagent.com/api
 """
 
 import asyncio
@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Any
 from pymongo import MongoClient
 
-BASE_URL = "https://gap-closure-phase-c.preview.emergentagent.com"
+BASE_URL = "https://tribe-feed-engine-1.preview.emergentagent.com"
 API_URL = f"{BASE_URL}/api"
 
 @dataclass

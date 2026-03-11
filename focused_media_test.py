@@ -15,7 +15,7 @@ from typing import Dict, List, Optional, Tuple
 from datetime import datetime
 
 # Configuration
-API_BASE_URL = "https://gap-closure-phase-c.preview.emergentagent.com/api"
+API_BASE_URL = "https://tribe-feed-engine-1.preview.emergentagent.com/api"
 TIMEOUT = 30
 
 class MediaTestClient:

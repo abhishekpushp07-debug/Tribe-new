@@ -1,8 +1,8 @@
 # ============================================================================
 # TRIBE — COMPLETE FRONTEND HANDOFF PACKAGE
 # ============================================================================
-# Backend URL: https://gap-closure-phase-c.preview.emergentagent.com
-# All APIs:    https://gap-closure-phase-c.preview.emergentagent.com/api/*
+# Backend URL: https://tribe-feed-engine-1.preview.emergentagent.com
+# All APIs:    https://tribe-feed-engine-1.preview.emergentagent.com/api/*
 # Health:      GET /api/healthz → {"status":"ok"}
 # Auth:        Phone/PIN → Bearer token
 # Last Updated: 2026-03-11

@@ -13,7 +13,7 @@ This test validates Stage 2 security hardening features:
 8. Security Audit Logging
 9. Legacy Compatibility
 
-Base URL: https://gap-closure-phase-c.preview.emergentagent.com/api
+Base URL: https://tribe-feed-engine-1.preview.emergentagent.com/api
 """
 
 import requests
@@ -24,7 +24,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://gap-closure-phase-c.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-feed-engine-1.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 class TestRunner:

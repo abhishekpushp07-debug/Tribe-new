@@ -8,7 +8,7 @@ import threading
 
 def test_auth_rate_limiting():
     """Test AUTH tier rate limiting with rapid requests"""
-    base_url = "https://gap-closure-phase-c.preview.emergentagent.com/api"
+    base_url = "https://tribe-feed-engine-1.preview.emergentagent.com/api"
     
     print("Testing AUTH tier rate limiting (10 requests/minute)...")
     
@@ -46,7 +46,7 @@ def test_auth_rate_limiting():
 
 def test_per_user_vs_per_ip():
     """Test that per-user and per-IP rate limiting are separate"""
-    base_url = "https://gap-closure-phase-c.preview.emergentagent.com/api"
+    base_url = "https://tribe-feed-engine-1.preview.emergentagent.com/api"
     
     print("\nTesting per-user vs per-IP rate limiting separation...")
     

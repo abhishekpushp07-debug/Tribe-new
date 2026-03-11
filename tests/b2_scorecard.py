@@ -20,7 +20,7 @@ import random
 import json
 import time
 
-API = "https://gap-closure-phase-c.preview.emergentagent.com/api"
+API = "https://tribe-feed-engine-1.preview.emergentagent.com/api"
 SCORES = {}
 DETAILS = {}
 
