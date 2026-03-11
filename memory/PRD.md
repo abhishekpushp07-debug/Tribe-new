@@ -122,6 +122,7 @@ id, userId, commentId, contentId, createdAt (unique: userId+commentId)
 | FH1-U | Frontend Readiness Gate | ✅ PASS | — |
 | B6-P1 | Reels Polish (bugs) | ✅ PASS | 31 |
 | B6-P2 | Reels Hardening | ✅ PASS | 28 |
+| B6-P3 | Reels Launch Readiness | ✅ PASS | 49 |
 
 ## Next Priority
 **B6-P2 — Notifications 2.0**: Device token registration, notification preferences, unread count, grouping/aggregation, delivery hygiene

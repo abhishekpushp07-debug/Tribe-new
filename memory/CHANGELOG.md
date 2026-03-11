@@ -1,5 +1,29 @@
 # Tribe — Changelog
 
+## 2026-03-11: Stage B6 Phase 3 — Reels Launch Readiness (PASS)
+
+### Contract Freeze
+- Created `/app/memory/REELS_CONTRACT_FREEZE.md` — 280-line frozen contract document covering all 24 reel endpoints, object shapes, notification types, pagination rules, action semantics, error codes, visibility matrix, counter truth, index coverage, and frontend decision guide
+- Feed vs Detail intentional differences documented (feed: 2 viewer fields, detail: 4)
+- Comment input rule frozen: `body || text` precedence, both stored
+
+### Edge Cases Closed (20/20)
+All 20 launch-critical edge cases tested: double like, double unlike, double save, double unsave, text/body variants, empty comment, deleted reel, blocked creator (feed + detail), comment on unavailable, invalid report, duplicate report, malformed ID, self-like block, self-report block, comment max length, empty report body, missing reason code
+
+### Concurrency Proof
+- 3-user concurrent like: counter exactly 3 (no double-count)
+- Rapid like/unlike cycle (5x): counter exactly 0 (no corruption)
+- Rapid save/unsave cycle (5x): counter exactly 0 (no corruption)
+- Duplicate share: no crash, tracks each action
+
+### Safety Hardening (from P2)
+- Block filtering on comment list, audio browse, remix browse
+- Feed pagination compound cursor (score|id) for duplicate prevention
+
+### Tests
+- **New**: `/app/tests/handlers/test_b6p3_launch_readiness.py` — 49 tests across 7 groups (Contract, Edge Cases, Concurrency, Counter Truth, Visibility, Pagination, Regression)
+- **Total**: B3(107) + B4(72) + B6-P1(31) + B6-P2(28) + B6-P3(49) = **287 tests, ZERO regressions**
+
 ## 2026-03-10: Stage B6 Phase 2 — Reels Hardening (PASS)
 
 ### Safety Fixes
