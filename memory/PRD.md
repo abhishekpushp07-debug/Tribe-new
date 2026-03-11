@@ -1,83 +1,87 @@
-# Tribe — Product Requirements Document
+# Tribe — Product Requirements Document (PRD)
+**Last Updated**: 2026-03-11
 
-## Overview
-World-class social media backend for the "Tribe" platform. Features tribes, content feeds, stories, reels, contests, leaderboards, and a full media pipeline.
-
-## Backend URL
-`https://gap-closure-phase-c.preview.emergentagent.com`
+## Original Problem Statement
+Build a "world-best" social media backend for the Tribe app. The project has gone through multiple phases of hardening, refactoring, and feature expansion to achieve near-world-best backend standard.
 
 ## Core Architecture
-- **Application**: Next.js monolithic API with service-oriented architecture
-- **Database**: MongoDB
+- **Runtime**: Next.js 15 (App Router) API routes
+- **Database**: MongoDB (local)
 - **Media Storage**: Supabase Storage
-- **Testing**: pytest (1,000+ tests)
+- **Video Processing**: ffmpeg (system dependency)
+- **Cache**: In-memory (Redis planned for future)
+- **Auth**: Phone/PIN with JWT Bearer tokens
 
-## Service Layer Architecture (COMPLETED ✅)
-Business logic extracted from monolithic handlers into dedicated service files:
+## What's Been Implemented
 
-### Service Files (1,620 lines total)
-- `/app/lib/services/scoring.js` (266 lines) — Leaderboard: tiered viral bonuses (1K/5K/10K), 10-min cache, anti-cheat caps. **WIRED into tribes.js**
-- `/app/lib/services/feed-ranking.js` (111 lines) — Algorithmic ranking: recency decay (6h half-life), engagement velocity, affinity boost, diversity penalty. **WIRED into feed.js** (public, following, college, tribe feeds)
-- `/app/lib/services/story-service.js` (471 lines) — Story rail construction, sticker validation, privacy checks, expiry worker. **WIRED into stories.js**
-- `/app/lib/services/reel-service.js` (236 lines) — Reel scoring, feed construction, viewer personalization. **IMPORTED by reels.js**
-- `/app/lib/services/contest-service.js` (222 lines) — Contest scoring, lifecycle, season standings. **IMPORTED by tribe-contests.js**
+### Phase 1-3: Foundation (Completed)
+- Full auth system (phone/PIN, JWT, refresh tokens)
+- Content CRUD (posts, reels, stories)
+- Social graph (follow, block, notifications)
+- Pages system with dual-author model
+- Tribes & contests with leaderboard
+- Events, resources, governance, college/house systems
+- Full moderation pipeline
+- Search with hashtag system
 
-### Handler Reduction
-| Handler | Before | After | Saved |
-|---------|--------|-------|-------|
-| stories.js | 2,158 | 1,648 | -510 |
-| tribes.js | 1,206 | 1,003 | -203 |
-| tribe-contests.js | 1,600 | 1,538 | -62 |
-| **Total** | **7,005** | **6,294** | **-711** |
+### Phase 4: Service Layer Refactor (Completed)
+- Extracted ScoringService, FeedService, StoryService, ReelService, ContestService, MediaService
+- Algorithmic feed ranking
+- Tiered viral bonuses for leaderboard
 
-### Test Results
-- 15/16 tests passed (93.8% pass rate)
-- All P0 (service wiring), P1 (story service), P2 (reel service), P3 (contest service) passing
+### Phase 5: Media Lifecycle Hardening (Completed)
+- Batch seeding, thumbnail/expiration states
+- Pollution control, safe idempotent deletion
+- Media lifecycle state machine (UPLOADING → PROCESSING → READY → FAILED)
 
-## Next Priority
-- **P1: B7 — Test Hardening + Gold Freeze** — Zero-flake suite
-- **P1: Further service extraction** — Shared block/privacy utilities
-- **P2: B8 — Infra, Observability, Scale Path** — Redis queues, separate test DB
-- **P3: Audit Log TTL** — TTL policy on audit_logs
+### Phase 6: Top 6 Gap Closure (COMPLETED ✅)
 
-## Key Files
-- `/app/lib/services/scoring.js` — Scoring service: leaderboard computation, tiered viral bonuses, caching
-- `/app/lib/services/feed-ranking.js` — Feed ranking: algorithmic ranking with recency + engagement + affinity
-- `/app/lib/services/story-service.js` — Story service: rail, stickers, privacy, expiry
-- `/app/lib/services/reel-service.js` — Reel service: scoring, feed, personalization
-- `/app/lib/services/contest-service.js` — Contest service: scoring, lifecycle, seasons
-- `/app/lib/handlers/tribes.js` — Tribe handler (1003 lines, leaderboard delegated to scoring.js)
-- `/app/lib/handlers/feed.js` — Feed handler (386 lines, ranking delegated to feed-ranking.js)
-- `/app/lib/handlers/stories.js` — Stories handler (1648 lines, rail/stickers delegated to story-service.js)
-- `/app/lib/handlers/reels.js` — Reels handler (1716 lines, imports from reel-service.js)
-- `/app/lib/handlers/tribe-contests.js` — Contest handler (1538 lines, imports from contest-service.js)
-- `/app/lib/supabase-storage.js` — Supabase Storage client
-- `/app/lib/handlers/media.js` — Media upload/serve/delete handler
-- `/app/tests/handlers/test_media_supabase.py` — 54 media pipeline tests
-- `/app/tests/handlers/test_media_lifecycle.py` — 21 lifecycle tests
+#### Phase A — Core Correctness (Completed)
+- **Gap 1**: Fixed post distributionStage auto-promotion pipeline
+- **Gap 2**: Fixed ranked feed cache key collision (per-user keys)
+- **Gap 3**: Verified story rail N+1 already solved by service refactor
 
-## Completed Stages
-- B0: API Contract & Manifest
-- B1: Canonical Identity & Media
-- B2: Visibility & Feed Safety
-- B3: Pages System (107 tests)
-- B4: Core Social Gaps (72 tests)
-- B5: Discovery & Hashtag Engine (77 tests)
-- B5.1: Search Quality Upgrade (27 tests)
-- B6: Notifications 2.0 (78 tests)
-- Media Infra: Supabase Storage (54 tests)
-- Media Lifecycle: Hardening (21 tests)
-- Tribe/House Cutover: Legacy migration
-- Tribe Leaderboard v1 & v2 (31 tests)
-- Judge Hardening: 50-param audit
-- Stage 9: World's Best Stories
-- Stage 10: World's Best Reels
-- **Service Layer Refactor: 5 services, 1620 lines extracted, 15/16 tests pass**
+#### Phase B — Media Production Readiness (Completed)
+- **Gap 4**: Implemented real reel transcoding with ffmpeg
 
-## 3rd Party Integrations
-- **Supabase Storage**: Media storage and serving
-- **ffmpeg**: Video thumbnailing
+#### Phase C — Anti-Abuse Hardening (COMPLETED ✅)
+- **Gap 5**: Full anti-abuse system with 5-layer detection
+  - Velocity checks, burst detection, same-author concentration
+  - Rapid diverse targeting, cumulative escalation
+  - Wired into ALL engagement surfaces: like, comment, share, save, follow, story reactions (in social.js, stories.js, reels.js)
+  - Admin abuse dashboard + detailed audit log endpoints
+  - Honest scope documentation
 
-## Authentication
-- Login: `POST /api/auth/login` with `{"phone":"<phone>","pin":"<pin>"}`
-- Test users: `9999960001`, `9999960002`, `9000099001` (PIN: `1234`)
+#### Phase D — Post Subsystem Expansion (COMPLETED ✅)
+- **Gap 6**: Posts upgraded to match reels/stories product depth
+  - **Poll Posts**: Create with 2-6 options, vote, prevent double-votes, expiry, results endpoint
+  - **Link Preview Enrichment**: Async URL metadata fetch with SSRF protection, safe degradation
+  - **Thread/Long-Form Mode**: Multi-part linked posts (max 20 parts), thread reader endpoint, auto-promoting parent to THREAD_HEAD
+  - Feed serializers updated with postSubType, viewerPollVote, isThreadPart fields
+  - All existing post/media functionality preserved (regression-free)
+
+## Test Credentials
+Register new: `POST /api/auth/register { phone, pin, displayName }`
+- `7777099001` / `1234` (ADMIN, ADULT)
+- `7777099002` / `1234` (USER)
+
+## DB Collections Added in Phase 6
+- `poll_votes`: { id, contentId, userId, optionId, createdAt }
+- `abuse_audit_log`: { userId, actionType, targetId, severity, reason, blocked, timestamp }
+
+## Freeze Documents
+- ANTI_ABUSE_POLICY.md
+- POST_FEATURES_CONTRACT_FREEZE.md
+- MEDIA_CONTRACT_FREEZE.md
+- REELS_CONTRACT_FREEZE.md
+- SEARCH_CONTRACT_FREEZE.md
+- NOTIFICATIONS_CONTRACT_FREEZE.md
+
+## API Endpoint Count: 150+ across 16+ domains
+
+## Remaining Roadmap
+- **P1: B7 — Test Hardening + Gold Freeze** (zero-flake test suite)
+- **P2: B8 — Infra, Observability, Scale Path** (Redis, job queues, dedicated test DB)
+- **P3: Audit Log TTL policy**
+- **P4: Recommendation engine / ML ranking**
+- **P5: Push notifications infrastructure**

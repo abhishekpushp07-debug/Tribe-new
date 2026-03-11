@@ -1,46 +1,39 @@
 # Tribe — Roadmap
+**Last Updated**: 2026-03-11
 
-## Completed
-- Stage B0: API Contract & Manifest
-- Stage B1: Canonical Identity & Media
-- Stage B2: Visibility & Feed Safety
-- Stage B3: Pages System (107 tests)
-- Stage B3-U: Ultimate Test Gate (107 tests)
-- Stage B4: Core Social Gaps (72 tests)
-- Stage B5: Discovery & Hashtag Engine (77 tests)
-- Stage B5.1: Search Quality Upgrade (27 tests)
-- Stage B6: Notifications 2.0 — Gold Proof (78 tests)
-- Media Infra: Supabase Storage Integration (54 tests)
-- Media Lifecycle: Hardening — Delete, Expiry, Thumbs (21 tests)
-- Tribe/House Cutover: Legacy house → tribes migration
-- Tribe Leaderboard v1 & v2: Engagement-ranked leaderboard (31 tests)
-- Judge Hardening: 50-param audit — security, perf, caching, indexes
-- Stage 9: World's Best Stories (hardened + audited)
-- Stage 10: World's Best Reels (39 endpoints, 12 collections)
-- Service Layer Files Created: scoring.js, feed-ranking.js
+## Completed Milestones
+| Phase | Status | Date |
+|-------|--------|------|
+| Foundation (Auth, Content, Social, Pages, Tribes) | ✅ DONE | 2026-03 |
+| Service Layer Refactor | ✅ DONE | 2026-03 |
+| Media Lifecycle Hardening | ✅ DONE | 2026-03 |
+| Top 6 Gap Closure — Phase A (Correctness) | ✅ DONE | 2026-03 |
+| Top 6 Gap Closure — Phase B (Reel Transcoding) | ✅ DONE | 2026-03 |
+| Top 6 Gap Closure — Phase C (Anti-Abuse) | ✅ DONE | 2026-03-11 |
+| Top 6 Gap Closure — Phase D (Post Expansion) | ✅ DONE | 2026-03-11 |
+| Frontend Handoff Documentation | ✅ DONE | 2026-03-11 |
 
-## In Progress (P0) — COMPLETED ✅
-- ~~Service Layer Wiring~~: scoring.js → tribes.js, feed-ranking.js → feed.js ✅
-- ~~Algorithmic feed ranking~~ (engagement_weighted_v1 on first page, chronological on paginated) ✅
-- ~~Tiered viral bonuses~~ (1K/5K/10K thresholds) in leaderboard scoring v3 ✅
-- ~~Service Extraction~~: StoryService, ReelService, ContestService ✅
+## Current Sprint: COMPLETE
+All 6 gaps from the deep audit are now closed.
 
-## Upcoming (P1)
-- **B7 — Test Hardening + Gold Freeze**: Zero-flake test suite
-- Continue service extraction: thin remaining handler logic further
-- Extract shared block/privacy logic into common utility
+## P1: B7 — Test Hardening + Gold Freeze
+- Achieve zero-flake test suite
+- Full regression coverage for all 16+ domains
+- Pytest integration tests for every endpoint
 
-## Future (P2)
-- B8: Infra, Observability, Scale Path — Redis job queues, dedicated test DB
+## P2: B8 — Infra, Observability, Scale Path
+- Redis for caching and job queues
+- Dedicated test database
+- Structured logging enhancements
+- Rate limiting improvements
+
+## P3: Backlog
 - Audit Log TTL policy
-
-## Backlog
-- Redis installation for production Pub/Sub
-- Video transcoding pipeline
 - Recommendation engine / ML ranking
-- Push notifications
-- Content recommendations AI
-- Native Android app shell
+- Push notification infrastructure
+- Full adaptive streaming (HLS/DASH) for reels
+- IP/device fingerprinting for anti-abuse
+- Cross-account correlation for sockpuppet detection
 
 ## Backend URL
 `https://gap-closure-phase-c.preview.emergentagent.com`
