@@ -322,6 +322,7 @@ def pytest_sessionfinish(session, exitstatus):
             db.notifications.delete_many({'userId': {'$in': user_ids}})
             db.device_tokens.delete_many({'userId': {'$in': user_ids}})
             db.notification_preferences.delete_many({'userId': {'$in': user_ids}})
+            db.hashtags.delete_many({})  # Clean test hashtags
             db.user_tribe_memberships.delete_many({'userId': {'$in': user_ids}})
             deleted_users = db.users.delete_many({'phone': {'$in': phones}})
             print(f'\n[CLEANUP] Removed {deleted_users.deleted_count} users, '

@@ -11,7 +11,7 @@ import random
 from datetime import datetime, timedelta
 
 # Base API URL from review request
-BASE_URL = "https://social-alerts-4.preview.emergentagent.com/api"
+BASE_URL = "https://b5-search-proof.preview.emergentagent.com/api"
 
 # Test credentials from review request
 ADMIN_PHONE = "9000000501"  # ADMIN role, college linked to IIT Bombay

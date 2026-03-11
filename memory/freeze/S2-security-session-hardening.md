@@ -348,7 +348,7 @@
 
 ### H.1 Security Headers Proof (curl)
 ```
-$ curl -D - https://social-alerts-4.preview.emergentagent.com/api/healthz
+$ curl -D - https://b5-search-proof.preview.emergentagent.com/api/healthz
 
 x-content-type-options: nosniff
 x-frame-options: DENY

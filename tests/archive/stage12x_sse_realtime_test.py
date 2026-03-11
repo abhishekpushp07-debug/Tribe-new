@@ -15,7 +15,7 @@ Test Coverage:
 7. Season Standings SSE
 
 Architecture: Next.js 14 with Redis Pub/Sub fallback to in-memory EventEmitter
-Base URL: https://social-alerts-4.preview.emergentagent.com/api
+Base URL: https://b5-search-proof.preview.emergentagent.com/api
 """
 
 import requests
@@ -27,7 +27,7 @@ from datetime import datetime
 import re
 
 # Configuration
-BASE_URL = "https://social-alerts-4.preview.emergentagent.com/api"
+BASE_URL = "https://b5-search-proof.preview.emergentagent.com/api"
 SEASON_ID = "6dd39c1d-f3b3-4543-bba2-d2b44cdf60ac"
 ADMIN_USER = {'phone': '9000000001', 'pin': '1234'}
 

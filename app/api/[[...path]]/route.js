@@ -461,7 +461,7 @@ async function handleRouteCore(request, { params }, reqCtx) {
       if (!result) {
         result = await handleUsers(path, method, request, db)
       }
-    } else if (path[0] === 'colleges' || path[0] === 'houses' || path[0] === 'search' || path[0] === 'suggestions') {
+    } else if (path[0] === 'colleges' || path[0] === 'houses' || path[0] === 'search' || path[0] === 'suggestions' || path[0] === 'hashtags') {
       if (path[0] === 'colleges' && path.length === 3 && path[2] === 'claim') {
         result = await handleCollegeClaims(path, method, request, db)
       }

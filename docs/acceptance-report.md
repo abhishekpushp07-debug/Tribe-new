@@ -1,7 +1,7 @@
 # Tribe Backend — Proof-Based Acceptance Report
 
 **Date**: 2026-03-07
-**API URL**: https://social-alerts-4.preview.emergentagent.com
+**API URL**: https://b5-search-proof.preview.emergentagent.com
 
 ---
 

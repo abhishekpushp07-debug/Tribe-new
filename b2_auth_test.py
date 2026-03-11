@@ -9,7 +9,7 @@ import requests
 import json
 import time
 
-API_BASE_URL = "https://social-alerts-4.preview.emergentagent.com/api"
+API_BASE_URL = "https://b5-search-proof.preview.emergentagent.com/api"
 
 def single_user_b2_test():
     """Test B2 functionality with single authenticated user"""

@@ -6,7 +6,7 @@ Simple SSE Connection Test - Diagnose SSE endpoints
 import requests
 import time
 
-BASE_URL = "https://social-alerts-4.preview.emergentagent.com/api"
+BASE_URL = "https://b5-search-proof.preview.emergentagent.com/api"
 
 def test_sse_basic():
     print("🔍 SSE Basic Connection Test")

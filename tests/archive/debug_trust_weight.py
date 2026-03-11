@@ -8,7 +8,7 @@ import aiohttp
 import json
 from datetime import datetime
 
-BASE_URL = "https://social-alerts-4.preview.emergentagent.com/api"
+BASE_URL = "https://b5-search-proof.preview.emergentagent.com/api"
 
 async def investigate_trust_weight():
     async with aiohttp.ClientSession() as session:

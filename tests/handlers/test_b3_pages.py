@@ -11,7 +11,7 @@ import time
 import os
 import random
 
-API_URL = os.environ.get("TEST_API_URL", "https://social-alerts-4.preview.emergentagent.com")
+API_URL = os.environ.get("TEST_API_URL", "https://b5-search-proof.preview.emergentagent.com")
 
 
 def _test_ip():

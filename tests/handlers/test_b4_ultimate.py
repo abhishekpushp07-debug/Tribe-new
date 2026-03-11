@@ -15,7 +15,7 @@ import os
 import random
 from pymongo import MongoClient
 
-API_URL = os.environ.get("TEST_API_URL", "https://social-alerts-4.preview.emergentagent.com")
+API_URL = os.environ.get("TEST_API_URL", "https://b5-search-proof.preview.emergentagent.com")
 MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
 DB_NAME = os.environ.get("DB_NAME", "your_database_name")
 

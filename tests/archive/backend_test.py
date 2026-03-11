@@ -3,7 +3,7 @@
 Stage 3B Gold Remediation Tests for Tribe Social Media Backend
 Testing critical observability fixes with request lineage (requestId in audit entries)
 
-Base URL: https://social-alerts-4.preview.emergentagent.com
+Base URL: https://b5-search-proof.preview.emergentagent.com
 """
 
 import asyncio
@@ -14,7 +14,7 @@ import uuid
 from pymongo import MongoClient
 from typing import Dict, Any, List, Optional
 
-BASE_URL = "https://social-alerts-4.preview.emergentagent.com"
+BASE_URL = "https://b5-search-proof.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 LOCALHOST_BASE = "http://localhost:3000/api"  # For OPTIONS test
 

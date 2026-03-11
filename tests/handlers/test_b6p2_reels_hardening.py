@@ -15,7 +15,7 @@ import requests
 import time
 import random
 
-BASE_URL = "https://social-alerts-4.preview.emergentagent.com/api"
+BASE_URL = "https://b5-search-proof.preview.emergentagent.com/api"
 
 def random_ip():
     return f"10.{random.randint(1,254)}.{random.randint(1,254)}.{random.randint(1,254)}"

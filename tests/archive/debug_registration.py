@@ -5,7 +5,7 @@ import json
 import time
 
 def debug_registration():
-    base_url = "https://social-alerts-4.preview.emergentagent.com/api"
+    base_url = "https://b5-search-proof.preview.emergentagent.com/api"
     
     # Try registration with detailed error logging
     phone = "9001234567"  # Valid 10-digit phone

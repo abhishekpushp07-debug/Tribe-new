@@ -1,7 +1,7 @@
 {
   "test_suite": "Stage 9 Stories Backend Final Closure Audit",
   "timestamp": "2026-03-08T16:14:27.398721",
-  "base_url": "https://social-alerts-4.preview.emergentagent.com/api",
+  "base_url": "https://b5-search-proof.preview.emergentagent.com/api",
   "total_tests": 48,
   "passed_tests": 41,
   "success_rate": 85.41666666666666,
