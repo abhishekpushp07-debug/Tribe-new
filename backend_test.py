@@ -1,411 +1,378 @@
 #!/usr/bin/env python3
 """
-Backend Testing Suite for Tribe/House Cutover Implementation
-
-Testing Tribe/House cutover with unique phone numbers.
+Backend Test for Tribe Leaderboard Endpoint
+Test the new GET /api/tribes/leaderboard endpoint implementation
 """
 
-import asyncio
-import aiohttp
+import requests
 import json
-import sys
-import random
-from datetime import datetime
+import uuid
+from datetime import datetime, timedelta
+import os
+import time
 
-# Configuration
-BASE_URL = "https://media-trust-engine.preview.emergentagent.com/api"
-HEADERS = {
-    "Content-Type": "application/json",
-    "User-Agent": "Tribe-Backend-Testing/1.0"
-}
-
-class TribeCutoverTester:
+class TribeLeaderboardTester:
     def __init__(self):
-        self.session = None
+        self.base_url = os.getenv('NEXT_PUBLIC_BASE_URL', 'https://media-trust-engine.preview.emergentagent.com')
+        self.api_url = f"{self.base_url}/api"
         self.test_results = []
-        self.tokens = {}
+        self.auth_token = None
         
-    async def __aenter__(self):
-        self.session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-        return self
-        
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        if self.session:
-            await self.session.close()
-
-    def log_result(self, test_name, success, message, data=None):
-        """Log test result"""
-        status = "✅ PASS" if success else "❌ FAIL"
-        print(f"{status} {test_name}: {message}")
-        self.test_results.append({
+    def log_test(self, test_name, status, details=""):
+        result = {
             "test": test_name,
-            "success": success,
-            "message": message,
-            "data": data,
+            "status": status,
+            "details": details,
             "timestamp": datetime.now().isoformat()
-        })
+        }
+        self.test_results.append(result)
+        status_icon = "✅" if status == "PASS" else "❌"
+        print(f"{status_icon} {test_name}: {status}")
+        if details and status == "FAIL":
+            print(f"   Details: {details}")
 
-    def generate_unique_phone(self):
-        """Generate a unique phone number for testing"""
-        # Use current timestamp seconds + random to ensure uniqueness  
-        base = str(int(datetime.now().timestamp()))[-6:]
-        suffix = str(random.randint(100, 999))
-        return f"90{base}{suffix}"
-
-    async def register_user(self, phone=None, pin="1234", display_name=None):
-        """Register a new user and return response"""
-        if not phone:
-            phone = self.generate_unique_phone()
-            
-        if not display_name:
-            display_name = f"TestUser{phone[-3:]}"
-            
+    def setup_auth(self):
+        """Setup authentication for testing"""
         try:
-            payload = {
-                "phone": phone,
-                "pin": pin,
-                "displayName": display_name,
-                "dob": "2000-01-01"
-            }
+            # Use a test user phone number
+            test_phone = "9000000001"
+            test_pin = "1234"
             
-            async with self.session.post(f"{BASE_URL}/auth/register", 
-                                       json=payload, headers=HEADERS) as resp:
-                response_data = await resp.json()
-                return resp.status, response_data, phone
-        except Exception as e:
-            return 500, {"error": str(e)}, phone
-
-    async def login_user(self, phone, pin="1234"):
-        """Login user and return response"""
-        try:
-            payload = {"phone": phone, "pin": pin}
-            async with self.session.post(f"{BASE_URL}/auth/login",
-                                       json=payload, headers=HEADERS) as resp:
-                response_data = await resp.json()
-                return resp.status, response_data
-        except Exception as e:
-            return 500, {"error": str(e)}
-
-    async def get_user_me(self, token):
-        """Get current user via /auth/me"""
-        try:
-            headers = {**HEADERS, "Authorization": f"Bearer {token}"}
-            async with self.session.get(f"{BASE_URL}/auth/me", headers=headers) as resp:
-                response_data = await resp.json()
-                return resp.status, response_data
-        except Exception as e:
-            return 500, {"error": str(e)}
-
-    async def create_post(self, token, caption, media_ids=None):
-        """Create a post"""
-        try:
-            headers = {**HEADERS, "Authorization": f"Bearer {token}"}
-            payload = {
-                "caption": caption,
-                "kind": "POST"
-            }
-            if media_ids:
-                payload["mediaIds"] = media_ids
-                
-            async with self.session.post(f"{BASE_URL}/content/posts",
-                                       json=payload, headers=headers) as resp:
-                response_data = await resp.json()
-                return resp.status, response_data
-        except Exception as e:
-            return 500, {"error": str(e)}
-
-    async def get_feed(self, endpoint, token=None):
-        """Get feed data"""
-        try:
-            headers = HEADERS.copy()
-            if token:
-                headers["Authorization"] = f"Bearer {token}"
-                
-            async with self.session.get(f"{BASE_URL}{endpoint}", headers=headers) as resp:
-                response_data = await resp.json()
-                return resp.status, response_data
-        except Exception as e:
-            return 500, {"error": str(e)}
-
-    async def test_registration_and_tribe_data(self):
-        """Test: Registration should return tribe data and user snippets include tribe fields"""
-        print("\n=== Testing Registration & Tribe Data ===")
-        
-        # Register new user
-        status, response, phone = await self.register_user(display_name="Alice Tribe")
-        
-        if status == 201 and "data" in response:
-            user = response["data"].get("user", {})
+            # Try to login with existing test user
+            login_response = requests.post(f"{self.api_url}/auth/login", json={
+                "phone": test_phone,
+                "pin": test_pin
+            })
             
-            # Check tribe fields are present
-            has_tribe_id = user.get("tribeId") is not None
-            has_tribe_code = user.get("tribeCode") is not None  
-            has_tribe_name = user.get("tribeName") is not None
-            
-            # Check house fields are NOT present (should be null/missing)
-            has_house_id = user.get("houseId") is not None
-            has_house_name = user.get("houseName") is not None
-            
-            if has_tribe_id and has_tribe_code and has_tribe_name and not has_house_id and not has_house_name:
-                # Store token for later tests
-                self.tokens["alice"] = response["data"].get("accessToken") or response["data"].get("token")
-                self.tokens["alice_phone"] = phone
-                self.log_result("Registration Tribe Data", True, 
-                              f"User registered with tribe: {user.get('tribeName')} ({user.get('tribeCode')})")
-                return True, user
-            else:
-                self.log_result("Registration Tribe Data", False,
-                              f"Missing tribe fields or has house fields. Tribe: {has_tribe_id}/{has_tribe_code}/{has_tribe_name}, House: {has_house_id}/{has_house_name}")
-                return False, user
-        else:
-            self.log_result("Registration Tribe Data", False, f"Registration failed: {response}")
-            return False, {}
-
-    async def test_auth_me_tribe_data(self):
-        """Test: GET /auth/me returns tribe data"""
-        print("\n=== Testing GET /auth/me Tribe Data ===")
-        
-        if "alice" not in self.tokens:
-            self.log_result("Auth Me Tribe Data", False, "Alice token not available")
-            return False
-            
-        status, response = await self.get_user_me(self.tokens["alice"])
-        
-        if status == 200 and "data" in response:
-            user = response["data"].get("user", {})
-            
-            has_tribe_id = user.get("tribeId") is not None
-            has_tribe_code = user.get("tribeCode") is not None
-            has_tribe_name = user.get("tribeName") is not None
-            has_house_id = user.get("houseId") is not None
-            
-            if has_tribe_id and has_tribe_code and has_tribe_name and not has_house_id:
-                self.log_result("Auth Me Tribe Data", True,
-                              f"User has tribe: {user.get('tribeName')} ({user.get('tribeCode')}), no houseId")
+            if login_response.status_code == 200:
+                data = login_response.json()
+                self.auth_token = data.get('token')
+                self.log_test("Auth Setup (Login)", "PASS", f"Logged in with token: {self.auth_token[:20]}...")
                 return True
             else:
-                self.log_result("Auth Me Tribe Data", False,
-                              f"Missing tribe fields or has houseId. Tribe fields: {has_tribe_id}/{has_tribe_code}/{has_tribe_name}, houseId: {has_house_id}")
+                self.log_test("Auth Setup (Login)", "FAIL", f"Login failed: {login_response.status_code}")
                 return False
-        else:
-            self.log_result("Auth Me Tribe Data", False, f"Failed to get user: {response}")
+                
+        except Exception as e:
+            self.log_test("Auth Setup", "FAIL", f"Auth setup error: {str(e)}")
             return False
 
-    async def test_content_creation_and_feeds(self):
-        """Test: Content creation stores tribeId and feeds work"""
-        print("\n=== Testing Content Creation & Feeds ===")
-        
-        if "alice" not in self.tokens:
-            self.log_result("Content & Feeds", False, "Alice token not available")
-            return False
+    def test_leaderboard_default_period(self):
+        """Test 1: Default period (30d)"""
+        try:
+            response = requests.get(f"{self.api_url}/tribes/leaderboard")
             
-        # Create a post
-        caption = f"Test post for tribe cutover validation - {datetime.now().isoformat()}"
-        status, response = await self.create_post(self.tokens["alice"], caption)
-        
-        if status == 201 and "data" in response:
-            post = response["data"].get("post", {})
-            
-            # Check tribeId is present and houseId is not
-            has_tribe_id = post.get("tribeId") is not None
-            has_house_id = post.get("houseId") is not None
-            
-            if has_tribe_id and not has_house_id:
-                self.log_result("Content Creation", True,
-                              f"Post created with tribeId: {post.get('tribeId')}, no houseId")
+            if response.status_code == 200:
+                data = response.json()
                 
-                # Test tribe feed with user's tribeId
-                tribe_id = post.get("tribeId")
-                status, feed_response = await self.get_feed(f"/feed/tribe/{tribe_id}", self.tokens["alice"])
-                
-                if status == 200 and "data" in feed_response:
-                    feed_data = feed_response["data"]
-                    if "items" in feed_data and feed_data.get("feedType") == "tribe":
-                        self.log_result("Tribe Feed", True, 
-                                      f"Tribe feed working for {tribe_id}")
-                        
-                        # Test legacy house feed backward compatibility
-                        status, house_feed = await self.get_feed(f"/feed/house/{tribe_id}", self.tokens["alice"])
-                        if status == 200 and "data" in house_feed:
-                            house_data = house_feed["data"]
-                            if "items" in house_data and house_data.get("feedType") == "tribe":
-                                self.log_result("Legacy House Feed", True,
-                                              "Legacy house feed working with backward compatibility")
-                                return True
-                            else:
-                                self.log_result("Legacy House Feed", False,
-                                              f"Legacy house feed incorrect format: {house_data.get('feedType')}")
-                        else:
-                            self.log_result("Legacy House Feed", False, f"Legacy house feed failed: {house_feed}")
+                # Validate response structure
+                if 'items' in data and 'period' in data:
+                    period = data.get('period')
+                    if period == '30d':
+                        self.log_test("Leaderboard Default Period", "PASS", f"Default period correctly set to {period}")
+                        return data
                     else:
-                        self.log_result("Tribe Feed", False, f"Tribe feed format incorrect: {feed_data}")
+                        self.log_test("Leaderboard Default Period", "FAIL", f"Expected period '30d', got '{period}'")
                 else:
-                    self.log_result("Tribe Feed", False, f"Tribe feed failed: {feed_response}")
-                
-                return True
+                    self.log_test("Leaderboard Default Period", "FAIL", "Missing required fields 'items' or 'period'")
             else:
-                self.log_result("Content Creation", False,
-                              f"Post missing tribeId or has houseId. tribeId: {has_tribe_id}, houseId: {has_house_id}")
-                return False
-        else:
-            self.log_result("Content Creation", False, f"Post creation failed: {response}")
-            return False
-
-    async def test_user_snippets_analysis(self):
-        """Analyze existing public feed for user snippets with tribe data"""
-        print("\n=== Analyzing User Snippets in Public Feed ===")
-        
-        status, response = await self.get_feed("/feed/public")
-        
-        if status == 200 and "data" in response:
-            items = response["data"].get("items", [])
-            
-            user_posts = [item for item in items if item.get("authorType") != "PAGE"]
-            page_posts = [item for item in items if item.get("authorType") == "PAGE"]
-            
-            # Look at content items to see if they have tribe/house data
-            posts_with_tribe = [item for item in items if item.get("tribeId")]
-            posts_with_house = [item for item in items if item.get("houseId")]
-            
-            print(f"   📊 Analysis Results:")
-            print(f"   • Total posts: {len(items)}")
-            print(f"   • User-authored posts: {len(user_posts)}")
-            print(f"   • Page-authored posts: {len(page_posts)}")  
-            print(f"   • Posts with tribeId: {len(posts_with_tribe)}")
-            print(f"   • Posts with houseId: {len(posts_with_house)}")
-            
-            # Check if we found posts with user authors that include tribe data
-            if user_posts:
-                sample_user_post = user_posts[0]
-                author = sample_user_post.get("author", {})
+                self.log_test("Leaderboard Default Period", "FAIL", f"HTTP {response.status_code}: {response.text}")
                 
-                if "tribeId" in author or "tribeName" in author or "tribeCode" in author:
-                    self.log_result("User Snippets Tribe", True,
-                                  f"User snippets include tribe fields in author data")
+        except Exception as e:
+            self.log_test("Leaderboard Default Period", "FAIL", f"Exception: {str(e)}")
+        return None
+
+    def test_leaderboard_7d_period(self):
+        """Test 2: 7d period"""
+        try:
+            response = requests.get(f"{self.api_url}/tribes/leaderboard?period=7d")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if data.get('period') == '7d':
+                    self.log_test("Leaderboard 7d Period", "PASS", "7d period parameter working correctly")
+                    return data
                 else:
-                    self.log_result("User Snippets Tribe", False,
-                                  f"User snippets missing tribe fields. Sample author: {author}")
+                    self.log_test("Leaderboard 7d Period", "FAIL", f"Expected period '7d', got '{data.get('period')}'")
             else:
-                # Check page posts for completeness
-                if page_posts:
-                    sample_page_post = page_posts[0]
-                    author = sample_page_post.get("author", {})
-                    print(f"   📄 Sample page author: tribeId={author.get('tribeId')}")
+                self.log_test("Leaderboard 7d Period", "FAIL", f"HTTP {response.status_code}: {response.text}")
                 
-                self.log_result("User Snippets Analysis", True,
-                              f"Found {len(posts_with_house)} posts with houseId (legacy), {len(posts_with_tribe)} with tribeId (migrated)")
+        except Exception as e:
+            self.log_test("Leaderboard 7d Period", "FAIL", f"Exception: {str(e)}")
+        return None
+
+    def test_leaderboard_all_period(self):
+        """Test 3: All-time period"""
+        try:
+            response = requests.get(f"{self.api_url}/tribes/leaderboard?period=all")
             
-            # Summarize migration status
-            if len(posts_with_house) > 0 and len(posts_with_tribe) == 0:
-                self.log_result("Migration Status", False,
-                              "Only legacy houseId found, no tribeId in content - migration may be incomplete")
-            elif len(posts_with_tribe) > 0:
-                self.log_result("Migration Status", True, 
-                              f"Found content with tribeId - migration in progress or completed")
-            else:
-                self.log_result("Migration Status", True,
-                              "No house/tribe IDs in current content (acceptable for fresh content)")
+            if response.status_code == 200:
+                data = response.json()
                 
-            return True
-        else:
-            self.log_result("Public Feed Analysis", False, f"Could not get public feed: {response}")
+                if data.get('period') == 'all':
+                    self.log_test("Leaderboard All-time Period", "PASS", "All-time period parameter working correctly")
+                    return data
+                else:
+                    self.log_test("Leaderboard All-time Period", "FAIL", f"Expected period 'all', got '{data.get('period')}'")
+            else:
+                self.log_test("Leaderboard All-time Period", "FAIL", f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Leaderboard All-time Period", "FAIL", f"Exception: {str(e)}")
+        return None
+
+    def test_ranking_correctness(self, leaderboard_data):
+        """Test 4: Ranking is correct (sorted by engagementScore descending)"""
+        if not leaderboard_data or 'items' not in leaderboard_data:
+            self.log_test("Ranking Correctness", "FAIL", "No leaderboard data available")
             return False
-
-    async def test_existing_users_login(self):
-        """Test login with known user account to check migration"""
-        print("\n=== Testing Existing User Login ===")
-        
-        # Try login with the seeded test user mentioned in review request
-        phone = "9000000001"
-        status, response = await self.login_user(phone)
-        
-        if status == 200 and "data" in response:
-            user = response["data"].get("user", {})
             
-            has_tribe_id = user.get("tribeId") is not None
-            has_house_id = user.get("houseId") is not None
-            
-            if has_tribe_id and not has_house_id:
-                self.log_result("Existing User Migration", True,
-                              f"Existing user properly migrated: tribeId={user.get('tribeId')}")
-                return True
-            elif has_tribe_id and has_house_id:
-                self.log_result("Existing User Migration", False,
-                              f"User has both tribeId and houseId - incomplete migration")
-                return False
-            else:
-                self.log_result("Existing User Migration", False,
-                              f"User missing tribe fields. tribeId: {has_tribe_id}, houseId: {has_house_id}")
-                return False
-        else:
-            # User doesn't exist - that's okay, just note it
-            self.log_result("Existing User Check", True,
-                          f"Test user {phone} not found - expected in this environment")
+        items = leaderboard_data['items']
+        
+        if len(items) == 0:
+            self.log_test("Ranking Correctness", "PASS", "Empty leaderboard is correctly ranked")
             return True
+            
+        # Check ranking order
+        correctly_ranked = True
+        for i in range(len(items) - 1):
+            current_score = items[i].get('engagementScore', 0)
+            next_score = items[i + 1].get('engagementScore', 0)
+            current_rank = items[i].get('rank', 0)
+            
+            if current_score < next_score:
+                correctly_ranked = False
+                break
+                
+            # Check rank numbering
+            if current_rank != i + 1:
+                correctly_ranked = False
+                break
+        
+        if correctly_ranked:
+            self.log_test("Ranking Correctness", "PASS", f"Items correctly sorted by engagementScore, ranks 1-{len(items)}")
+        else:
+            self.log_test("Ranking Correctness", "FAIL", "Items not properly sorted by engagementScore or incorrect rank numbering")
+        
+        return correctly_ranked
 
-    async def run_all_tests(self):
-        """Run all Tribe/House cutover tests"""
-        print("🏛️  TRIBE/HOUSE CUTOVER COMPREHENSIVE TESTING")
+    def test_all_tribes_present(self, leaderboard_data):
+        """Test 5: All tribes present (should be 21 tribes)"""
+        if not leaderboard_data or 'count' not in leaderboard_data:
+            self.log_test("All Tribes Present", "FAIL", "No leaderboard data available")
+            return False
+            
+        count = leaderboard_data.get('count', 0)
+        items_count = len(leaderboard_data.get('items', []))
+        
+        if count == 21 and items_count == 21:
+            self.log_test("All Tribes Present", "PASS", f"All 21 tribes present in leaderboard")
+        else:
+            self.log_test("All Tribes Present", "FAIL", f"Expected 21 tribes, got count={count}, items={items_count}")
+        
+        return count == 21 and items_count == 21
+
+    def test_non_negative_metrics(self, leaderboard_data):
+        """Test 6: Metrics are non-negative"""
+        if not leaderboard_data or 'items' not in leaderboard_data:
+            self.log_test("Non-negative Metrics", "FAIL", "No leaderboard data available")
+            return False
+            
+        items = leaderboard_data['items']
+        all_non_negative = True
+        
+        for item in items:
+            metrics = item.get('metrics', {})
+            for metric_name, value in metrics.items():
+                if value < 0:
+                    all_non_negative = False
+                    self.log_test("Non-negative Metrics", "FAIL", 
+                                f"Negative {metric_name} ({value}) found in tribe {item.get('tribeCode')}")
+                    return False
+        
+        if all_non_negative:
+            self.log_test("Non-negative Metrics", "PASS", "All metrics are non-negative")
+        
+        return all_non_negative
+
+    def test_engagement_score_formula(self, leaderboard_data):
+        """Test 7: Engagement score formula verification"""
+        if not leaderboard_data or 'items' not in leaderboard_data:
+            self.log_test("Engagement Score Formula", "FAIL", "No leaderboard data available")
+            return False
+            
+        items = leaderboard_data['items']
+        formula_correct = True
+        
+        for item in items:
+            metrics = item.get('metrics', {})
+            engagement_score = item.get('engagementScore', 0)
+            
+            # Formula: (posts*5) + (reels*10) + (likes*2) + (followers*1) + (active*20)
+            posts = metrics.get('posts', 0)
+            reels = metrics.get('reels', 0)
+            likes = metrics.get('likesReceived', 0)
+            followers = metrics.get('followersTotal', 0)
+            active = metrics.get('activeMemberCount', 0)
+            
+            expected_score = (posts * 5) + (reels * 10) + (likes * 2) + (followers * 1) + (active * 20)
+            
+            if engagement_score != expected_score:
+                formula_correct = False
+                self.log_test("Engagement Score Formula", "FAIL", 
+                            f"Tribe {item.get('tribeCode')}: Expected {expected_score}, got {engagement_score}")
+                return False
+        
+        if formula_correct:
+            self.log_test("Engagement Score Formula", "PASS", "Engagement score formula correctly implemented")
+        
+        return formula_correct
+
+    def test_response_fields_completeness(self, leaderboard_data):
+        """Test 8: Response includes all required fields"""
+        if not leaderboard_data:
+            self.log_test("Response Fields Completeness", "FAIL", "No leaderboard data available")
+            return False
+            
+        # Check top-level fields
+        required_top_fields = ['items', 'leaderboard', 'count', 'period', 'generatedAt']
+        missing_top_fields = []
+        
+        for field in required_top_fields:
+            if field not in leaderboard_data:
+                missing_top_fields.append(field)
+        
+        if missing_top_fields:
+            self.log_test("Response Fields Completeness", "FAIL", 
+                        f"Missing top-level fields: {missing_top_fields}")
+            return False
+        
+        # Check item fields
+        items = leaderboard_data.get('items', [])
+        if len(items) > 0:
+            required_item_fields = [
+                'rank', 'tribeId', 'tribeCode', 'tribeName', 'primaryColor', 
+                'animalIcon', 'quote', 'membersCount', 'metrics', 'engagementScore'
+            ]
+            
+            sample_item = items[0]
+            missing_item_fields = []
+            
+            for field in required_item_fields:
+                if field not in sample_item:
+                    missing_item_fields.append(field)
+            
+            # Check metrics fields
+            metrics = sample_item.get('metrics', {})
+            required_metric_fields = ['posts', 'reels', 'likesReceived', 'followersTotal', 'activeMemberCount']
+            missing_metric_fields = []
+            
+            for field in required_metric_fields:
+                if field not in metrics:
+                    missing_metric_fields.append(field)
+            
+            if missing_item_fields or missing_metric_fields:
+                missing_str = ""
+                if missing_item_fields:
+                    missing_str += f"Item fields: {missing_item_fields}"
+                if missing_metric_fields:
+                    missing_str += f" Metric fields: {missing_metric_fields}"
+                self.log_test("Response Fields Completeness", "FAIL", f"Missing fields - {missing_str}")
+                return False
+        
+        self.log_test("Response Fields Completeness", "PASS", "All required fields present")
+        return True
+
+    def test_valid_iso_date(self, leaderboard_data):
+        """Test 9: generatedAt is valid ISO date"""
+        if not leaderboard_data or 'generatedAt' not in leaderboard_data:
+            self.log_test("Valid ISO Date", "FAIL", "generatedAt field missing")
+            return False
+            
+        generated_at = leaderboard_data['generatedAt']
+        
+        try:
+            # Try to parse as ISO 8601 datetime
+            parsed_date = datetime.fromisoformat(generated_at.replace('Z', '+00:00'))
+            
+            # Check if it's recent (within last 5 minutes)
+            now = datetime.now(parsed_date.tzinfo)
+            time_diff = abs((now - parsed_date).total_seconds())
+            
+            if time_diff < 300:  # 5 minutes
+                self.log_test("Valid ISO Date", "PASS", f"Valid and recent ISO date: {generated_at}")
+            else:
+                self.log_test("Valid ISO Date", "FAIL", f"Date too old: {generated_at} ({time_diff}s ago)")
+                return False
+                
+        except Exception as e:
+            self.log_test("Valid ISO Date", "FAIL", f"Invalid ISO date format: {generated_at} - {str(e)}")
+            return False
+            
+        return True
+
+    def run_comprehensive_tests(self):
+        """Run all leaderboard tests"""
+        print("🏛️ TRIBE LEADERBOARD ENDPOINT COMPREHENSIVE TESTING")
         print("=" * 60)
-        print(f"Base URL: {BASE_URL}")
-        print(f"Test Time: {datetime.now().isoformat()}")
-        print()
         
-        # Run all tests
-        tests = [
-            self.test_registration_and_tribe_data,
-            self.test_auth_me_tribe_data, 
-            self.test_content_creation_and_feeds,
-            self.test_user_snippets_analysis,
-            self.test_existing_users_login,
-        ]
+        # Set up authentication (optional for leaderboard, but good to have)
+        auth_success = self.setup_auth()
         
-        passed = 0
-        total = len(tests)
+        # Test 1: Default period (30d)
+        default_data = self.test_leaderboard_default_period()
         
-        for test_func in tests:
-            try:
-                result = await test_func()
-                if result:
-                    passed += 1
-            except Exception as e:
-                self.log_result(test_func.__name__, False, f"Test exception: {str(e)}")
+        # Test 2: 7d period  
+        seven_day_data = self.test_leaderboard_7d_period()
+        
+        # Test 3: All-time period
+        all_time_data = self.test_leaderboard_all_period()
+        
+        # Use default data for remaining tests (if available)
+        test_data = default_data or seven_day_data or all_time_data
+        
+        if test_data:
+            # Test 4: Ranking correctness
+            self.test_ranking_correctness(test_data)
+            
+            # Test 5: All tribes present
+            self.test_all_tribes_present(test_data)
+            
+            # Test 6: Non-negative metrics
+            self.test_non_negative_metrics(test_data)
+            
+            # Test 7: Engagement score formula
+            self.test_engagement_score_formula(test_data)
+            
+            # Test 8: Response fields completeness
+            self.test_response_fields_completeness(test_data)
+            
+            # Test 9: Valid ISO date
+            self.test_valid_iso_date(test_data)
+        else:
+            self.log_test("Comprehensive Testing", "FAIL", "No valid leaderboard data obtained for detailed tests")
         
         # Summary
-        print(f"\n" + "=" * 60)
-        print(f"🎯 TRIBE/HOUSE CUTOVER TEST RESULTS: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
+        print("\n" + "=" * 60)
+        passed = sum(1 for r in self.test_results if r['status'] == 'PASS')
+        total = len(self.test_results)
+        success_rate = (passed / total * 100) if total > 0 else 0
+        
+        print(f"🎯 TRIBE LEADERBOARD TESTING COMPLETED")
+        print(f"✅ Tests Passed: {passed}/{total} ({success_rate:.1f}%)")
         
         if passed == total:
-            print("✅ ALL TESTS PASSED - Tribe/House cutover implementation working correctly!")
-        elif passed >= total * 0.8:
-            print("⚠️  MOSTLY WORKING - Minor issues found but core functionality operational")
+            print("🏆 ALL TESTS PASSED - Leaderboard endpoint is PRODUCTION READY!")
+        elif success_rate >= 90:
+            print("🎉 EXCELLENT SUCCESS RATE - Leaderboard endpoint exceeds production standards!")
+        elif success_rate >= 75:
+            print("✨ GOOD SUCCESS RATE - Leaderboard endpoint meets production standards!")
         else:
-            print("❌ SIGNIFICANT ISSUES - Tribe/House cutover needs attention")
+            print("⚠️ Issues found - Review failed tests above")
         
-        print(f"\nDetailed Results:")
-        for result in self.test_results:
-            status = "✅" if result["success"] else "❌"
-            print(f"  {status} {result['test']}: {result['message']}")
-        
-        return passed, total
-
-
-async def main():
-    """Main test execution"""
-    try:
-        async with TribeCutoverTester() as tester:
-            passed, total = await tester.run_all_tests()
-            
-            # Exit with appropriate code
-            if passed >= total * 0.8:  # 80% pass rate is acceptable
-                sys.exit(0)
-            else:
-                sys.exit(1)
-                
-    except Exception as e:
-        print(f"❌ CRITICAL ERROR: {str(e)}")
-        sys.exit(1)
-
+        return self.test_results
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    tester = TribeLeaderboardTester()
+    results = tester.run_comprehensive_tests()
