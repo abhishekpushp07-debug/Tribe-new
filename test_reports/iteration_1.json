@@ -1,0 +1,253 @@
+{
+  "timestamp": "2026-03-11 17:57:03",
+  "total_tests": 16,
+  "passed_tests": 15,
+  "failed_tests": 1,
+  "success_rate": 93.8,
+  "priority_breakdown": {
+    "P0": {
+      "passed": 8,
+      "total": 9
+    },
+    "P1": {
+      "passed": 3,
+      "total": 3
+    },
+    "P2": {
+      "passed": 2,
+      "total": 2
+    },
+    "P3": {
+      "passed": 2,
+      "total": 2
+    }
+  },
+  "results": [
+    {
+      "name": "Leaderboard Scoring v3 (7d)",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 92,
+      "priority": "P0",
+      "details": {
+        "scoringVersion": "v3",
+        "viralTiers": 3,
+        "itemsCount": 21,
+        "viralReels": {
+          "tier1": 0,
+          "tier2": 0,
+          "tier3": 0
+        }
+      }
+    },
+    {
+      "name": "Leaderboard Scoring v3 (30d)",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 98,
+      "priority": "P0",
+      "details": {
+        "scoringVersion": "v3",
+        "viralTiers": 3,
+        "itemsCount": 21,
+        "viralReels": {
+          "tier1": 0,
+          "tier2": 0,
+          "tier3": 0
+        }
+      }
+    },
+    {
+      "name": "Leaderboard Scoring v3 (90d)",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 78,
+      "priority": "P0",
+      "details": {
+        "scoringVersion": "v3",
+        "viralTiers": 3,
+        "itemsCount": 21,
+        "viralReels": {
+          "tier1": 0,
+          "tier2": 0,
+          "tier3": 0
+        }
+      }
+    },
+    {
+      "name": "Leaderboard Scoring v3 (all)",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 91,
+      "priority": "P0",
+      "details": {
+        "scoringVersion": "v3",
+        "viralTiers": 3,
+        "itemsCount": 21,
+        "viralReels": {
+          "tier1": 0,
+          "tier2": 0,
+          "tier3": 0
+        }
+      }
+    },
+    {
+      "name": "Algorithmic Feed (First Page)",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 99,
+      "priority": "P0",
+      "details": {
+        "rankingAlgorithm": "engagement_weighted_v1",
+        "itemsCount": 10,
+        "feedScore": 0.7632378175865782,
+        "feedRank": 1
+      }
+    },
+    {
+      "name": "Algorithmic Feed (Second Page)",
+      "success": false,
+      "status_code": 200,
+      "error": "Expected chronological on paginated page, got None",
+      "duration_ms": 111,
+      "priority": "P0",
+      "details": {
+        "rankingAlgorithm": "engagement_weighted_v1",
+        "itemsCount": 10,
+        "feedScore": 0.7632378175865782,
+        "feedRank": 1
+      }
+    },
+    {
+      "name": "Following Feed",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 97,
+      "priority": "P0",
+      "details": {
+        "feedType": "following",
+        "itemsCount": 1,
+        "rankingAlgorithm": "engagement_weighted_v1"
+      }
+    },
+    {
+      "name": "College Feed",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 81,
+      "priority": "P0",
+      "details": {
+        "feedType": "college",
+        "itemsCount": 0,
+        "collegeId": "test-college"
+      }
+    },
+    {
+      "name": "Tribe Feed",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 168,
+      "priority": "P0",
+      "details": {
+        "feedType": "tribe",
+        "itemsCount": 0,
+        "tribeId": "d8d6786e-db54-4d01-b440-93cdc2950ec4"
+      }
+    },
+    {
+      "name": "Story Rail Feed",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 99,
+      "priority": "P1",
+      "details": {
+        "storyRailCount": 1,
+        "storiesCount": 0,
+        "hasBackwardCompat": false
+      }
+    },
+    {
+      "name": "Story Creation",
+      "success": true,
+      "status_code": 201,
+      "error": null,
+      "duration_ms": 1490,
+      "priority": "P1",
+      "details": {
+        "storyId": "dd233709-4ee6-4af1-8f5e-1aa11d569539",
+        "type": "TEXT",
+        "privacy": "EVERYONE",
+        "status": "ACTIVE"
+      }
+    },
+    {
+      "name": "Story Get",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 141,
+      "priority": "P1",
+      "details": {
+        "storyId": "dd233709-4ee6-4af1-8f5e-1aa11d569539",
+        "author": null,
+        "viewerReaction": null,
+        "stickersCount": 0
+      }
+    },
+    {
+      "name": "Reel Feed",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 114,
+      "priority": "P2",
+      "details": {
+        "itemsCount": 20,
+        "feedType": "reels"
+      }
+    },
+    {
+      "name": "Reel Following",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 93,
+      "priority": "P2",
+      "details": {
+        "itemsCount": 0,
+        "feedType": "following"
+      }
+    },
+    {
+      "name": "List Contests",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 101,
+      "priority": "P3",
+      "details": {
+        "contestsCount": 16
+      }
+    },
+    {
+      "name": "Contest Seasons",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 199,
+      "priority": "P3",
+      "details": {
+        "seasonsCount": 1
+      }
+    }
+  ]
+}
