@@ -1,0 +1,325 @@
+{
+  "timestamp": "2026-03-11 18:31:42",
+  "total_tests": 22,
+  "passed_tests": 16,
+  "failed_tests": 6,
+  "success_rate": 72.72727272727273,
+  "results": [
+    {
+      "name": "Admin Authentication",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 265,
+      "priority": "P1",
+      "details": {
+        "token_length": 67
+      }
+    },
+    {
+      "name": "A1: Batch Seed Dry Run",
+      "success": true,
+      "status_code": 201,
+      "error": null,
+      "duration_ms": 137,
+      "priority": "P0",
+      "details": {
+        "created": 0,
+        "skipped": 2,
+        "failed": 0,
+        "errors": [],
+        "dryRun": true
+      }
+    },
+    {
+      "name": "A2: Batch Seed Actual",
+      "success": true,
+      "status_code": 201,
+      "error": null,
+      "duration_ms": 193,
+      "priority": "P0",
+      "details": {
+        "created": 0,
+        "skipped": 1,
+        "failed": 0,
+        "errors": [],
+        "total": 1
+      }
+    },
+    {
+      "name": "A3: Batch Seed Idempotency",
+      "success": true,
+      "status_code": 201,
+      "error": null,
+      "duration_ms": 189,
+      "priority": "P0",
+      "details": {
+        "created": 0,
+        "skipped": 1,
+        "failed": 0,
+        "errors": [],
+        "total": 1
+      }
+    },
+    {
+      "name": "A4: Backfill Legacy Dry Run",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 227,
+      "priority": "P0",
+      "details": {
+        "found": 38,
+        "dryRun": true
+      }
+    },
+    {
+      "name": "B5: Upload Init Thumbnail Status",
+      "success": false,
+      "status_code": 201,
+      "error": null,
+      "duration_ms": 635,
+      "priority": "P0",
+      "details": {
+        "thumbnailStatus": null,
+        "mediaId": "2f47b557-60ba-4f8b-8c94-96adfb1d0705"
+      }
+    },
+    {
+      "name": "B6: Upload Status Thumbnail",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 157,
+      "priority": "P0",
+      "details": {
+        "thumbnailStatus": "NONE",
+        "status": "PENDING_UPLOAD"
+      }
+    },
+    {
+      "name": "B7: Thumbnail Never Null",
+      "success": false,
+      "status_code": 201,
+      "error": null,
+      "duration_ms": 542,
+      "priority": "P0",
+      "details": {
+        "thumbnailStatus": null,
+        "valid_statuses": [
+          "NONE",
+          "PENDING",
+          "READY",
+          "FAILED"
+        ]
+      }
+    },
+    {
+      "name": "C8: Expired Upload Race Safety",
+      "success": false,
+      "status_code": 404,
+      "error": null,
+      "duration_ms": 995,
+      "priority": "P0",
+      "details": {
+        "mediaId": "3cd3b7ee-82ed-4ae9-93a0-85b813e816e5",
+        "response": "{\"error\":\"File not found in storage. Please upload the file first.\",\"code\":\"NOT_FOUND\"}"
+      }
+    },
+    {
+      "name": "C9: Cleanup Dry Run",
+      "success": false,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 183,
+      "priority": "P0",
+      "details": {
+        "mode": "DRY_RUN",
+        "staleCount": 0,
+        "oldestStale": null,
+        "items": []
+      }
+    },
+    {
+      "name": "C10: Cleanup Excludes Ready Records",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 155,
+      "priority": "P0",
+      "details": {
+        "mode": "DRY_RUN",
+        "staleCount": 0,
+        "oldestStale": null,
+        "items": []
+      }
+    },
+    {
+      "name": "D11: Media Metrics",
+      "success": false,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 207,
+      "priority": "P0",
+      "details": {
+        "lifecycle": {
+          "total": 265,
+          "pendingUpload": 19,
+          "ready": 105,
+          "expired": 1,
+          "deleted": 23,
+          "orphanCleaned": 117,
+          "failed": 0
+        },
+        "thumbnail": {
+          "none": 87,
+          "pending": 0,
+          "ready": 0,
+          "failed": 0
+        },
+        "last24h": {
+          "initiated": 19,
+          "completed": 97,
+          "cleaned": 117
+        },
+        "storage": {
+          "supabase": 125,
+          "objectStorage": 0,
+          "base64": 0
+        },
+        "health": {
+          "oldestStalePending": "2026-03-11T14:33:27.771Z",
+          "legacyRecordsWithoutLifecycleFields": 38,
+          "pollutionRisk": "LOW"
+        },
+        "generatedAt": "2026-03-11T18:31:46.711Z"
+      }
+    },
+    {
+      "name": "D12: Pollution Risk Field",
+      "success": false,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 187,
+      "priority": "P0",
+      "details": {
+        "pollutionRisk": null,
+        "valid_levels": [
+          "LOW",
+          "MEDIUM",
+          "HIGH"
+        ]
+      }
+    },
+    {
+      "name": "E13: Media Deletion",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 479,
+      "priority": "P0",
+      "details": {
+        "status": "DELETED",
+        "mediaId": "fe91cac8-d86c-4eca-8052-8f2f7f6d3204"
+      }
+    },
+    {
+      "name": "E14: Media Deletion Idempotency",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 211,
+      "priority": "P0",
+      "details": {
+        "status": "ALREADY_DELETED",
+        "mediaId": "fe91cac8-d86c-4eca-8052-8f2f7f6d3204"
+      }
+    },
+    {
+      "name": "E15: Media Deletion Not Found",
+      "success": true,
+      "status_code": 404,
+      "error": null,
+      "duration_ms": 254,
+      "priority": "P1",
+      "details": {
+        "mediaId": "00000000-0000-0000-0000-000000000000",
+        "response": "{\"error\":\"Media not found\",\"code\":\"NOT_FOUND\"}"
+      }
+    },
+    {
+      "name": "E16: Media Deletion Permission",
+      "success": true,
+      "status_code": 401,
+      "error": null,
+      "duration_ms": 135,
+      "priority": "P1",
+      "details": {
+        "expected_codes": [
+          401,
+          403
+        ],
+        "response": "{\"error\":\"Authentication required\",\"code\":\"UNAUTHORIZED\"}"
+      }
+    },
+    {
+      "name": "F17: Tribes Regression",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 172,
+      "priority": "P2",
+      "details": {
+        "tribes_count": 21,
+        "data_type": "dict"
+      }
+    },
+    {
+      "name": "F18: Leaderboard Regression",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 147,
+      "priority": "P2",
+      "details": {
+        "scoringVersion": "v3",
+        "itemsCount": 0
+      }
+    },
+    {
+      "name": "F19: Public Feed Regression",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 185,
+      "priority": "P2",
+      "details": {
+        "rankingAlgorithm": "engagement_weighted_v1",
+        "itemsCount": 5
+      }
+    },
+    {
+      "name": "F20: Stories Feed Regression",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 214,
+      "priority": "P2",
+      "details": {
+        "has_storyRail": true,
+        "has_stories": false
+      }
+    },
+    {
+      "name": "F21: Reels Feed Regression",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 189,
+      "priority": "P2",
+      "details": {
+        "itemsCount": 20
+      }
+    }
+  ]
+}

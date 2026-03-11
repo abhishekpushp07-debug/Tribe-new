@@ -1,220 +1,166 @@
-# TRIBE — MEDIA CONTRACT FREEZE v1.0
+# TRIBE — MEDIA CONTRACT FREEZE
+## Version: 2.0 | Date: 2026-03-11
 
-## 1. Upload Init Contract
-```
-POST /api/media/upload-init
-Authorization: Bearer <token>
+---
 
-Request:
-{
-  "kind": "image" | "video",            // REQUIRED
-  "mimeType": string,                    // REQUIRED — one of: image/jpeg, image/png, image/webp, video/mp4, video/quicktime
-  "sizeBytes": number,                   // REQUIRED — 1 to 209715200 (200MB)
-  "scope": "reels" | "stories" | "posts" | "thumbnails"  // OPTIONAL, defaults to "posts"
-}
+## 1. MEDIA ASSET LIFECYCLE
 
-Response 201:
-{
-  "mediaId": uuid,
-  "uploadUrl": string,     // Supabase signed URL — PUT binary data here
-  "token": string,         // Supabase upload token
-  "path": string,          // Storage path: {scope}/{userId}/{mediaId}.{ext}
-  "publicUrl": string,     // CDN URL (available after upload)
-  "expiresIn": 7200        // Signed URL TTL in seconds
-}
+### Statuses
+| Status | Meaning | Transitions To |
+|--------|---------|----------------|
+| `PENDING_UPLOAD` | Upload session created, waiting for client file upload | `READY`, `EXPIRED`, `ORPHAN_CLEANED` |
+| `READY` | File uploaded successfully, available for use | `DELETED` |
+| `EXPIRED` | Upload session expired (2h TTL passed) | `ORPHAN_CLEANED` |
+| `DELETED` | Soft-deleted by owner or admin | Terminal |
+| `ORPHAN_CLEANED` | Cleaned by background worker or admin cleanup | Terminal |
+| `FAILED` | Processing/upload failed | `ORPHAN_CLEANED` |
 
-Errors:
-- 400: validation (invalid kind/mime/size, kind-mime mismatch)
-- 401: not authenticated
-- 403: CHILD user restricted
-- 413: file too large (>200MB)
-```
+### Upload TTL
+- **2 hours** from `upload-init` call
+- `expiresAt` field set explicitly at creation
+- `upload-complete` after expiry returns `410 UPLOAD_EXPIRED`
+- Cleanup worker only touches rows where `expiresAt < NOW`
 
-## 2. Upload Complete Contract
-```
-POST /api/media/upload-complete
-Authorization: Bearer <token>
+---
 
-Request:
-{
-  "mediaId": uuid,         // REQUIRED
-  "width": number,         // OPTIONAL
-  "height": number,        // OPTIONAL
-  "duration": number       // OPTIONAL (seconds, for video)
-}
+## 2. THUMBNAIL LIFECYCLE
 
-Response 200:
-{
-  "id": uuid,
-  "url": string,           // Best playable URL (publicUrl or /api/media/:id)
-  "publicUrl": string,     // Supabase CDN URL
-  "thumbnailUrl": string | null,  // Auto-generated thumbnail for video
-  "type": "IMAGE" | "VIDEO",
-  "kind": "IMAGE" | "VIDEO",
-  "mimeType": string,
-  "size": number,
-  "storageType": "SUPABASE",
-  "status": "READY"
-}
+### Statuses
+| thumbnailStatus | Meaning | Frontend Action |
+|-----------------|---------|-----------------|
+| `NONE` | No thumbnail applicable or not yet requested | Show placeholder |
+| `PENDING` | Thumbnail generation in progress | Show spinner/loading |
+| `READY` | Thumbnail available at `thumbnailUrl` | Display thumbnail |
+| `FAILED` | Generation failed, `thumbnailError` has reason | Show fallback + retry option |
 
-Notes:
-- Idempotent: calling twice on same mediaId returns 200
-- Video uploads trigger automatic thumbnail generation (ffmpeg)
-- Thumbnail stored in thumbnails/ scope
-
-Errors:
-- 400: missing mediaId, wrong status
-- 401: not authenticated
-- 404: media not found or wrong owner
-```
-
-## 3. Upload Status Contract
-```
-GET /api/media/upload-status/:mediaId
-Authorization: Bearer <token>
-
-Response 200:
-{
-  "id": uuid,
-  "status": "PENDING_UPLOAD" | "READY" | "ORPHAN_CLEANED",
-  "publicUrl": string | null,
-  "type": string,
-  "kind": string,
-  "mimeType": string,
-  "size": number,
-  "storageType": string
-}
-```
-
-## 4. Media Serve Contract
-```
-GET /api/media/:id
-
-Behavior by storageType:
-- SUPABASE:        302 redirect to publicUrl (CDN)
-- OBJECT_STORAGE:  200 with binary body streamed
-- BASE64:          200 with decoded binary body
-
-Headers:
-- Content-Type: {mimeType}
-- Cache-Control: public, max-age=31536000, immutable (for SUPABASE/OBJECT_STORAGE)
-- Location: {publicUrl} (for 302)
-```
-
-## 5. Content Creation with mediaId
-
-### Reels
-```
-POST /api/reels
-{ "mediaId": uuid, "caption": string, ... }
-
-- mediaId resolves to media_assets record
-- MUST be VIDEO kind/mime
-- MUST be status=READY
-- MUST be owned by creator
-- playbackUrl = publicUrl from media asset
-- mediaId stored on reel record
-- Legacy: mediaUrl still accepted for backward compatibility
-```
-
-### Stories
-```
-POST /api/stories
-{ "mediaIds": [uuid, ...], "type": "IMAGE"|"VIDEO", ... }
-
-- Each mediaId resolves to media_assets
-- ALL must be owned by author
-- url = publicUrl from media asset (direct CDN, no redirect hop)
-```
-
-### Posts
-```
-POST /api/content/posts
-{ "mediaIds": [uuid, ...], "caption": string, ... }
-
-- Each mediaId resolves to media_assets
-- url = publicUrl from media asset (direct CDN, no redirect hop)
-```
-
-## 6. Media Object Shape (in serialized content)
+### Fields
 ```json
 {
-  "id": "uuid",
-  "url": "https://xxx.supabase.co/storage/v1/object/public/tribe-media/...",
-  "type": "IMAGE" | "VIDEO",
-  "mimeType": "image/jpeg",
-  "width": 1080,
-  "height": 1920,
-  "duration": 15.5,
-  "storageType": "SUPABASE" | "OBJECT_STORAGE" | "BASE64"
+  "thumbnailStatus": "NONE | PENDING | READY | FAILED",
+  "thumbnailUrl": "https://... | null",
+  "thumbnailMediaId": "uuid | null",
+  "thumbnailError": "string | null",
+  "thumbnailUpdatedAt": "ISO8601 | null"
 }
 ```
 
-## 7. Legacy Compatibility
-- Old content with inline base64 `data` field still served via /api/media/:id
-- Old content with OBJECT_STORAGE paths still streamed
-- Mixed feeds with old+new media serialize safely
-- Frontend does NOT need to distinguish old/new — `url` field always works
+### Rules
+- Image media: `thumbnailStatus = NONE` (source IS the thumbnail)
+- Video media: thumbnail generated async, starts as `PENDING`
+- `thumbnailUrl: null` + `thumbnailStatus: NONE` = not applicable
+- `thumbnailUrl: null` + `thumbnailStatus: PENDING` = still processing
+- `thumbnailUrl: null` + `thumbnailStatus: FAILED` = generation failed
 
-## 8. Media Deletion Contract (NEW)
-```
-DELETE /api/media/:id
-Authorization: Bearer <token>
+---
 
-Response 200:
+## 3. UPLOAD LIFECYCLE
+
+### Endpoints
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/media/upload-init` | POST | Create upload session, returns signed URL |
+| `/api/media/upload-complete` | POST | Finalize after client uploads to storage |
+| `/api/media/upload-status/:id` | GET | Check current upload status |
+| `/api/media/:id` | GET | Get media asset details |
+| `/api/media/:id` | DELETE | Soft-delete media asset |
+
+### Upload-Init Response
+```json
 {
-  "id": uuid,
-  "status": "DELETED"
+  "mediaId": "uuid",
+  "uploadUrl": "https://supabase.co/storage/v1/object/upload/sign/...",
+  "publicUrl": "https://supabase.co/storage/v1/object/public/...",
+  "expiresIn": 7200,
+  "expiresAt": "2026-03-11T20:00:00.000Z",
+  "thumbnailStatus": "NONE"
 }
-
-Rules:
-- Owner-only (or ADMIN/SUPER_ADMIN)
-- Attachment safety: returns 409 MEDIA_ATTACHED if media is used in any:
-  - content_items (posts) → media[].id
-  - reels → mediaId
-  - stories → mediaIds[]
-- Cascade: associated thumbnail also deleted
-- Supabase file deleted (best-effort)
-- Soft-delete: isDeleted=true, status=DELETED, deletedAt set
-
-Errors:
-- 401: not authenticated
-- 403: FORBIDDEN (not your media)
-- 404: media not found or already deleted
-- 409: MEDIA_ATTACHED (media is referenced in content)
-  Response: { "error": "Cannot delete...", "code": "MEDIA_ATTACHED", "attachments": [{ "type": "post|reel|story", "id": "..." }] }
 ```
 
-## 9. Cleanup / Orphan Policy
-- PENDING_UPLOAD records cleaned when `expiresAt` has passed (default 2h from upload-init)
-- Legacy records without `expiresAt` cleaned after 24h via `createdAt` fallback
-- Cleanup runs every 30 minutes via lazy-init worker
-- Remote Supabase objects deleted for orphans
-- DB records marked as `ORPHAN_CLEANED` + `isDeleted: true`
-- READY media NEVER touched by cleanup
-- Admin endpoint: `POST /api/admin/media/cleanup` (dry-run + execute modes)
+### Upload-Complete Responses
+- **200**: Already completed (idempotent)
+- **200**: Successfully finalized
+- **410**: Upload session expired: `{ "error": "Upload session expired", "code": "UPLOAD_EXPIRED" }`
+- **400**: Invalid status transition
 
-## 10. Thumbnail Lifecycle
+---
+
+## 4. CLEANUP / EXPIRATION
+
+### Background Worker
+- Runs every **30 minutes**
+- Targets: `status: PENDING_UPLOAD` AND (`expiresAt < NOW` OR no `expiresAt` + `createdAt < 24h ago`)
+- Batch limit: **100 per run**
+- Sets status to `ORPHAN_CLEANED`, `isDeleted: true`, `cleanedAt: NOW`
+- **Never touches**: `READY`, `DELETED`, or `isDeleted: true` records
+
+### Admin Cleanup: `POST /api/admin/media/cleanup`
+- Uses same `expiresAt`-first logic as background worker
+- Batch limit: 500 per call
+- Dry-run mode available
+
+### Race Safety
+- Active uploads protected by `expiresAt` (2h)
+- `upload-complete` rejects expired sessions with `410`
+- Legacy records: `createdAt + 24h` fallback
+
+---
+
+## 5. MEDIA DELETION
+
+### `DELETE /api/media/:id`
+
+### Authorization
+- **Owner**: Own media only
+- **ADMIN/SUPER_ADMIN**: Any media
+
+### Attachment Safety
+Checks `content_items`, `reels`, `stories`. If attached: `409 MEDIA_ATTACHED`
+
+### Idempotency
+- First delete: `200 { status: "DELETED" }`
+- Re-delete: `200 { status: "ALREADY_DELETED", deletedAt }`
+- Non-existent: `404 NOT_FOUND`
+
+---
+
+## 6. BATCH SEED / BACKFILL
+
+### `POST /api/admin/media/batch-seed`
+- Max 1000 assets per batch, idempotent (skips existing IDs)
+- Bulk insertMany in 500-item chunks
+- Records tagged with `batchImport: true`
+
+### `POST /api/admin/media/backfill-legacy`
+- Adds `thumbnailStatus` to records missing it
+- Sets `expiresAt` for PENDING_UPLOAD records missing it
+
+---
+
+## 7. ADMIN METRICS: `GET /api/admin/media/metrics`
+
+Returns lifecycle counts, thumbnail state counts, 24h activity, storage breakdown, health indicators (oldest stale pending, legacy records count, pollution risk level).
+
+---
+
+## 8. ERROR SEMANTICS
+
+| Code | HTTP | Meaning |
+|------|------|---------|
+| `UPLOAD_EXPIRED` | 410 | Upload session TTL passed |
+| `MEDIA_ATTACHED` | 409 | Cannot delete, media in use |
+| `NOT_FOUND` | 404 | Media doesn't exist |
+| `ALREADY_DELETED` | 200 | Idempotent re-delete |
+| `FORBIDDEN` | 403 | Not owner and not admin |
+
+---
+
+## 9. DB INDEXES
+
 ```
-Status transitions: NONE → PENDING → READY | FAILED
-
-Fields on media_assets:
-- thumbnailStatus: "NONE" | "PENDING" | "READY" | "FAILED"
-- thumbnailUrl: string | null (set when READY)
-- thumbnailMediaId: string | null (ID of thumbnail media_asset)
-- thumbnailError: string | null (reason when FAILED)
-
-Behavior:
-- Set to NONE on upload-init
-- Transitions to PENDING when thumbnail generation starts (on upload-complete for videos)
-- Transitions to READY with thumbnailUrl on success
-- Transitions to FAILED with thumbnailError on failure
-- Images never trigger thumbnail generation (stay NONE)
+media_assets.id (unique)
+media_assets.ownerId + createdAt (compound)
+media_assets.status + expiresAt (compound, cleanup worker)
+media_assets.status + isDeleted + createdAt (compound, metrics)
+media_assets.thumbnailStatus + isDeleted (compound, thumbnail queries)
+media_assets.parentMediaId (thumbnail → parent lookup)
 ```
-
-## 9. Allowed MIME Types
-- image/jpeg, image/png, image/webp
-- video/mp4, video/quicktime
-
-## 10. Max File Size
-- 200MB (Supabase Pro)
