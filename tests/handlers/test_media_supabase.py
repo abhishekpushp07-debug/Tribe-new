@@ -263,9 +263,9 @@ class TestUploadInit:
         assert resp.status_code == 400
 
     def test_init_file_too_large(self, api_url, media_user):
-        """Should reject files exceeding 50MB."""
+        """Should reject files exceeding 200MB."""
         resp = requests.post(f'{api_url}/media/upload-init', json={
-            'kind': 'video', 'mimeType': 'video/mp4', 'sizeBytes': 60_000_000
+            'kind': 'video', 'mimeType': 'video/mp4', 'sizeBytes': 210_000_000
         }, headers=_headers(media_user['token'], media_user['ip']))
         assert resp.status_code == 413
         assert resp.json()['code'] == 'PAYLOAD_TOO_LARGE'

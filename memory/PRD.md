@@ -51,8 +51,13 @@ Build a "world-best" social media backend for the app "Tribe" — a campus-nativ
   - `GET /api/media/:id` → 302 redirect to Supabase CDN
 - **Scopes**: reels/, stories/, posts/, thumbnails/
 - **Allowed MIME**: image/jpeg, image/png, image/webp, video/mp4, video/quicktime
-- **Max size**: 50MB (Supabase free tier)
+- **Max size**: 200MB (Supabase Pro)
 - **Legacy compatibility**: Existing base64 and Emergent Object Storage media still served
+
+### Content Handler Integration
+- **Posts** (`POST /content/posts`): Accepts `mediaIds[]` → resolves from `media_assets`, serves direct Supabase CDN URLs
+- **Reels** (`POST /reels`): Accepts `mediaId` (single) → resolves `playbackUrl` from `media_assets`, stores `mediaId` on reel. Backward-compatible with legacy `mediaUrl`
+- **Stories** (`POST /stories`): Accepts `mediaIds[]` → resolves from `media_assets`, serves direct Supabase CDN URLs
 
 ## Stage Completion Status
 
@@ -68,6 +73,7 @@ Build a "world-best" social media backend for the app "Tribe" — a campus-nativ
 | B5.1 | Search Quality Upgrade | ✅ DONE (PROVEN) | 27 |
 | B6 | Notifications 2.0 | ✅ DONE (GOLD PROOF) | 78 |
 | **Media Infra** | **Supabase Storage Integration** | **✅ DONE** | **36** |
+| **Content Integration** | **Posts/Reels/Stories → Supabase** | **✅ DONE** | **0 (tested via curl)** |
 | B7 | Test Hardening | ⬜ NOT STARTED | - |
 | B8 | Infra & Scale | ⬜ NOT STARTED | - |
 
