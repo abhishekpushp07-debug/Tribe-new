@@ -84,7 +84,7 @@ Build a "world-best" social media backend for the app "Tribe" — a campus-nativ
 | **Media Cleanup** | **Orphan cleanup + Thumbnail gen** | **✅ DONE** | **included above** |
 | **Media Lifecycle** | **Hardening (Delete, Expiry, Thumbs)** | **✅ DONE** | **21** |
 | **Tribe/House Cutover** | **Legacy house data migrated to tribes** | **✅ DONE** | **tested** |
-| **Tribe Leaderboard** | **Engagement-ranked leaderboard (7d/30d/all)** | **✅ DONE** | **tested** |
+| **Tribe Leaderboard** | **Engagement-ranked leaderboard (7d/30d/all)** | **✅ DONE** | **31 tests** |
 | B8 | Infra & Scale | ⬜ NOT STARTED | - |
 
 **Total test suite: 1000+ tests**
