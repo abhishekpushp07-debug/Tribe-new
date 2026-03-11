@@ -51,14 +51,16 @@ Build a "world-best" social media backend for the app "Tribe" — a campus-nativ
 | B2 | Visibility & Feed Safety | ✅ DONE | - |
 | B3 | Pages System | ✅ DONE | 50 |
 | B3-U | Ultimate Test Gate | ✅ PASS | 107 |
-| B4 | Core Social Gaps | ⬜ NOT STARTED | - |
-| B5 | Discovery & Hashtag Engine | ⬜ NOT STARTED | - |
-|| B6 | Notifications 2.0 | DONE | 59 |
+| B4 | Core Social Gaps | ✅ DONE | - |
+| B5 | Discovery & Hashtag Engine | ✅ DONE (PROVEN) | 77 |
+| B6 | Notifications 2.0 | ✅ DONE (GOLD PROOF) | 78 |
 | B7 | Test Hardening | ⬜ NOT STARTED | - |
 | B8 | Infra & Scale | ⬜ NOT STARTED | - |
 
+**Total test suite: 896/896 PASS**
+
 ## Known Issues
-1. **Post Search Not Working** (P1) — deferred to B5
+1. ~~**Post Search Not Working**~~ (FIXED in B5)
 2. ~~**Reel Interaction Bugs**~~ (FIXED in B6-P1/P2/P3)
 3. **Separate Test DB** — deferred to B8
 4. **Audit Log TTL** — deferred to B8
