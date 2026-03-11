@@ -1,6 +1,6 @@
 # B5 — Search & Discovery Contract Freeze
 
-## Version: v1.0 (B5 FINAL)
+## Version: v2.0 (B5.1 UPGRADE)
 ## Status: FROZEN
 ## Date: 2026-03-11
 
@@ -14,6 +14,7 @@
 | q | string | Yes | - | Min 2 chars, trimmed |
 | type | string | No | "all" | One of: all, users, pages, posts, hashtags, colleges, houses |
 | limit | int | No | 10 | Max 20 |
+| offset | int | No | 0 | For pagination — skip N results |
 
 ### Response Contract
 ```json
@@ -27,7 +28,15 @@
     "hashtags": [...],
     "posts": [...],
     "colleges": [...],
-    "houses": [...]
+    "houses": [...],
+    "pagination": {
+      "total": "number",
+      "offset": "number",
+      "limit": "number",
+      "hasMore": "boolean"
+    }
+  }
+}
   }
 }
 ```
@@ -39,6 +48,26 @@
 - Removed/held/deleted posts excluded
 - Only PUBLIC posts returned
 - Suspended/draft pages excluded (only ACTIVE/ARCHIVED)
+- Safety filtering applied BEFORE pagination (blocked items never appear on later pages)
+
+### Ranking Policy (B5.1)
+All entity types use **3-tier ranking**: exact > prefix > contains.
+
+| Entity | Tier 1 (Exact) | Tier 2 (Prefix) | Tier 3 (Contains) | Tie-break |
+|--------|---------------|-----------------|-------------------|-----------|
+| Users | displayName or username === query (case-insensitive) | startsWith query | contains query | followersCount DESC |
+| Pages | name or slug === query (case-insensitive) | startsWith query | contains query | isOfficial DESC, followerCount DESC |
+| Hashtags | tag === normalized query | startsWith query | contains query | postCount DESC |
+| Posts | N/A (recency-ranked) | N/A | caption contains query | createdAt DESC |
+| Colleges | N/A | N/A | normalizedName contains query | membersCount DESC |
+| Houses | N/A | N/A | name contains query | totalPoints DESC |
+
+### Pagination Semantics
+- `offset` + `limit` based (not cursor)
+- `total` = count of all matching results after safety filtering
+- `hasMore` = `offset + limit < total`
+- Stable ordering: same query returns same order absent data changes
+- Frontend can implement "Load More" by incrementing `offset`
 
 ---
 
