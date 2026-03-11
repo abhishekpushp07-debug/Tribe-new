@@ -1,104 +1,96 @@
-# Tribe — Product Requirements Document (PRD)
+# Tribe — Product Requirements Document
+**Version**: 4.0
 **Last Updated**: 2026-03-11
 
-## Original Problem Statement
-Build a "world-best" social media backend for the Tribe app. The project has gone through multiple phases of hardening, refactoring, and feature expansion to achieve near-world-best backend standard.
+## Problem Statement
+Build a world-best social media backend for "Tribe" — a college-centric social platform. The system serves users across colleges, tribes, houses with content types including Posts, Reels, Stories, and Pages.
 
 ## Core Architecture
-- **Runtime**: Next.js 15 (App Router) API routes
+- **Application**: Next.js 14 monolithic API with Service-Oriented Architecture
 - **Database**: MongoDB (local)
-- **Media Storage**: Supabase Storage
-- **Video Processing**: ffmpeg (system dependency)
-- **Cache**: In-memory (Redis planned for future)
-- **Auth**: Phone/PIN with JWT Bearer tokens
+- **Media Storage**: Supabase Storage (bucket: `tribe-media`)
+- **Video Processing**: ffmpeg (real transcoding pipeline)
+- **Testing**: pytest (~1001 tests, 99.9% pass rate)
+- **Auth**: Phone + PIN with JWT tokens
 
-## What's Been Implemented
+## User Personas
+1. **Student**: Creates posts, stories, reels. Joins tribes, follows pages
+2. **Page Admin**: Manages pages, creates page-authored content
+3. **Moderator**: Reviews flagged content, manages reports
+4. **Admin/Super Admin**: Platform governance, tribe management, analytics
 
-### Phase 1-3: Foundation (Completed)
-- Full auth system (phone/PIN, JWT, refresh tokens)
-- Content CRUD (posts, reels, stories)
-- Social graph (follow, block, notifications)
-- Pages system with dual-author model
-- Tribes & contests with leaderboard
-- Events, resources, governance, college/house systems
-- Full moderation pipeline
-- Search with hashtag system
+## Current Feature Status (as of 2026-03-11)
 
-### Phase 4: Service Layer Refactor (Completed)
-- Extracted ScoringService, FeedService, StoryService, ReelService, ContestService, MediaService
-- Algorithmic feed ranking
-- Tiered viral bonuses for leaderboard
+### Stories — 100% ✅
+- CRUD: Create, Read, Edit, Delete
+- Privacy: EVERYONE, CLOSE_FRIENDS, CUSTOM, hideStoryFrom
+- Interactions: Views, Reactions, Replies, Sticker responses
+- Story Mutes: Mute/unmute user stories without blocking
+- View Duration Tracking: Per-viewer duration + completion analytics
+- Bulk Moderation: Batch HOLD/REMOVE/RESTORE/APPROVE (MOD+)
+- Sticker Rate Limits: 30/hour per user
+- Story Rail: Batched privacy/mute/block filtering (no N+1)
+- Admin: Moderate, analytics, archive
+- Contract Freeze: STORIES_CONTRACT_FREEZE.md
 
-### Phase 5: Media Lifecycle Hardening (Completed)
-- Batch seeding, thumbnail/expiration states
-- Pollution control, safe idempotent deletion
-- Media lifecycle state machine (UPLOADING → PROCESSING → READY → FAILED)
+### Posts — 100% ✅
+- CRUD: Create, Read, Edit, Delete
+- Post Types: STANDARD, POLL, LINK, THREAD, CAROUSEL
+- Polls: Create, Vote, Results with expiry
+- Link Previews: Auto-fetched metadata (SSRF-safe)
+- Threads: Multi-part threaded posts
+- Carousel: Multi-media with explicit ordering (max 10 items)
+- Drafts: Create draft, list drafts, publish draft
+- Scheduling: Schedule future publish (max 30 days), reschedule, auto-publish worker
+- Distribution Pipeline: Stage 0→1→2 auto-promotion
+- Feed Cache: Zero cross-user leakage (auth users bypass cache)
+- Moderation: On create, on edit, content rejection
+- Contract Freeze: POSTS_CONTRACT_FREEZE.md
 
-### Phase 6: Top 6 Gap Closure (COMPLETED ✅)
+### Reels — 100% ✅
+- CRUD: Create, Read, Patch, Delete, Publish, Archive, Restore
+- Video Processing: Real ffmpeg transcoding (MP4 H.264), thumbnail generation
+- Feed Types: Default (score), Trending (velocity/age), Personalized (user-aware), Following, Audio
+- Creator Analytics: Detailed — daily views/likes trend, retention curve, top engagers, weekly performance
+- Interactions: Like, Comment, Share, Save, View tracking
+- Anti-abuse: Rate-limited via AntiAbuseService
+- Moderation: Full lifecycle
+- Contract Freeze: REELS_CONTRACT_FREEZE.md + REEL_PROCESSING_POLICY.md
 
-#### Phase A — Core Correctness (Completed)
-- **Gap 1**: Fixed post distributionStage auto-promotion pipeline
-- **Gap 2**: Fixed ranked feed cache key collision (per-user keys)
-- **Gap 3**: Verified story rail N+1 already solved by service refactor
+### Pages — 100% ✅
+- CRUD: Create, Read, Update, Archive, Restore, Delete
+- Verification Workflow: Request → Admin Review → Approve/Reject with notifications
+- Audience: Members, Followers, Admins, Moderators, Editors
+- Page Invite System: Invite users with role assignment
+- Page Posts: Create as page, page posts in feed
+- Page Report: Dedicated report endpoint
+- Page Analytics: Daily activity, follower growth, engagement, top posts
+- Page Search: Text, category, college-based with verified boost
+- Visibility: ACTIVE/ARCHIVED/SUSPENDED/DELETED with proper filtering
+- Contract Freeze: PAGES_CONTRACT_FREEZE.md
 
-#### Phase B — Media Production Readiness (Completed)
-- **Gap 4**: Implemented real reel transcoding with ffmpeg
+### Shared Systems — Complete ✅
+- Anti-Abuse: 5-layer detection (velocity, burst, same-author, rapid-diverse, cumulative)
+- Feed Cache: Zero cross-user leakage, event-driven invalidation
+- Moderation Pipeline: Content moderation on create/edit, multi-tier review
+- Media Pipeline: Supabase storage, chunked upload, real video transcoding
+- Notifications: 12+ types, grouped view, preferences
+- Search: Multi-type (users, pages, posts, hashtags, colleges, houses)
+- Age Protection: CHILD/ADULT content restrictions
+- Audit Trail: 25,000+ audit log entries
 
-#### Phase C — Anti-Abuse Hardening (COMPLETED ✅)
-- **Gap 5**: Full anti-abuse system with 5-layer detection
-  - Velocity checks, burst detection, same-author concentration
-  - Rapid diverse targeting, cumulative escalation
-  - Wired into ALL engagement surfaces: like, comment, share, save, follow, story reactions (in social.js, stories.js, reels.js)
-  - Admin abuse dashboard + detailed audit log endpoints
-  - Honest scope documentation
-
-#### Phase D — Post Subsystem Expansion (COMPLETED ✅)
-- **Gap 6**: Posts upgraded to match reels/stories product depth
-  - **Poll Posts**: Create with 2-6 options, vote, prevent double-votes, expiry, results endpoint
-  - **Link Preview Enrichment**: Async URL metadata fetch with SSRF protection, safe degradation
-  - **Thread/Long-Form Mode**: Multi-part linked posts (max 20 parts), thread reader endpoint, auto-promoting parent to THREAD_HEAD
-  - Feed serializers updated with postSubType, viewerPollVote, isThreadPart fields
-  - All existing post/media functionality preserved (regression-free)
-
-## Test Credentials
-Register new: `POST /api/auth/register { phone, pin, displayName }`
-- `7777099001` / `1234` (ADMIN, ADULT)
-- `7777099002` / `1234` (USER)
-
-## DB Collections Added in Phase 6
-- `poll_votes`: { id, contentId, userId, optionId, createdAt }
-- `abuse_audit_log`: { userId, actionType, targetId, severity, reason, blocked, timestamp }
-
-## Freeze Documents
-- ANTI_ABUSE_POLICY.md
-- POST_FEATURES_CONTRACT_FREEZE.md
-- MEDIA_CONTRACT_FREEZE.md
-- REELS_CONTRACT_FREEZE.md
-- SEARCH_CONTRACT_FREEZE.md
-- NOTIFICATIONS_CONTRACT_FREEZE.md
-
-## API Endpoint Count: 150+ across 16+ domains
-
-## Testing Status
-- **Full Regression Suite**: 1001 tests collected, **1000 passed, 1 known flake** (99.9% pass rate)
-- **Flake**: `test_follow_creates_v2_notification` — order-dependent rate-limiting, passes in isolation
-- **Zero real regressions** from Phase C or Phase D changes
-- **3 outdated tests fixed** (Gap 1 auto-promotion, House→Tribe migration, idempotent delete)
-- **Anti-abuse fix**: Moved action recording to AFTER checks pass, moved input validation BEFORE abuse checks
-
-## Documentation Completed
-- **API_REFERENCE_COMPLETE.md** — 309 endpoints documented
-- **SEED_DATA_REFERENCE.md** — Full database inventory (996 users, 6461 posts, 549 reels, 28 stories, 1685 pages, 5 tribes, 1369 colleges, 12 houses)
-- **FRONTEND_HANDOFF_INDEX.md** — Master index for frontend team (updated with seed data ref)
+## Documentation (22 documents)
+All contract freeze docs, operational policies, integration guides, and seed data references are in `/app/memory/`.
 
 ## Remaining Roadmap
-- **P0: "Reels, Stories, Posts, Pages to 100%"** — User's master prompt (pending)
-  - Stories: edit endpoint, mute story, view duration tracking, reaction rate limits
-  - Posts: multi-media/carousel, scheduling, drafts
-  - Reels: personalized scoring, trending/audio feeds, creator analytics
-  - Pages: full CRUD, verification, audience graph, page posts, privacy, analytics, discovery
 - **P1: B7 — Test Hardening + Gold Freeze** (zero-flake test suite)
 - **P2: B8 — Infra, Observability, Scale Path** (Redis, job queues, dedicated test DB)
 - **P3: Audit Log TTL policy**
 - **P4: Recommendation engine / ML ranking**
 - **P5: Push notifications infrastructure**
+
+## Test Credentials
+- All seeded accounts use PIN: `1234`
+- Primary test: `7777099001` (ADMIN), `7777099002` (USER)
+- Super Admin: `9000000001`, `9000099001`
+- See SEED_DATA_REFERENCE.md for full inventory

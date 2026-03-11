@@ -75,6 +75,19 @@ Content-Type: application/json
 | 10 | [REELS_CONTRACT_FREEZE.md](./REELS_CONTRACT_FREEZE.md) | 24 reel endpoints, object shapes, pagination, action semantics |
 | 11 | [SEARCH_CONTRACT_FREEZE.md](./SEARCH_CONTRACT_FREEZE.md) | Search types (all/users/pages/posts/hashtags/colleges/houses), ranking |
 | 12 | [NOTIFICATIONS_CONTRACT_FREEZE.md](./NOTIFICATIONS_CONTRACT_FREEZE.md) | Notification types, preferences, grouped view, device registration |
+| 14 | [STORIES_CONTRACT_FREEZE.md](./STORIES_CONTRACT_FREEZE.md) | 28 story endpoints, privacy rules, mutes, view duration, bulk moderation |
+| 15 | [POSTS_CONTRACT_FREEZE.md](./POSTS_CONTRACT_FREEZE.md) | 20+ post endpoints, carousel, drafts, scheduling, distribution pipeline |
+| 16 | [PAGES_CONTRACT_FREEZE.md](./PAGES_CONTRACT_FREEZE.md) | 25+ page endpoints, verification workflow, invite system, roles |
+| 17 | [POST_FEATURES_CONTRACT_FREEZE.md](./POST_FEATURES_CONTRACT_FREEZE.md) | Polls, Link Previews, Threads |
+| 18 | [ANTI_ABUSE_POLICY.md](./ANTI_ABUSE_POLICY.md) | 5-layer anti-abuse detection, rate limits, admin dashboard |
+
+### Operational Policies
+| # | Document | What It Covers |
+|---|----------|----------------|
+| 19 | [FEED_CACHE_POLICY.md](./FEED_CACHE_POLICY.md) | Cache segmentation, zero cross-user leakage |
+| 20 | [POST_DISTRIBUTION_POLICY.md](./POST_DISTRIBUTION_POLICY.md) | Stage 0→1→2 auto-promotion, admin overrides |
+| 21 | [STORY_RAIL_QUERY_POLICY.md](./STORY_RAIL_QUERY_POLICY.md) | Batched N+1 fix, filter pipeline |
+| 22 | [REEL_PROCESSING_POLICY.md](./REEL_PROCESSING_POLICY.md) | Video transcoding, trending score, personalization |
 
 ---
 
