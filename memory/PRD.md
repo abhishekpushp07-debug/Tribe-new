@@ -53,15 +53,16 @@ Build a "world-best" social media backend for the app "Tribe" — a campus-nativ
 | B3-U | Ultimate Test Gate | ✅ PASS | 107 |
 | B4 | Core Social Gaps | ⬜ NOT STARTED | - |
 | B5 | Discovery & Hashtag Engine | ⬜ NOT STARTED | - |
-| B6 | Notifications 2.0 | ⬜ NOT STARTED | - |
+|| B6 | Notifications 2.0 | DONE | 59 |
 | B7 | Test Hardening | ⬜ NOT STARTED | - |
 | B8 | Infra & Scale | ⬜ NOT STARTED | - |
 
 ## Known Issues
 1. **Post Search Not Working** (P1) — deferred to B5
-2. **Reel Interaction Bugs** (P1) — deferred to B6
+2. ~~**Reel Interaction Bugs**~~ (FIXED in B6-P1/P2/P3)
 3. **Separate Test DB** — deferred to B8
 4. **Audit Log TTL** — deferred to B8
+5. **B6-P3 rate-limit flake** (low) — `test_hide_not_interested_work` intermittent 429
 
 ## B3 New API Surface (18 endpoints)
 | Endpoint | Method | Auth | Role |
@@ -123,9 +124,10 @@ id, userId, commentId, contentId, createdAt (unique: userId+commentId)
 | B6-P1 | Reels Polish (bugs) | ✅ PASS | 31 |
 | B6-P2 | Reels Hardening | ✅ PASS | 28 |
 | B6-P3 | Reels Launch Readiness | ✅ PASS | 49 |
+|| B6-P4 | Notifications 2.0 | ✅ PASS | 59 |
 
 ## Next Priority
-**B6-P2 — Notifications 2.0**: Device token registration, notification preferences, unread count, grouping/aggregation, delivery hygiene
+**B5 — Discovery, Search & Hashtag Engine**: Implement hashtag extraction and fix non-functional post search
 
 ## Frontend Handoff Docs (FH1-U)
 - `/app/memory/API_REFERENCE.md` — Full route reference by domain

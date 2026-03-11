@@ -19,6 +19,7 @@ import { handleReels } from '@/lib/handlers/reels'
 import { handleTribes, handleTribeAdmin } from '@/lib/handlers/tribes'
 import { handleTribeContests, handleTribeContestAdmin } from '@/lib/handlers/tribe-contests'
 import { handlePages } from '@/lib/handlers/pages'
+import { handleNotifications } from '@/lib/handlers/notifications'
 import { cache } from '@/lib/cache'
 import { applyFreezeHeaders } from '@/lib/freeze-registry'
 import { applySecurityHeaders, getEndpointTier, checkTieredRateLimit, extractIP, checkPayloadSize, deepSanitizeStrings } from '@/lib/security'
@@ -476,7 +477,9 @@ async function handleRouteCore(request, { params }, reqCtx) {
       result = { error: 'House points system deprecated. Use tribe salutes via /tribe-contests', code: 'DEPRECATED', status: 410 }
     } else if (path[0] === 'governance') {
       result = await handleGovernance(path, method, request, db)
-    } else if (['reports', 'moderation', 'appeals', 'notifications', 'legal', 'admin', 'grievances'].includes(path[0])) {
+    } else if (path[0] === 'notifications') {
+      result = await handleNotifications(path, method, request, db)
+    } else if (['reports', 'moderation', 'appeals', 'legal', 'admin', 'grievances'].includes(path[0])) {
       if (path[0] === 'appeals' && path.length === 3 && path[2] === 'decide') {
         result = await handleAppealDecision(path, method, request, db)
       }

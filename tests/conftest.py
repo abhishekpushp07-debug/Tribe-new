@@ -320,6 +320,8 @@ def pytest_sessionfinish(session, exitstatus):
             deleted_sessions = db.sessions.delete_many({'userId': {'$in': user_ids}})
             deleted_audits = db.audit_logs.delete_many({'actorId': {'$in': user_ids}})
             db.notifications.delete_many({'userId': {'$in': user_ids}})
+            db.device_tokens.delete_many({'userId': {'$in': user_ids}})
+            db.notification_preferences.delete_many({'userId': {'$in': user_ids}})
             db.user_tribe_memberships.delete_many({'userId': {'$in': user_ids}})
             deleted_users = db.users.delete_many({'phone': {'$in': phones}})
             print(f'\n[CLEANUP] Removed {deleted_users.deleted_count} users, '
