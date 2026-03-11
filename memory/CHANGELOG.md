@@ -1,5 +1,44 @@
 # Tribe — Changelog
 
+## 2026-03-11: Service Layer Architecture — Files Created (IN PROGRESS)
+
+### Service Files Created
+1. **`/app/lib/services/scoring.js`** (267 lines) — Tribe Scoring Service
+   - `computeLeaderboard(db, { period })` — Full leaderboard computation with caching
+   - Tiered viral bonuses: 1K likes → +1000pts, 5K → +3000pts, 10K → +5000pts (cumulative per reel)
+   - Anti-cheat upload caps per period (7d: 350, 30d: 1500, 90d: 4500)
+   - 10-minute in-memory cache with `invalidateLeaderboardCache()`
+   - Scoring weights: upload=100, like=10, comment=20, share=50, storyReaction=15, storyReply=25
+   
+2. **`/app/lib/services/feed-ranking.js`** (112 lines) — Algorithmic Feed Ranking Service
+   - `rankFeed(posts, ctx)` — Scores and sorts posts by engagement-weighted algorithm
+   - `buildAffinityContext(db, viewerId)` — Builds viewer context (tribe, followees)
+   - Recency decay: exponential with 6h half-life
+   - Engagement velocity: log-scaled weighted interactions per hour (likes×1, comments×3, shares×5)
+   - Affinity boost: +0.5 for followed authors, +0.3 for same tribe
+   - Diversity penalty: 0.7× for 2nd post from same author, 0.4× for 3rd+
+   - Quality boost: 1.15× for posts with media
+
+### Status
+- Service files created and fully implemented
+- **NOT YET WIRED** into handlers (tribes.js still uses inline logic, feed.js still uses chronological sort)
+- Handler wiring is next step
+
+---
+
+## 2026-03-11: Judge Hardening — 50-Parameter Audit Fixes (COMPLETED)
+
+### System-Wide Hardening
+- Added 11 critical database indexes (users.tribeId, media_assets.status+createdAt, content_items.tribeId, tribes.code/name/score)
+- Implemented robust caching layer for leaderboard (10-min TTL, lazy init)
+- Fixed noisy Redis connection issue (graceful fallback)
+- Made thumbnail generation asynchronous (fire-and-forget)
+- Hardened against NoSQL injection attacks
+- Async workers for heavy operations
+
+---
+
+
 ## 2026-03-11: Stage B6 Phase 3 — Reels Launch Readiness (PASS)
 
 ### Contract Freeze

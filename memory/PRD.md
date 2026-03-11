@@ -101,15 +101,36 @@ Build a "world-best" social media backend for the app "Tribe" — a campus-nativ
 - **Emergent Object Storage**: Legacy, still functional as fallback
 - **Redis**: Present but not actively used
 
+## Backend URL
+`https://tribal-architecture.preview.emergentagent.com`
+
+## Service Layer Architecture (IN PROGRESS)
+Business logic is being extracted from monolithic handlers into dedicated service files:
+- `/app/lib/services/scoring.js` — Tribe leaderboard scoring engine with tiered viral bonuses, caching, anti-cheat caps (267 lines, CREATED but NOT yet wired into tribes.js)
+- `/app/lib/services/feed-ranking.js` — Algorithmic feed ranking with recency decay, engagement velocity, affinity boost, diversity penalty (112 lines, CREATED but NOT yet wired into feed.js)
+- `/app/lib/services/hashtag-service.js` — Hashtag extraction and management
+- `/app/lib/services/notification-service.js` — Notification dispatch logic
+
+### Status: Services created, handler wiring PENDING
+- `tribes.js` still uses inline leaderboard logic (~200 lines to replace)
+- `feed.js` still uses pure chronological sorting (needs algorithmic ranking)
+
 ## Next Priority
-- **P1: Fix B — Tribe/House Cutover** — Migrate legacy house data
-- **P2: B7 — Test Hardening + Gold Freeze** — 950+ tests
-- **P3: B8 — Infra, Observability, Scale Path** — 3-layer refactor, Redis queues, separate test DB
+- **P0: Wire Service Layer** — Connect scoring.js → tribes.js, feed-ranking.js → feed.js
+- **P1: Extend Service Extraction** — Create StoryService, ReelService, ContestService for large handlers
+- **P2: B7 — Test Hardening + Gold Freeze** — Zero-flake test suite
+- **P3: B8 — Infra, Observability, Scale Path** — Redis queues, separate test DB
 
 ## Key Files
+- `/app/lib/services/scoring.js` — Scoring service: leaderboard computation, tiered viral bonuses, caching
+- `/app/lib/services/feed-ranking.js` — Feed ranking: algorithmic ranking with recency + engagement + affinity
+- `/app/lib/handlers/tribes.js` — Tribe handler (1205 lines, leaderboard logic to be replaced by scoring.js)
+- `/app/lib/handlers/feed.js` — Feed handler (331 lines, chronological sorting to be replaced by feed-ranking.js)
+- `/app/lib/handlers/stories.js` — Stories handler (2157 lines, largest handler, P1 extraction target)
+- `/app/lib/handlers/reels.js` — Reels handler (1708 lines, P1 extraction target)
+- `/app/lib/handlers/tribe-contests.js` — Contest handler (1599 lines, P1 extraction target)
 - `/app/lib/supabase-storage.js` — Supabase Storage client (bucket init, signed URLs, public URLs)
 - `/app/lib/handlers/media.js` — Media upload/serve/delete handler (Supabase + legacy)
 - `/app/lib/handlers/media-cleanup.js` — Cleanup worker (expiresAt-based) + thumbnail generation
-- `/app/lib/storage.js` — Legacy Emergent Object Storage (kept for backward compat)
 - `/app/tests/handlers/test_media_supabase.py` — 54 comprehensive media pipeline tests
 - `/app/tests/handlers/test_media_lifecycle.py` — 21 lifecycle hardening tests
