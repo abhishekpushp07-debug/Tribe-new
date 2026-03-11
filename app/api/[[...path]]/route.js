@@ -441,7 +441,11 @@ async function handleRouteCore(request, { params }, reqCtx) {
     } else if (path[0] === 'follow') {
       result = await handleSocial(path, method, request, db)
     } else if (path[0] === 'content' && path.length >= 3) {
-      result = await handleSocial(path, method, request, db)
+      // Phase D: Try content handler first for poll/thread endpoints, then fall back to social
+      result = await handleContent(path, method, request, db)
+      if (!result) {
+        result = await handleSocial(path, method, request, db)
+      }
     } else if (path[0] === 'stories') {
       result = await handleStories(path, method, request, db)
     } else if (path[0] === 'reels') {
@@ -526,6 +530,9 @@ async function handleRouteCore(request, { params }, reqCtx) {
       }
       else if (path[0] === 'admin' && path[1] === 'tribe-awards') {
         result = await handleTribeAdmin(path, method, request, db)
+      }
+      else if (path[0] === 'admin' && (path[1] === 'abuse-dashboard' || path[1] === 'abuse-log')) {
+        result = await handleAdmin(path, method, request, db)
       }
       else if (path[0] === 'moderation' && path[1] === 'board-notices') {
         result = await handleBoardNotices(path, method, request, db)
