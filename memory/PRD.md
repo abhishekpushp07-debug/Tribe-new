@@ -65,6 +65,7 @@ Build a "world-best" social media backend for the app "Tribe" — a campus-nativ
 3. **Separate Test DB** — deferred to B8
 4. **Audit Log TTL** — deferred to B8
 5. **B6-P3 rate-limit flake** (low) — `test_hide_not_interested_work` intermittent 429
+6. ~~**Seed users lost on fork**~~ (FIXED — auto-seed on startup via `lib/seed.js`)
 
 ## B3 New API Surface (18 endpoints)
 | Endpoint | Method | Auth | Role |
