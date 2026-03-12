@@ -82,6 +82,16 @@ Build a world-best social media backend for "Tribe" — a college-centric social
 ## Documentation (22 documents)
 All contract freeze docs, operational policies, integration guides, and seed data references are in `/app/memory/`.
 
+## Deployment Fixes (2026-03-12)
+- Fixed `GET /stories` route — was returning 404, now returns story rail
+- Fixed `POST /media/initiate` — added alias for `/media/upload-init` (frontend compatibility)
+- Fixed media upload-init to accept flexible param names (`type`/`kind`, `size`/`sizeBytes`)
+- Added `POST /media/complete` alias for `/media/upload-complete`
+- Made storage URL configurable via `EMERGENT_STORAGE_URL` env var
+- Fixed Redis connection to skip when `REDIS_URL` not in environment
+- Added 4 key test users to auto-seed (7777099001 ADMIN, 7777099002 USER, 9876543210 ADMIN, 9000000001 SUPER_ADMIN)
+- Fixed malformed `.gitignore` (removed duplicate `-e` entries)
+
 ## Remaining Roadmap
 - **P1: B7 — Test Hardening + Gold Freeze** (zero-flake test suite)
 - **P2: B8 — Infra, Observability, Scale Path** (Redis, job queues, dedicated test DB)
