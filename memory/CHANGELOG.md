@@ -1,7 +1,21 @@
 # Tribe — Changelog
 **Last Updated**: 2026-03-12
 
-## 2026-03-12: "90+ Enhancement Pass" — Complete
+## 2026-03-12: Feed Visibility — Open All Content
+
+### Posts Feed (feed.js)
+- Removed `distributionStage` filter from ALL feed endpoints: `/feed`, `/feed/public`, `/feed/college`, `/explore`, `/trending`, personalized
+- All published posts now visible to all users regardless of distribution stage
+
+### Reels Feed (reels.js)
+- No changes needed — already showed all published reels with `status: PUBLISHED` + `mediaStatus: READY`
+
+### Stories Rail (story-service.js)
+- Changed `buildStoryRail()` from "followed users only" to "ALL active stories from ALL users"
+- Blocked users still filtered out for safety
+- Privacy/close-friends/mute filters still respected
+
+---
 
 ### Database Indexes (db.js)
 - Added 30+ new indexes for: follow_requests, recent_searches, analytics_events, profile_visits, transcode_jobs, tribe_cheers, likes, shares
