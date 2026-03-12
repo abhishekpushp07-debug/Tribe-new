@@ -15,9 +15,15 @@ Build a world-best social media backend for "Tribe" — a college-centric social
 
 ## Feature Status (as of 2026-03-12)
 
-### Pytest Regression Suite ✅ (NEW)
-- 91 tests across 14 categories — **100% pass rate** (10.87s)
-- Categories: Auth (6), Feed (8), Reels (9), Stories (4), Tribes (11), Search (11), Analytics (12), Transcode (6), Follow Requests (4), Social (6), Cache (4), Notifications (2), Users (3), Cross-User (5)
+### Smart Feed Algorithm ✅ (NEW)
+- Multi-signal ranking engine: recency decay (6h half-life), engagement velocity (likes×1 + comments×3 + saves×5 + shares×2), author affinity, content type affinity, virality detection, diversity penalty
+- Applied to: posts feed, reels feed
+- Debug endpoint: `GET /api/feed/debug` — full scoring breakdown per post
+- Tests: 8 dedicated tests in `test_15_smart_feed.py`
+
+### Pytest Regression Suite ✅
+- 99 tests across 15 categories — **100% pass rate** (10.77s)
+- Categories: Auth (6), Feed (8), Reels (9), Stories (4), Tribes (11), Search (11), Analytics (12), Transcode (6), Follow Requests (4), Social (6), Cache (4), Notifications (2), Users (3), Cross-User (5), Smart Feed (8)
 - Location: `/app/backend/tests/`
 - Run: `python -m pytest backend/tests/ -v`
 
