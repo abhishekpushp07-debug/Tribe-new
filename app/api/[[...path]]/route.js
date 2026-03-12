@@ -21,6 +21,10 @@ import { handleTribes, handleTribeAdmin } from '@/lib/handlers/tribes'
 import { handleTribeContests, handleTribeContestAdmin } from '@/lib/handlers/tribe-contests'
 import { handlePages } from '@/lib/handlers/pages'
 import { handleNotifications } from '@/lib/handlers/notifications'
+import { handleSearch } from '@/lib/handlers/search'
+import { handleTranscode } from '@/lib/handlers/transcode'
+import { handleAnalytics } from '@/lib/handlers/analytics'
+import { handleFollowRequests, interceptFollowForPrivateAccount } from '@/lib/handlers/follow-requests'
 import { cache } from '@/lib/cache'
 import { applyFreezeHeaders } from '@/lib/freeze-registry'
 import { applySecurityHeaders, getEndpointTier, checkTieredRateLimit, extractIP, checkPayloadSize, deepSanitizeStrings } from '@/lib/security'
@@ -437,6 +441,10 @@ async function handleRouteCore(request, { params }, reqCtx) {
       else if (path[1] === 'pages') {
         result = await handlePages(path, method, request, db)
       }
+      // New /me/* routes — follow requests
+      if (!result) {
+        result = await handleFollowRequests(path, method, request, db)
+      }
       // New /me/* routes go to users handler
       if (!result) {
         result = await handleUsers(path, method, request, db)
@@ -449,7 +457,11 @@ async function handleRouteCore(request, { params }, reqCtx) {
     } else if (path[0] === 'feed' || path[0] === 'explore' || path[0] === 'trending') {
       result = await handleFeed(path, method, request, db)
     } else if (path[0] === 'follow') {
-      result = await handleSocial(path, method, request, db)
+      // Intercept follows for private accounts
+      result = await interceptFollowForPrivateAccount(path, method, request, db)
+      if (!result) {
+        result = await handleSocial(path, method, request, db)
+      }
     } else if (path[0] === 'content' && path.length >= 3) {
       // Phase D: Try content handler first for poll/thread endpoints, then fall back to social
       result = await handleContent(path, method, request, db)
@@ -476,7 +488,7 @@ async function handleRouteCore(request, { params }, reqCtx) {
       if (!result) {
         result = await handleUsers(path, method, request, db)
       }
-    } else if (path[0] === 'colleges' || path[0] === 'houses' || path[0] === 'search' || path[0] === 'suggestions' || path[0] === 'hashtags') {
+    } else if (path[0] === 'colleges' || path[0] === 'houses' || path[0] === 'suggestions') {
       if (path[0] === 'colleges' && path.length === 3 && path[2] === 'claim') {
         result = await handleCollegeClaims(path, method, request, db)
       }
@@ -489,6 +501,18 @@ async function handleRouteCore(request, { params }, reqCtx) {
     } else if (path[0] === 'media') {
       startMediaCleanupWorker(db) // Lazy-init cleanup worker
       result = await handleMedia(path, method, request, db)
+      if (!result) {
+        result = await handleTranscode(path, method, request, db)
+      }
+    } else if (path[0] === 'search' || path[0] === 'hashtags') {
+      result = await handleSearch(path, method, request, db)
+      if (!result) result = await handleDiscovery(path, method, request, db)
+    } else if (path[0] === 'analytics') {
+      result = await handleAnalytics(path, method, request, db)
+    } else if (path[0] === 'transcode') {
+      result = await handleTranscode(path, method, request, db)
+    } else if (path[0] === 'follow-requests') {
+      result = await handleFollowRequests(path, method, request, db)
     } else if (path[0] === 'house-points') {
       result = { error: 'House points system deprecated. Use tribe salutes via /tribe-contests', code: 'DEPRECATED', status: 410 }
     } else if (path[0] === 'governance') {

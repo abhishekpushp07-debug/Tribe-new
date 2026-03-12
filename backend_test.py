@@ -1,715 +1,681 @@
 #!/usr/bin/env python3
 """
-Backend Testing Suite for Service Layer Refactor
-
-Testing the new service layer architecture that extracts business logic 
-from handlers into dedicated service files:
-- scoring.js (tribe leaderboard)
-- feed-ranking.js (algorithmic feed)  
-- story-service.js (story operations)
-- reel-service.js (reel operations)
-- contest-service.js (contest lifecycle)
-
-Priority endpoints per review request:
-P0: Leaderboard, Algorithmic Feed, Following Feed, College Feed, Tribe Feed
-P1: Story Service endpoints
-P2: Reel Service endpoints  
-P3: Contest Service endpoints
+Backend Test Suite for Tribe Social Media API - 4 New World-Class Features
+Testing 33 total endpoints across 4 new feature sets plus existing features.
 """
 
-import asyncio
-import aiohttp
 import json
 import time
-import sys
-from dataclasses import dataclass
-from typing import Dict, List, Optional, Any
+import requests
+import traceback
+from typing import Dict, Any, List, Optional
 
-BASE_URL = "https://tribe-feed-debug.preview.emergentagent.com"
-API_URL = f"{BASE_URL}/api"
+# Configuration
+BASE_URL = "https://tribe-feed-debug.preview.emergentagent.com/api"
+TIMEOUT = 30
 
-@dataclass 
-class TestResult:
-    name: str
-    success: bool
-    response_code: int
-    error: Optional[str]
-    duration_ms: int
-    priority: str
-    details: Optional[Dict] = None
+# Test users with pre-configured credentials
+USER1_PHONE = "7777099001"
+USER1_PIN = "1234"
+USER2_PHONE = "7777099002"
+USER2_PIN = "1234"
 
-class TribeTestSuite:
+class TribeAPITester:
     def __init__(self):
-        self.session = None
-        self.auth_token = None
-        self.results = []
-        self.test_user = {
-            "phone": "9000099001",
-            "pin": "1234"
-        }
-        self.alt_user = {
-            "phone": "9999960002", 
-            "pin": "1234"
-        }
+        self.base_url = BASE_URL
+        self.user1_token = None
+        self.user2_token = None
+        self.user1_id = None
+        self.user2_id = None
+        self.test_results = []
+        self.session = requests.Session()
+        self.session.timeout = TIMEOUT
         
-    async def setup(self):
-        self.session = aiohttp.ClientSession()
-        await self.authenticate()
+    def log_result(self, test_name: str, success: bool, details: str = "", response_data: Any = None):
+        """Log test result with details"""
+        result = {
+            "test": test_name,
+            "success": success,
+            "details": details,
+            "response_data": response_data if response_data and len(str(response_data)) < 500 else "Large response truncated"
+        }
+        self.test_results.append(result)
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{status}: {test_name} - {details}")
         
-    async def teardown(self):
-        if self.session:
-            await self.session.close()
+    def make_request(self, method: str, endpoint: str, token: str = None, data: Dict = None, params: Dict = None) -> tuple:
+        """Make HTTP request with proper headers"""
+        url = f"{self.base_url}{endpoint}"
+        headers = {"Content-Type": "application/json"}
+        
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
             
-    async def authenticate(self):
-        """Authenticate with test user credentials"""
         try:
-            start_time = time.time()
-            async with self.session.post(f"{API_URL}/auth/login", 
-                                       json=self.test_user,
-                                       timeout=10) as resp:
-                duration = int((time.time() - start_time) * 1000)
+            if method.upper() == "GET":
+                response = self.session.get(url, headers=headers, params=params)
+            elif method.upper() == "POST":
+                response = self.session.post(url, headers=headers, json=data, params=params)
+            elif method.upper() == "PATCH":
+                response = self.session.patch(url, headers=headers, json=data, params=params)
+            elif method.upper() == "DELETE":
+                response = self.session.delete(url, headers=headers, json=data, params=params)
+            elif method.upper() == "PUT":
+                response = self.session.put(url, headers=headers, json=data, params=params)
+            else:
+                return None, f"Unsupported method: {method}"
                 
-                if resp.status == 200:
-                    data = await resp.json()
-                    self.auth_token = data.get("accessToken") or data.get("data", {}).get("accessToken")
-                    if self.auth_token:
-                        print(f"✅ Authentication successful in {duration}ms")
-                        return True
-                    else:
-                        print(f"❌ No access token in response: {data}")
-                        return False
-                else:
-                    text = await resp.text()
-                    print(f"❌ Auth failed: {resp.status} - {text}")
-                    return False
-                    
+            return response, None
         except Exception as e:
-            print(f"❌ Auth error: {str(e)}")
+            return None, f"Request failed: {str(e)}"
+    
+    def setup_auth(self):
+        """Authenticate both test users and get their user IDs"""
+        print("\n🔐 Setting up authentication...")
+        
+        # Login User 1
+        response, error = self.make_request("POST", "/auth/login", data={
+            "phone": USER1_PHONE,
+            "pin": USER1_PIN
+        })
+        
+        if error or not response or response.status_code != 200:
+            self.log_result("User 1 Login", False, f"Login failed: {error or response.text if response else 'No response'}")
             return False
             
-    def get_headers(self):
-        """Get headers with auth token"""
-        headers = {"Content-Type": "application/json"}
-        if self.auth_token:
-            headers["Authorization"] = f"Bearer {self.auth_token}"
-        return headers
-        
-    async def make_request(self, method: str, endpoint: str, 
-                          data: Optional[Dict] = None,
-                          headers: Optional[Dict] = None,
-                          timeout: int = 10) -> tuple:
-        """Make HTTP request and return (status, response_data, duration)"""
-        start_time = time.time()
-        
-        if headers is None:
-            headers = self.get_headers()
+        data = response.json()
+        self.user1_token = data.get("token")
+        if not self.user1_token:
+            self.log_result("User 1 Login", False, "No token in response")
+            return False
             
-        url = f"{API_URL}/{endpoint.lstrip('/')}"
+        # Get User 1 ID
+        response, error = self.make_request("GET", "/auth/me", token=self.user1_token)
+        if error or not response or response.status_code != 200:
+            self.log_result("User 1 Profile", False, f"Get profile failed: {error or response.text if response else 'No response'}")
+            return False
+            
+        user_data = response.json()
+        self.user1_id = user_data.get("user", {}).get("id")
         
+        self.log_result("User 1 Authentication", True, f"Token obtained, User ID: {self.user1_id}")
+        
+        # Wait 5+ seconds between login calls as requested
+        print("⏰ Waiting 5 seconds between login calls...")
+        time.sleep(5)
+        
+        # Login User 2
+        response, error = self.make_request("POST", "/auth/login", data={
+            "phone": USER2_PHONE,
+            "pin": USER2_PIN
+        })
+        
+        if error or not response or response.status_code != 200:
+            self.log_result("User 2 Login", False, f"Login failed: {error or response.text if response else 'No response'}")
+            return False
+            
+        data = response.json()
+        self.user2_token = data.get("token")
+        if not self.user2_token:
+            self.log_result("User 2 Login", False, "No token in response")
+            return False
+            
+        # Get User 2 ID
+        response, error = self.make_request("GET", "/auth/me", token=self.user2_token)
+        if error or not response or response.status_code != 200:
+            self.log_result("User 2 Profile", False, f"Get profile failed: {error or response.text if response else 'No response'}")
+            return False
+            
+        user_data = response.json()
+        self.user2_id = user_data.get("user", {}).get("id")
+        
+        self.log_result("User 2 Authentication", True, f"Token obtained, User ID: {self.user2_id}")
+        
+        return True
+
+    def test_feature1_full_text_search(self):
+        """Test FEATURE 1: Full-Text Search with Autocomplete (8 endpoints)"""
+        print("\n🔍 Testing FEATURE 1: Full-Text Search with Autocomplete...")
+        
+        # Test 1: Unified search
+        response, error = self.make_request("GET", "/search", params={"q": "test"})
+        if error or not response:
+            self.log_result("Unified Search", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            # Should return results with users, posts, reels, hashtags, pages, tribes
+            self.log_result("Unified Search", True, f"Returned search results with {len(data)} items")
+        else:
+            self.log_result("Unified Search", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Test 2: Autocomplete
+        response, error = self.make_request("GET", "/search/autocomplete", params={"q": "te"})
+        if error or not response:
+            self.log_result("Search Autocomplete", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            suggestions = data.get("suggestions", []) if isinstance(data, dict) else data
+            self.log_result("Search Autocomplete", True, f"Returned {len(suggestions)} suggestions")
+        else:
+            self.log_result("Search Autocomplete", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Test 3: Search users
+        response, error = self.make_request("GET", "/search/users", params={"q": "user"})
+        if error or not response:
+            self.log_result("Search Users", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            items = data.get("items", [])
+            has_more = data.get("hasMore", False)
+            self.log_result("Search Users", True, f"Found {len(items)} users, hasMore: {has_more}")
+        else:
+            self.log_result("Search Users", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Test 4: Search hashtags
+        response, error = self.make_request("GET", "/search/hashtags", params={"q": "a"})
+        if error or not response:
+            self.log_result("Search Hashtags", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            items = data.get("items", [])
+            # Each item should have hashtag and postCount
+            self.log_result("Search Hashtags", True, f"Found {len(items)} hashtags")
+        else:
+            self.log_result("Search Hashtags", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Test 5: Search content (posts)
+        response, error = self.make_request("GET", "/search/content", params={"q": "test"})
+        if error or not response:
+            self.log_result("Search Content", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            items = data.get("items", [])
+            self.log_result("Search Content", True, f"Found {len(items)} content items")
+        else:
+            self.log_result("Search Content", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Test 6: Hashtag detail page
+        response, error = self.make_request("GET", "/hashtags/test")
+        if error or not response:
+            self.log_result("Hashtag Detail", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            hashtag = data.get("hashtag")
+            total_posts = data.get("totalPosts", 0)
+            items = data.get("items", [])
+            self.log_result("Hashtag Detail", True, f"Hashtag: {hashtag}, Posts: {total_posts}, Items: {len(items)}")
+        else:
+            self.log_result("Hashtag Detail", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Test 7: Recent searches (auth required)
+        response, error = self.make_request("GET", "/search/recent", token=self.user1_token)
+        if error or not response:
+            self.log_result("Recent Searches", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            self.log_result("Recent Searches", True, f"Retrieved recent searches: {len(data) if isinstance(data, list) else 'dict response'}")
+        else:
+            self.log_result("Recent Searches", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Test 8: Clear recent searches (auth required)
+        response, error = self.make_request("DELETE", "/search/recent", token=self.user1_token)
+        if error or not response:
+            self.log_result("Clear Recent Searches", False, f"Request failed: {error}")
+        elif response.status_code in [200, 204]:
+            self.log_result("Clear Recent Searches", True, "Recent searches cleared successfully")
+        else:
+            self.log_result("Clear Recent Searches", False, f"HTTP {response.status_code}: {response.text}")
+
+    def test_feature2_engagement_analytics(self):
+        """Test FEATURE 2: Engagement Analytics Dashboard (7 endpoints)"""
+        print("\n📊 Testing FEATURE 2: Engagement Analytics Dashboard...")
+        
+        # Test 9: Track event
+        response, error = self.make_request("POST", "/analytics/track", 
+                                          token=self.user1_token,
+                                          data={
+                                              "eventType": "PROFILE_VISIT",
+                                              "targetId": "test123",
+                                              "targetType": "USER"
+                                          })
+        if error or not response:
+            self.log_result("Analytics Track Event", False, f"Request failed: {error}")
+        elif response.status_code in [200, 201]:
+            self.log_result("Analytics Track Event", True, "Event tracked successfully")
+        else:
+            self.log_result("Analytics Track Event", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Test 10: Overview analytics
+        response, error = self.make_request("GET", "/analytics/overview", token=self.user1_token)
+        if error or not response:
+            self.log_result("Analytics Overview", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            engagement = data.get("engagement", {})
+            reach = data.get("reach", {})
+            audience = data.get("audience", {})
+            self.log_result("Analytics Overview", True, f"Overview with engagement, reach, audience sections")
+        else:
+            self.log_result("Analytics Overview", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Test 11: Content performance
+        response, error = self.make_request("GET", "/analytics/content", token=self.user1_token)
+        if error or not response:
+            self.log_result("Analytics Content", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            items = data.get("items", [])
+            self.log_result("Analytics Content", True, f"Content performance for {len(items)} items")
+        else:
+            self.log_result("Analytics Content", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # First create a post to get postId for single content analytics
+        post_id = None
+        response, error = self.make_request("POST", "/content/posts",
+                                          token=self.user1_token,
+                                          data={
+                                              "caption": "Test post for analytics",
+                                              "kind": "POST"
+                                          })
+        if response and response.status_code in [200, 201]:
+            post_data = response.json()
+            # The post might be in a nested structure
+            if "post" in post_data:
+                post_id = post_data["post"].get("id")
+            else:
+                post_id = post_data.get("id")
+            
+        # Test 12: Single content analytics
+        if post_id:
+            response, error = self.make_request("GET", f"/analytics/content/{post_id}", token=self.user1_token)
+            if error or not response:
+                self.log_result("Single Content Analytics", False, f"Request failed: {error}")
+            elif response.status_code == 200:
+                data = response.json()
+                self.log_result("Single Content Analytics", True, f"Analytics for post {post_id}")
+            else:
+                self.log_result("Single Content Analytics", False, f"HTTP {response.status_code}: {response.text}")
+        else:
+            self.log_result("Single Content Analytics", False, "No post ID available for testing")
+            
+        # Test 13: Audience demographics
+        response, error = self.make_request("GET", "/analytics/audience", token=self.user1_token)
+        if error or not response:
+            self.log_result("Analytics Audience", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            demographics = data.get("demographics", {})
+            top_engagers = data.get("topEngagers", [])
+            self.log_result("Analytics Audience", True, f"Demographics and {len(top_engagers)} top engagers")
+        else:
+            self.log_result("Analytics Audience", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Test 14: Reach & impressions
+        response, error = self.make_request("GET", "/analytics/reach", token=self.user1_token)
+        if error or not response:
+            self.log_result("Analytics Reach", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            # Time series data
+            self.log_result("Analytics Reach", True, "Reach & impressions time series retrieved")
+        else:
+            self.log_result("Analytics Reach", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Test 15: Reel analytics
+        response, error = self.make_request("GET", "/analytics/reels", token=self.user1_token)
+        if error or not response:
+            self.log_result("Analytics Reels", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            total_reels = data.get("totalReels", 0)
+            total_views = data.get("totalViews", 0)
+            items = data.get("items", [])
+            self.log_result("Analytics Reels", True, f"Reels: {total_reels}, Views: {total_views}, Items: {len(items)}")
+        else:
+            self.log_result("Analytics Reels", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Test 16: Profile visits
+        response, error = self.make_request("GET", "/analytics/profile-visits", token=self.user1_token)
+        if error or not response:
+            self.log_result("Analytics Profile Visits", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            self.log_result("Analytics Profile Visits", True, "Profile visit details retrieved")
+        else:
+            self.log_result("Analytics Profile Visits", False, f"HTTP {response.status_code}: {response.text}")
+
+    def test_feature3_follow_requests(self):
+        """Test FEATURE 3: Follow Request System (7 endpoints)"""
+        print("\n👥 Testing FEATURE 3: Follow Request System...")
+        
+        # First make User 2 private
+        response, error = self.make_request("PATCH", "/me/privacy", 
+                                          token=self.user2_token,
+                                          data={"isPrivate": True})
+        if error or not response:
+            self.log_result("Set User 2 Private", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            self.log_result("Set User 2 Private", True, "User 2 account set to private")
+        else:
+            self.log_result("Set User 2 Private", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Test 17: Unfollow first (if following)
+        response, error = self.make_request("DELETE", f"/follow/{self.user2_id}", token=self.user1_token)
+        # This might return 400 if not following, which is fine
+        if response and response.status_code in [200, 400, 404]:
+            self.log_result("Unfollow User 2", True, f"Unfollow attempted: {response.status_code}")
+        else:
+            self.log_result("Unfollow User 2", False, f"HTTP {response.status_code if response else 'No response'}: {response.text if response else error}")
+            
+        # Test 18: Follow private user (should create request)
+        response, error = self.make_request("POST", f"/follow/{self.user2_id}", token=self.user1_token)
+        if error or not response:
+            self.log_result("Follow Private User", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            request_pending = data.get("requestPending")
+            if request_pending:
+                self.log_result("Follow Private User", True, "Follow request created successfully")
+            else:
+                self.log_result("Follow Private User", False, "Expected requestPending=true")
+        else:
+            self.log_result("Follow Private User", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Test 19: Get follow requests (User 2)
+        response, error = self.make_request("GET", "/me/follow-requests", token=self.user2_token)
+        if error or not response:
+            self.log_result("Get Follow Requests", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            requests = data if isinstance(data, list) else data.get("requests", [])
+            self.log_result("Get Follow Requests", True, f"Found {len(requests)} pending requests")
+            
+            # Store request ID for later acceptance
+            self.request_id = None
+            if requests:
+                self.request_id = requests[0].get("id")
+        else:
+            self.log_result("Get Follow Requests", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Test 20: Get follow requests count
+        response, error = self.make_request("GET", "/me/follow-requests/count", token=self.user2_token)
+        if error or not response:
+            self.log_result("Follow Requests Count", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            count = data.get("count", 0) if isinstance(data, dict) else data
+            if count > 0:
+                self.log_result("Follow Requests Count", True, f"Count: {count}")
+            else:
+                self.log_result("Follow Requests Count", False, f"Expected count > 0, got {count}")
+        else:
+            self.log_result("Follow Requests Count", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Test 21: Get sent requests (User 1)
+        response, error = self.make_request("GET", "/me/follow-requests/sent", token=self.user1_token)
+        if error or not response:
+            self.log_result("Sent Follow Requests", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            sent_requests = data if isinstance(data, list) else data.get("requests", [])
+            self.log_result("Sent Follow Requests", True, f"Found {len(sent_requests)} sent requests")
+        else:
+            self.log_result("Sent Follow Requests", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Test 22: Accept follow request
+        if hasattr(self, 'request_id') and self.request_id:
+            response, error = self.make_request("POST", f"/follow-requests/{self.request_id}/accept", token=self.user2_token)
+            if error or not response:
+                self.log_result("Accept Follow Request", False, f"Request failed: {error}")
+            elif response.status_code == 200:
+                self.log_result("Accept Follow Request", True, "Follow request accepted successfully")
+            else:
+                self.log_result("Accept Follow Request", False, f"HTTP {response.status_code}: {response.text}")
+        else:
+            self.log_result("Accept Follow Request", False, "No request ID available")
+            
+        # Create another request for accept-all test
+        # First unfollow again
+        response, error = self.make_request("DELETE", f"/follow/{self.user2_id}", token=self.user1_token)
+        time.sleep(1)
+        
+        # Send new request
+        response, error = self.make_request("POST", f"/follow/{self.user2_id}", token=self.user1_token)
+        time.sleep(1)
+        
+        # Test 23: Accept all requests
+        response, error = self.make_request("POST", "/follow-requests/accept-all", token=self.user2_token)
+        if error or not response:
+            self.log_result("Accept All Follow Requests", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            accepted_count = data.get("acceptedCount", 0) if isinstance(data, dict) else 0
+            self.log_result("Accept All Follow Requests", True, f"Accepted {accepted_count} requests")
+        else:
+            self.log_result("Accept All Follow Requests", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Reset User 2 to public after testing
+        response, error = self.make_request("PATCH", "/me/privacy", 
+                                          token=self.user2_token,
+                                          data={"isPrivate": False})
+        if response and response.status_code == 200:
+            self.log_result("Reset User 2 to Public", True, "User 2 account reset to public")
+        else:
+            self.log_result("Reset User 2 to Public", False, f"Failed to reset privacy")
+
+    def test_feature4_video_transcoding(self):
+        """Test FEATURE 4: Video Transcoding System (6 endpoints)"""
+        print("\n🎥 Testing FEATURE 4: Video Transcoding System...")
+        
+        # Test 24: Upload init
+        response, error = self.make_request("POST", "/media/upload-init",
+                                          token=self.user1_token,
+                                          data={
+                                              "kind": "video",
+                                              "mimeType": "video/mp4",
+                                              "sizeBytes": 5000000
+                                          })
+        if error or not response:
+            self.log_result("Media Upload Init", False, f"Request failed: {error}")
+        elif response.status_code in [200, 201]:
+            data = response.json()
+            media_id = data.get("mediaId")
+            if media_id:
+                self.log_result("Media Upload Init", True, f"Media ID: {media_id}")
+                self.media_id = media_id
+            else:
+                self.log_result("Media Upload Init", False, "No mediaId in response")
+        else:
+            self.log_result("Media Upload Init", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Test 25: Start transcoding
+        if hasattr(self, 'media_id') and self.media_id:
+            response, error = self.make_request("POST", f"/transcode/{self.media_id}",
+                                              token=self.user1_token,
+                                              data={"qualities": ["720p", "480p", "360p"]})
+            if error or not response:
+                self.log_result("Start Transcode", False, f"Request failed: {error}")
+            elif response.status_code in [200, 201, 202]:  # 202 Accepted is valid for async operations
+                data = response.json()
+                job_id = data.get("job", {}).get("id") if "job" in data else data.get("jobId")
+                if job_id:
+                    self.log_result("Start Transcode", True, f"Job ID: {job_id}")
+                    self.job_id = job_id
+                else:
+                    self.log_result("Start Transcode", False, "No jobId in response")
+            else:
+                self.log_result("Start Transcode", False, f"HTTP {response.status_code}: {response.text}")
+        else:
+            self.log_result("Start Transcode", False, "No media ID available")
+            
+        # Test 26: Check job status
+        if hasattr(self, 'job_id') and self.job_id:
+            response, error = self.make_request("GET", f"/transcode/{self.job_id}/status", token=self.user1_token)
+            if error or not response:
+                self.log_result("Transcode Job Status", False, f"Request failed: {error}")
+            elif response.status_code == 200:
+                data = response.json()
+                status = data.get("status")
+                self.log_result("Transcode Job Status", True, f"Job status: {status}")
+            else:
+                self.log_result("Transcode Job Status", False, f"HTTP {response.status_code}: {response.text}")
+        else:
+            self.log_result("Transcode Job Status", False, "No job ID available")
+            
+        # Test 27: Get transcode info for media
+        if hasattr(self, 'media_id') and self.media_id:
+            response, error = self.make_request("GET", f"/transcode/media/{self.media_id}", token=self.user1_token)
+            if error or not response:
+                self.log_result("Transcode Media Info", False, f"Request failed: {error}")
+            elif response.status_code == 200:
+                data = response.json()
+                self.log_result("Transcode Media Info", True, f"Media transcode info retrieved")
+            else:
+                self.log_result("Transcode Media Info", False, f"HTTP {response.status_code}: {response.text}")
+        else:
+            self.log_result("Transcode Media Info", False, "No media ID available")
+            
+        # Test 28: View queue and stats
+        response, error = self.make_request("GET", "/transcode/queue", token=self.user1_token)
+        if error or not response:
+            self.log_result("Transcode Queue", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            self.log_result("Transcode Queue", True, "Queue and stats retrieved")
+        else:
+            self.log_result("Transcode Queue", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Test 29: HLS master playlist info
+        if hasattr(self, 'media_id') and self.media_id:
+            response, error = self.make_request("GET", f"/media/{self.media_id}/stream", token=self.user1_token)
+            if error or not response:
+                self.log_result("HLS Master Playlist", False, f"Request failed: {error}")
+            elif response.status_code == 200:
+                data = response.json()
+                variants = data.get("variants", []) if isinstance(data, dict) else []
+                self.log_result("HLS Master Playlist", True, f"HLS info with {len(variants)} variants")
+            else:
+                self.log_result("HLS Master Playlist", False, f"HTTP {response.status_code}: {response.text}")
+        else:
+            self.log_result("HLS Master Playlist", False, "No media ID available")
+            
+        # Test 30: Thumbnails for media
+        if hasattr(self, 'media_id') and self.media_id:
+            response, error = self.make_request("GET", f"/media/{self.media_id}/thumbnails", token=self.user1_token)
+            if error or not response:
+                self.log_result("Media Thumbnails", False, f"Request failed: {error}")
+            elif response.status_code == 200:
+                data = response.json()
+                self.log_result("Media Thumbnails", True, "Thumbnails info retrieved")
+            else:
+                self.log_result("Media Thumbnails", False, f"HTTP {response.status_code}: {response.text}")
+        else:
+            self.log_result("Media Thumbnails", False, "No media ID available")
+
+    def test_existing_features(self):
+        """Test existing features to verify they still work"""
+        print("\n✅ Testing existing features...")
+        
+        # Test 31: Home feed
+        response, error = self.make_request("GET", "/feed", token=self.user1_token)
+        if error or not response:
+            self.log_result("Home Feed", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            items = data.get("items", []) if isinstance(data, dict) else data
+            self.log_result("Home Feed", True, f"Retrieved {len(items)} items")
+        else:
+            self.log_result("Home Feed", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Test 32: Explore page
+        response, error = self.make_request("GET", "/explore", token=self.user1_token)
+        if error or not response:
+            self.log_result("Explore Feed", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            self.log_result("Explore Feed", True, "Explore page loaded successfully")
+        else:
+            self.log_result("Explore Feed", False, f"HTTP {response.status_code}: {response.text}")
+            
+        # Test 33: Profile with stats
+        response, error = self.make_request("GET", "/me", token=self.user1_token)
+        if error or not response:
+            self.log_result("User Profile", False, f"Request failed: {error}")
+        elif response.status_code == 200:
+            data = response.json()
+            # Profile might be nested or direct
+            user_id = data.get("id") or (data.get("user", {}).get("id"))
+            self.log_result("User Profile", True, f"Profile retrieved for user {user_id}")
+        else:
+            self.log_result("User Profile", False, f"HTTP {response.status_code}: {response.text}")
+
+    def run_all_tests(self):
+        """Run all test suites"""
+        print("🚀 Starting Tribe API Backend Testing - 4 New World-Class Features")
+        print(f"Base URL: {self.base_url}")
+        
+        if not self.setup_auth():
+            print("❌ Authentication setup failed. Cannot proceed with tests.")
+            return
+            
         try:
-            async with self.session.request(method, url, 
-                                          json=data, 
-                                          headers=headers,
-                                          timeout=timeout) as resp:
-                duration = int((time.time() - start_time) * 1000)
-                
-                try:
-                    response_data = await resp.json()
-                except:
-                    response_data = {"text": await resp.text()}
-                    
-                return resp.status, response_data, duration
-                
-        except asyncio.TimeoutError:
-            duration = int((time.time() - start_time) * 1000)
-            return 408, {"error": "Request timeout"}, duration
+            self.test_feature1_full_text_search()
+            self.test_feature2_engagement_analytics()
+            self.test_feature3_follow_requests()
+            self.test_feature4_video_transcoding()
+            self.test_existing_features()
+            
         except Exception as e:
-            duration = int((time.time() - start_time) * 1000)
-            return 500, {"error": str(e)}, duration
+            print(f"❌ Testing suite failed: {str(e)}")
+            traceback.print_exc()
             
-    def record_result(self, name: str, success: bool, status_code: int, 
-                     error: Optional[str], duration: int, priority: str,
-                     details: Optional[Dict] = None):
-        """Record test result"""
-        result = TestResult(name, success, status_code, error, duration, priority, details)
-        self.results.append(result)
+        # Print final summary
+        self.print_summary()
         
-        # Print result
-        status_icon = "✅" if success else "❌"
-        print(f"{status_icon} {name} - {status_code} ({duration}ms) [{priority}]")
-        if error and not success:
-            print(f"   Error: {error}")
-        if details and success:
-            key_details = {}
-            if isinstance(details, dict):
-                # Show important fields
-                for key in ['scoringVersion', 'rankingAlgorithm', 'distributionFilter', 'feedType']:
-                    if key in details:
-                        key_details[key] = details[key]
-            if key_details:
-                print(f"   Details: {key_details}")
-                
-    # ==========================================
-    # P0 TESTS - WIRED SERVICES (MUST PASS) 
-    # ==========================================
-    
-    async def test_leaderboard_scoring_service(self):
-        """Test P0: Leaderboard with v3 scoring from scoring.js service"""
-        periods = ['7d', '30d', '90d', 'all']
+    def print_summary(self):
+        """Print test results summary"""
+        print("\n" + "="*80)
+        print("📊 TEST RESULTS SUMMARY")
+        print("="*80)
         
-        for period in periods:
-            endpoint = f"tribes/leaderboard?period={period}"
-            status, data, duration = await self.make_request("GET", endpoint)
-            
-            success = False
-            error = None
-            details = {}
-            
-            if status == 200:
-                response_data = data.get("data", data)  # Handle both wrapped and unwrapped responses
-                
-                # Check for v3 scoring version
-                scoring_version = response_data.get("scoringVersion")
-                if scoring_version != "v3":
-                    error = f"Expected scoringVersion 'v3', got '{scoring_version}'"
-                else:
-                    # Check for viral tiers in scoring rules
-                    scoring_rules = response_data.get("scoringRules", {})
-                    viral_tiers = scoring_rules.get("viralTiers")
-                    if not viral_tiers or not isinstance(viral_tiers, list):
-                        error = "Missing viralTiers array in scoringRules"
-                    else:
-                        # Check leaderboard items structure
-                        items = response_data.get("items", [])
-                        if items:
-                            first_item = items[0]
-                            viral_reels = first_item.get("metrics", {}).get("viralReels")
-                            if isinstance(viral_reels, dict) and "tier1" in viral_reels:
-                                success = True
-                                details = {
-                                    "scoringVersion": scoring_version,
-                                    "viralTiers": len(viral_tiers),
-                                    "itemsCount": len(items),
-                                    "viralReels": viral_reels
-                                }
-                            else:
-                                error = "viralReels should be object with tier1/tier2/tier3, not plain number"
-            else:
-                error = data.get("error", f"HTTP {status}")
-                
-            self.record_result(f"Leaderboard Scoring v3 ({period})", success, status, error, duration, "P0", details)
-            
-    async def test_algorithmic_feed(self):
-        """Test P0: Algorithmic feed with ranking from feed-ranking.js service"""
-        # Test first page (should be algorithmic)
-        status, data, duration = await self.make_request("GET", "feed/public?limit=10")
-        
-        success = False
-        error = None
-        details = {}
-        
-        if status == 200:
-            response_data = data.get("data", data)  # Handle both wrapped and unwrapped responses
-            
-            # Check ranking algorithm
-            ranking_algo = response_data.get("rankingAlgorithm")
-            if ranking_algo != "engagement_weighted_v1":
-                error = f"Expected rankingAlgorithm 'engagement_weighted_v1', got '{ranking_algo}'"
-            else:
-                # Check for feed scores and ranks
-                items = response_data.get("items", [])
-                if items:
-                    first_item = items[0]
-                    if "_feedScore" in first_item and "_feedRank" in first_item:
-                        success = True
-                        details = {
-                            "rankingAlgorithm": ranking_algo,
-                            "itemsCount": len(items),
-                            "feedScore": first_item.get("_feedScore"),
-                            "feedRank": first_item.get("_feedRank")
-                        }
-                    else:
-                        error = "Items missing _feedScore and _feedRank fields"
-                else:
-                    # No items is okay for empty feed
-                    success = True
-                    details = {"rankingAlgorithm": ranking_algo, "itemsCount": 0}
-        else:
-            error = data.get("error", f"HTTP {status}")
-            
-        self.record_result("Algorithmic Feed (First Page)", success, status, error, duration, "P0", details)
-        
-        # Test second page with cursor (should be chronological)
-        if success and details.get("itemsCount", 0) > 0:
-            # Get cursor from response
-            cursor = response_data.get("nextCursor")
-            if cursor:
-                status, data, duration = await self.make_request("GET", f"feed/public?limit=10&cursor={cursor}")
-                
-                success = False
-                error = None
-                
-                if status == 200:
-                    response_data = data.get("data", {})
-                    ranking_algo = response_data.get("rankingAlgorithm")
-                    if ranking_algo == "chronological":
-                        success = True
-                        details = {"rankingAlgorithm": ranking_algo, "cursorUsed": True}
-                    else:
-                        error = f"Expected chronological on paginated page, got {ranking_algo}"
-                else:
-                    error = data.get("error", f"HTTP {status}")
-                    
-                self.record_result("Algorithmic Feed (Second Page)", success, status, error, duration, "P0", details)
-                
-    async def test_following_feed(self):
-        """Test P0: Following feed"""
-        status, data, duration = await self.make_request("GET", "feed/following?limit=10")
-        
-        success = False
-        error = None
-        details = {}
-        
-        if status == 200:
-            response_data = data.get("data", data)  # Handle both wrapped and unwrapped responses
-            feed_type = response_data.get("feedType")
-            if feed_type == "following":
-                success = True
-                items = response_data.get("items", [])
-                details = {
-                    "feedType": feed_type,
-                    "itemsCount": len(items),
-                    "rankingAlgorithm": response_data.get("rankingAlgorithm")
-                }
-            else:
-                error = f"Expected feedType 'following', got '{feed_type}'"
-        else:
-            error = data.get("error", f"HTTP {status}")
-            
-        self.record_result("Following Feed", success, status, error, duration, "P0", details)
-        
-    async def test_college_feed(self):
-        """Test P0: College feed"""
-        # Use a test college ID
-        test_college = "test-college"
-        status, data, duration = await self.make_request("GET", f"feed/college/{test_college}?limit=5")
-        
-        success = False
-        error = None
-        details = {}
-        
-        if status == 200:
-            response_data = data.get("data", data)  # Handle both wrapped and unwrapped responses
-            feed_type = response_data.get("feedType")
-            if feed_type == "college":
-                success = True
-                items = response_data.get("items", [])
-                details = {
-                    "feedType": feed_type,
-                    "itemsCount": len(items),
-                    "collegeId": test_college
-                }
-            else:
-                error = f"Expected feedType 'college', got '{feed_type}'"
-        else:
-            error = data.get("error", f"HTTP {status}")
-            
-        self.record_result("College Feed", success, status, error, duration, "P0", details)
-        
-    async def test_tribe_feed(self):
-        """Test P0: Tribe feed"""
-        # First get list of tribes to get a tribe ID
-        status, data, duration = await self.make_request("GET", "tribes")
-        
-        tribe_id = None
-        if status == 200:
-            response_data = data.get("data", data)  # Handle both wrapped and unwrapped responses
-            tribes = response_data.get("items", [])
-            if tribes:
-                tribe_id = tribes[0].get("id")
-                
-        if not tribe_id:
-            self.record_result("Tribe Feed", False, status, "Could not get tribe ID", duration, "P0")
-            return
-            
-        # Test tribe feed
-        status, data, duration = await self.make_request("GET", f"feed/tribe/{tribe_id}?limit=5")
-        
-        success = False
-        error = None
-        details = {}
-        
-        if status == 200:
-            response_data = data.get("data", data)  # Handle both wrapped and unwrapped responses
-            feed_type = response_data.get("feedType")
-            if feed_type == "tribe":
-                success = True
-                items = response_data.get("items", [])
-                details = {
-                    "feedType": feed_type,
-                    "itemsCount": len(items),
-                    "tribeId": tribe_id
-                }
-            else:
-                error = f"Expected feedType 'tribe', got '{feed_type}'"
-        else:
-            error = data.get("error", f"HTTP {status}")
-            
-        self.record_result("Tribe Feed", success, status, error, duration, "P0", details)
-        
-    # ==========================================
-    # P1 TESTS - STORY SERVICE
-    # ==========================================
-    
-    async def test_story_rail(self):
-        """Test P1: Story rail from story-service.js"""
-        status, data, duration = await self.make_request("GET", "stories/feed")
-        
-        success = False
-        error = None
-        details = {}
-        
-        if status == 200:
-            response_data = data.get("data", data)  # Handle both wrapped and unwrapped responses
-            story_rail = response_data.get("storyRail")
-            stories = response_data.get("stories")  # Backward compatibility field
-            
-            if story_rail is not None:
-                success = True
-                details = {
-                    "storyRailCount": len(story_rail) if isinstance(story_rail, list) else 0,
-                    "storiesCount": len(stories) if isinstance(stories, list) else 0,
-                    "hasBackwardCompat": stories is not None
-                }
-            else:
-                error = "Missing storyRail field"
-        else:
-            error = data.get("error", f"HTTP {status}")
-            
-        self.record_result("Story Rail Feed", success, status, error, duration, "P1", details)
-        
-    async def test_story_create(self):
-        """Test P1: Story creation via story-service.js"""
-        story_data = {
-            "type": "TEXT",
-            "text": "Test story from service layer refactor testing",
-            "privacy": "EVERYONE"
-        }
-        
-        status, data, duration = await self.make_request("POST", "stories", story_data)
-        
-        success = False
-        error = None
-        details = {}
-        
-        if status == 201:
-            response_data = data.get("data", data)  # Handle both wrapped and unwrapped responses
-            story = response_data.get("story")
-            if story and story.get("id"):
-                success = True
-                details = {
-                    "storyId": story.get("id"),
-                    "type": story.get("type"),
-                    "privacy": story.get("privacy"),
-                    "status": story.get("status")
-                }
-                # Store story ID for next test
-                self.created_story_id = story.get("id")
-            else:
-                error = "Story creation response missing story object"
-        else:
-            error = data.get("error", f"HTTP {status}")
-            
-        self.record_result("Story Creation", success, status, error, duration, "P1", details)
-        
-    async def test_story_get(self):
-        """Test P1: Story retrieval via story-service.js"""
-        if not hasattr(self, 'created_story_id'):
-            self.record_result("Story Get", False, 0, "No story ID from creation test", 0, "P1")
-            return
-            
-        status, data, duration = await self.make_request("GET", f"stories/{self.created_story_id}")
-        
-        success = False
-        error = None
-        details = {}
-        
-        if status == 200:
-            response_data = data.get("data", data)  # Handle both wrapped and unwrapped responses
-            story = response_data.get("story")
-            if story and story.get("id") == self.created_story_id:
-                success = True
-                details = {
-                    "storyId": story.get("id"),
-                    "author": story.get("author", {}).get("username", "unknown"),
-                    "viewerReaction": story.get("viewerReaction"),
-                    "stickersCount": len(story.get("stickers", []))
-                }
-            else:
-                error = "Story not found or ID mismatch"
-        else:
-            error = data.get("error", f"HTTP {status}")
-            
-        self.record_result("Story Get", success, status, error, duration, "P1", details)
-        
-    # ==========================================
-    # P2 TESTS - REEL SERVICE  
-    # ==========================================
-    
-    async def test_reel_feed(self):
-        """Test P2: Reel feed via reel-service.js"""
-        status, data, duration = await self.make_request("GET", "reels/feed")
-        
-        success = False
-        error = None
-        details = {}
-        
-        if status == 200:
-            response_data = data.get("data", data)  # Handle both wrapped and unwrapped responses
-            items = response_data.get("items", [])
-            success = True  # Any response is valid for feed
-            details = {
-                "itemsCount": len(items),
-                "feedType": response_data.get("feedType", "reels")
-            }
-        else:
-            error = data.get("error", f"HTTP {status}")
-            
-        self.record_result("Reel Feed", success, status, error, duration, "P2", details)
-        
-    async def test_reel_following(self):
-        """Test P2: Reel following feed via reel-service.js"""
-        status, data, duration = await self.make_request("GET", "reels/following")
-        
-        success = False
-        error = None
-        details = {}
-        
-        if status == 200:
-            response_data = data.get("data", data)  # Handle both wrapped and unwrapped responses
-            items = response_data.get("items", [])
-            success = True  # Any response is valid
-            details = {
-                "itemsCount": len(items),
-                "feedType": "following"
-            }
-        else:
-            error = data.get("error", f"HTTP {status}")
-            
-        self.record_result("Reel Following", success, status, error, duration, "P2", details)
-        
-    # ==========================================
-    # P3 TESTS - CONTEST SERVICE
-    # ==========================================
-    
-    async def test_list_contests(self):
-        """Test P3: List contests via contest-service.js"""
-        status, data, duration = await self.make_request("GET", "tribe-contests")
-        
-        success = False
-        error = None
-        details = {}
-        
-        if status == 200:
-            response_data = data.get("data", data)  # Handle both wrapped and unwrapped responses
-            items = response_data.get("items", [])
-            success = True
-            details = {
-                "contestsCount": len(items)
-            }
-        else:
-            error = data.get("error", f"HTTP {status}")
-            
-        self.record_result("List Contests", success, status, error, duration, "P3", details)
-        
-    async def test_contest_seasons(self):
-        """Test P3: Contest seasons via contest-service.js"""
-        status, data, duration = await self.make_request("GET", "tribe-contests/seasons")
-        
-        success = False
-        error = None
-        details = {}
-        
-        if status == 200:
-            response_data = data.get("data", data)  # Handle both wrapped and unwrapped responses
-            items = response_data.get("items", [])
-            success = True
-            details = {
-                "seasonsCount": len(items)
-            }
-        else:
-            error = data.get("error", f"HTTP {status}")
-            
-        self.record_result("Contest Seasons", success, status, error, duration, "P3", details)
-        
-    # ==========================================
-    # MAIN TEST EXECUTION
-    # ==========================================
-    
-    async def run_all_tests(self):
-        """Run all service layer refactor tests"""
-        print("🚀 Starting Service Layer Refactor Testing Suite")
-        print(f"Base URL: {BASE_URL}")
-        print("=" * 60)
-        
-        await self.setup()
-        
-        if not self.auth_token:
-            print("❌ Authentication failed - cannot proceed with tests")
-            return
-            
-        try:
-            # P0 Tests - Wired Services (MUST pass)
-            print("\n📋 P0 TESTS - WIRED SERVICES (MUST PASS)")
-            print("-" * 40)
-            await self.test_leaderboard_scoring_service()
-            await self.test_algorithmic_feed()
-            await self.test_following_feed()
-            await self.test_college_feed()
-            await self.test_tribe_feed()
-            
-            # P1 Tests - Story Service
-            print("\n📋 P1 TESTS - STORY SERVICE")
-            print("-" * 40)
-            await self.test_story_rail()
-            await self.test_story_create()
-            await self.test_story_get()
-            
-            # P2 Tests - Reel Service
-            print("\n📋 P2 TESTS - REEL SERVICE")
-            print("-" * 40)
-            await self.test_reel_feed()
-            await self.test_reel_following()
-            
-            # P3 Tests - Contest Service
-            print("\n📋 P3 TESTS - CONTEST SERVICE")
-            print("-" * 40)
-            await self.test_list_contests()
-            await self.test_contest_seasons()
-            
-        finally:
-            await self.teardown()
-            
-    def generate_report(self):
-        """Generate test report"""
-        total_tests = len(self.results)
-        passed_tests = len([r for r in self.results if r.success])
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result["success"])
         failed_tests = total_tests - passed_tests
+        success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
         
-        # Group by priority
-        p0_results = [r for r in self.results if r.priority == "P0"]
-        p1_results = [r for r in self.results if r.priority == "P1"] 
-        p2_results = [r for r in self.results if r.priority == "P2"]
-        p3_results = [r for r in self.results if r.priority == "P3"]
-        
-        p0_pass = len([r for r in p0_results if r.success])
-        p1_pass = len([r for r in p1_results if r.success])
-        p2_pass = len([r for r in p2_results if r.success])
-        p3_pass = len([r for r in p3_results if r.success])
-        
-        print("\n" + "=" * 60)
-        print("🎯 SERVICE LAYER REFACTOR TEST REPORT")
-        print("=" * 60)
         print(f"Total Tests: {total_tests}")
         print(f"Passed: {passed_tests} ✅")
         print(f"Failed: {failed_tests} ❌")
-        success_rate = (passed_tests/total_tests*100) if total_tests > 0 else 0
         print(f"Success Rate: {success_rate:.1f}%")
-        print()
         
-        print("📊 PRIORITY BREAKDOWN:")
-        print(f"P0 (Wired Services): {p0_pass}/{len(p0_results)} ✅")
-        print(f"P1 (Story Service): {p1_pass}/{len(p1_results)} ✅")
-        print(f"P2 (Reel Service): {p2_pass}/{len(p2_results)} ✅")
-        print(f"P3 (Contest Service): {p3_pass}/{len(p3_results)} ✅")
+        if failed_tests > 0:
+            print("\n❌ FAILED TESTS:")
+            for result in self.test_results:
+                if not result["success"]:
+                    print(f"  • {result['test']}: {result['details']}")
+                    
+        print("\n✅ PASSED TESTS:")
+        for result in self.test_results:
+            if result["success"]:
+                print(f"  • {result['test']}")
         
-        # Key regressions to check
-        print("\n🔍 KEY REGRESSION CHECKS:")
-        
-        # Check for 500 errors
-        five_hundred_errors = [r for r in self.results if r.response_code == 500]
-        if five_hundred_errors:
-            print(f"❌ Found {len(five_hundred_errors)} 500 errors")
-            for result in five_hundred_errors:
-                print(f"   - {result.name}")
-        else:
-            print("✅ No 500 errors found")
-            
-        # Check story rail grouping
-        story_rail_results = [r for r in self.results if "Story Rail" in r.name and r.success]
-        if story_rail_results:
-            print("✅ Story rail properly grouped by author")
-        else:
-            print("❌ Story rail grouping issues")
-            
-        # Check leaderboard v3 scoring
-        leaderboard_v3 = [r for r in self.results if "Leaderboard" in r.name and r.success and 
-                          r.details and r.details.get("scoringVersion") == "v3"]
-        if leaderboard_v3:
-            print("✅ Leaderboard using v3 scoring from service")
-        else:
-            print("❌ Leaderboard not using v3 scoring")
-            
-        # Check feed ranking
-        ranking_results = [r for r in self.results if "Algorithmic Feed" in r.name and r.success and
-                          r.details and "_feedScore" in str(r.details)]
-        if ranking_results:
-            print("✅ Feed ranking shows _feedScore on first page")
-        else:
-            print("❌ Feed ranking missing _feedScore")
-        
-        print("\n" + "=" * 60)
-        
-        # Report failed tests
-        failed_results = [r for r in self.results if not r.success]
-        if failed_results:
-            print("❌ FAILED TESTS:")
-            for result in failed_results:
-                print(f"   - {result.name} ({result.response_code}): {result.error}")
-        else:
-            print("✅ ALL TESTS PASSED!")
-            
-        print("=" * 60)
-        
-        # Save report to file
-        report_data = {
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "total_tests": total_tests,
-            "passed_tests": passed_tests,
-            "failed_tests": failed_tests,
-            "success_rate": round(passed_tests/total_tests*100, 1),
-            "priority_breakdown": {
-                "P0": {"passed": p0_pass, "total": len(p0_results)},
-                "P1": {"passed": p1_pass, "total": len(p1_results)},
-                "P2": {"passed": p2_pass, "total": len(p2_results)},
-                "P3": {"passed": p3_pass, "total": len(p3_results)}
-            },
-            "results": [
-                {
-                    "name": r.name,
-                    "success": r.success,
-                    "status_code": r.response_code,
-                    "error": r.error,
-                    "duration_ms": r.duration_ms,
-                    "priority": r.priority,
-                    "details": r.details
-                }
-                for r in self.results
-            ]
+        # Feature breakdown
+        print(f"\n📋 FEATURE BREAKDOWN:")
+        features = {
+            "Full-Text Search": [r for r in self.test_results if any(x in r['test'] for x in ['Search', 'Hashtag', 'Recent'])],
+            "Analytics Dashboard": [r for r in self.test_results if 'Analytics' in r['test']],
+            "Follow Requests": [r for r in self.test_results if any(x in r['test'] for x in ['Follow', 'Private', 'Request'])],
+            "Video Transcoding": [r for r in self.test_results if any(x in r['test'] for x in ['Transcode', 'Media', 'HLS'])],
+            "Existing Features": [r for r in self.test_results if any(x in r['test'] for x in ['Feed', 'Explore', 'Profile'])]
         }
         
-        try:
-            with open("/app/test_reports/iteration_1.json", "w") as f:
-                json.dump(report_data, f, indent=2)
-            print(f"📄 Report saved to /app/test_reports/iteration_1.json")
-        except Exception as e:
-            print(f"⚠️ Could not save report: {e}")
-
-async def main():
-    """Main entry point"""
-    suite = TribeTestSuite()
-    await suite.run_all_tests()
-    suite.generate_report()
+        for feature_name, feature_results in features.items():
+            if feature_results:
+                feature_passed = sum(1 for r in feature_results if r["success"])
+                feature_total = len(feature_results)
+                feature_rate = (feature_passed / feature_total * 100) if feature_total > 0 else 0
+                print(f"  {feature_name}: {feature_passed}/{feature_total} ({feature_rate:.1f}%)")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    tester = TribeAPITester()
+    tester.run_all_tests()
