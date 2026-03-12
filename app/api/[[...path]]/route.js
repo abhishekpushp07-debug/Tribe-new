@@ -25,6 +25,10 @@ import { handleSearch } from '@/lib/handlers/search'
 import { handleTranscode } from '@/lib/handlers/transcode'
 import { handleAnalytics } from '@/lib/handlers/analytics'
 import { handleFollowRequests, interceptFollowForPrivateAccount } from '@/lib/handlers/follow-requests'
+import { handleQuality } from '@/lib/handlers/quality'
+import { handleRecommendations } from '@/lib/handlers/recommendations'
+import { handleActivity } from '@/lib/handlers/activity'
+import { handleSuggestions } from '@/lib/handlers/suggestions'
 import { cache } from '@/lib/cache'
 import { applyFreezeHeaders } from '@/lib/freeze-registry'
 import { applySecurityHeaders, getEndpointTier, checkTieredRateLimit, extractIP, checkPayloadSize, deepSanitizeStrings } from '@/lib/security'
@@ -488,7 +492,7 @@ async function handleRouteCore(request, { params }, reqCtx) {
       if (!result) {
         result = await handleUsers(path, method, request, db)
       }
-    } else if (path[0] === 'colleges' || path[0] === 'houses' || path[0] === 'suggestions') {
+    } else if (path[0] === 'colleges' || path[0] === 'houses') {
       if (path[0] === 'colleges' && path.length === 3 && path[2] === 'claim') {
         result = await handleCollegeClaims(path, method, request, db)
       }
@@ -513,6 +517,14 @@ async function handleRouteCore(request, { params }, reqCtx) {
       result = await handleTranscode(path, method, request, db)
     } else if (path[0] === 'follow-requests') {
       result = await handleFollowRequests(path, method, request, db)
+    } else if (path[0] === 'quality') {
+      result = await handleQuality(request, db, { method, path })
+    } else if (path[0] === 'recommendations') {
+      result = await handleRecommendations(request, db, { method, path })
+    } else if (path[0] === 'activity') {
+      result = await handleActivity(request, db, { method, path })
+    } else if (path[0] === 'suggestions') {
+      result = await handleSuggestions(request, db, { method, path })
     } else if (path[0] === 'house-points') {
       result = { error: 'House points system deprecated. Use tribe salutes via /tribe-contests', code: 'DEPRECATED', status: 410 }
     } else if (path[0] === 'governance') {
