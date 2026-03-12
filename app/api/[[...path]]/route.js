@@ -398,6 +398,9 @@ async function handleRouteCore(request, { params }, reqCtx) {
       if (path[1] === 'stories' && path[2] === 'archive') {
         result = await handleStories(path, method, request, db)
       }
+      else if (path[1] === 'stories' && path[2] === 'insights') {
+        result = await handleStories(path, method, request, db)
+      }
       else if (path[1] === 'close-friends') {
         result = await handleStories(path, method, request, db)
       }
@@ -434,12 +437,16 @@ async function handleRouteCore(request, { params }, reqCtx) {
       else if (path[1] === 'pages') {
         result = await handlePages(path, method, request, db)
       }
+      // New /me/* routes go to users handler
+      if (!result) {
+        result = await handleUsers(path, method, request, db)
+      }
       if (!result) {
         result = await handleOnboarding(path, method, request, db)
       }
     } else if (path[0] === 'content' && path.length <= 2 && (method === 'POST' || method === 'GET' || method === 'DELETE' || method === 'PATCH')) {
       result = await handleContent(path, method, request, db)
-    } else if (path[0] === 'feed') {
+    } else if (path[0] === 'feed' || path[0] === 'explore' || path[0] === 'trending') {
       result = await handleFeed(path, method, request, db)
     } else if (path[0] === 'follow') {
       result = await handleSocial(path, method, request, db)

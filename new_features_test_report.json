@@ -1,444 +1,609 @@
 {
-  "timestamp": "2026-03-11 22:03:52",
-  "total_tests": 37,
-  "passed_tests": 32,
-  "failed_tests": 5,
-  "success_rate": 86.5,
-  "categories": {
-    "Story Edit": {
-      "passed": 3,
-      "total": 3
+  "timestamp": "2026-03-12 07:41:01",
+  "test_suite": "50_new_features_comprehensive",
+  "total_tests": 52,
+  "passed_tests": 48,
+  "failed_tests": 4,
+  "success_rate": 92.3,
+  "group_breakdown": {
+    "Profile": {
+      "passed": 11,
+      "total": 11,
+      "success_rate": 100.0
     },
-    "Story Mutes": {
-      "passed": 3,
-      "total": 5
+    "Content": {
+      "passed": 8,
+      "total": 9,
+      "success_rate": 88.9
     },
-    "View Duration": {
+    "Comments": {
+      "passed": 5,
+      "total": 5,
+      "success_rate": 100.0
+    },
+    "Stories": {
+      "passed": 3,
+      "total": 4,
+      "success_rate": 75.0
+    },
+    "Reels": {
       "passed": 4,
-      "total": 4
+      "total": 4,
+      "success_rate": 100.0
     },
-    "Bulk Moderation": {
-      "passed": 3,
-      "total": 3
+    "Tribes": {
+      "passed": 6,
+      "total": 8,
+      "success_rate": 75.0
     },
-    "Drafts & Scheduling": {
-      "passed": 7,
-      "total": 7
+    "Discovery": {
+      "passed": 6,
+      "total": 6,
+      "success_rate": 100.0
     },
-    "Carousel": {
-      "passed": 1,
-      "total": 1
-    },
-    "Reel Trending": {
-      "passed": 3,
-      "total": 3
-    },
-    "Reel Personalized": {
+    "Notifications": {
       "passed": 2,
-      "total": 2
+      "total": 2,
+      "success_rate": 100.0
     },
-    "Creator Analytics": {
+    "Core": {
       "passed": 3,
-      "total": 3
-    },
-    "Page Endpoints": {
-      "passed": 2,
-      "total": 4
-    },
-    "Rate Limit": {
-      "passed": 1,
-      "total": 2
+      "total": 3,
+      "success_rate": 100.0
     }
   },
   "results": [
     {
-      "name": "Story Creation (for edit)",
-      "success": true,
-      "status_code": 201,
-      "error": null,
-      "duration_ms": 439,
-      "category": "Story Edit",
-      "details": {
-        "id": "6d91a11a-d457-480b-ab8e-2df4504aa313",
-        "type": "TEXT"
-      }
-    },
-    {
-      "name": "Story Edit",
+      "name": "GET /api/me - Own Profile",
       "success": true,
       "status_code": 200,
       "error": null,
-      "duration_ms": 951,
-      "category": "Story Edit",
+      "duration_ms": 96,
+      "group": "Profile",
       "details": {
-        "id": "6d91a11a-d457-480b-ab8e-2df4504aa313",
-        "caption": "New caption after edit",
-        "privacy": "CLOSE_FRIENDS"
+        "hasStats": false,
+        "userId": "514164c7-c889-4edf-b394-5a0985f4bc5a",
+        "username": null
       }
     },
     {
-      "name": "Story Edit (Other User - Should Fail)",
+      "name": "GET /api/me/stats - Dashboard Stats",
       "success": true,
-      "status_code": 403,
+      "status_code": 200,
       "error": null,
-      "duration_ms": 82,
-      "category": "Story Edit",
+      "duration_ms": 84,
+      "group": "Profile",
+      "details": {
+        "posts": 23,
+        "reels": 9,
+        "stories": 11,
+        "followers": 0,
+        "following": 1,
+        "totalLikesReceived": 0
+      }
+    },
+    {
+      "name": "GET /api/me/settings - All Settings",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 60,
+      "group": "Profile",
+      "details": {
+        "hasPrivacy": true,
+        "hasNotifications": false,
+        "hasProfile": true,
+        "hasInterests": true
+      }
+    },
+    {
+      "name": "PATCH /api/me/settings - Update Settings",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 60,
+      "group": "Profile",
       "details": null
     },
     {
-      "name": "Mute User Stories",
-      "success": true,
-      "status_code": 200,
-      "error": null,
-      "duration_ms": 86,
-      "category": "Story Mutes",
-      "details": null
-    },
-    {
-      "name": "List Muted Users",
-      "success": false,
-      "status_code": 200,
-      "error": "Muted user not in list",
-      "duration_ms": 100,
-      "category": "Story Mutes",
-      "details": {
-        "mutedCount": 0
-      }
-    },
-    {
-      "name": "Unmute User Stories",
+      "name": "GET /api/me/privacy - Privacy Settings",
       "success": true,
       "status_code": 200,
       "error": null,
       "duration_ms": 98,
-      "category": "Story Mutes",
-      "details": null
-    },
-    {
-      "name": "Verify Empty Mutes List",
-      "success": true,
-      "status_code": 200,
-      "error": null,
-      "duration_ms": 100,
-      "category": "Story Mutes",
-      "details": null
-    },
-    {
-      "name": "Self-Mute (Should Fail)",
-      "success": false,
-      "status_code": 404,
-      "error": "Expected 400, got 404",
-      "duration_ms": 105,
-      "category": "Story Mutes",
-      "details": null
-    },
-    {
-      "name": "Record View Duration",
-      "success": true,
-      "status_code": 200,
-      "error": null,
-      "duration_ms": 73,
-      "category": "View Duration",
-      "details": null
-    },
-    {
-      "name": "View Analytics",
-      "success": true,
-      "status_code": 200,
-      "error": null,
-      "duration_ms": 63,
-      "category": "View Duration",
+      "group": "Profile",
       "details": {
-        "totalViews": 1,
-        "avgViewDuration": null,
-        "completionRate": 0
+        "allowTagging": "EVERYONE",
+        "hideOnlineStatus": false,
+        "isPrivate": false
       }
     },
     {
-      "name": "Invalid Duration (Should Fail)",
+      "name": "PATCH /api/me/privacy - Update Privacy",
       "success": true,
-      "status_code": 400,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 55,
+      "group": "Profile",
+      "details": null
+    },
+    {
+      "name": "GET /api/me/activity - Activity Summary",
+      "success": true,
+      "status_code": 200,
       "error": null,
       "duration_ms": 70,
-      "category": "View Duration",
-      "details": null
-    },
-    {
-      "name": "Duration Too Long (Should Fail)",
-      "success": true,
-      "status_code": 400,
-      "error": null,
-      "duration_ms": 86,
-      "category": "View Duration",
-      "details": null
-    },
-    {
-      "name": "Bulk Moderation (Admin)",
-      "success": true,
-      "status_code": 200,
-      "error": null,
-      "duration_ms": 78,
-      "category": "Bulk Moderation",
+      "group": "Profile",
       "details": {
-        "moderatedCount": 2
+        "period": "7d",
+        "postsThisWeek": 23,
+        "hasStats": false
       }
     },
     {
-      "name": "Bulk Moderation (Non-Admin - Should Fail)",
+      "name": "POST /api/me/interests - Set Interests",
       "success": true,
-      "status_code": 403,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 74,
+      "group": "Profile",
+      "details": null
+    },
+    {
+      "name": "GET /api/me/interests - Get Interests",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 54,
+      "group": "Profile",
+      "details": {
+        "interestsCount": 3
+      }
+    },
+    {
+      "name": "GET /api/me/login-activity - Login Sessions",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 65,
+      "group": "Profile",
+      "details": {
+        "sessionsCount": 10
+      }
+    },
+    {
+      "name": "GET /api/me/bookmarks - Saved Content",
+      "success": true,
+      "status_code": 200,
       "error": null,
       "duration_ms": 79,
-      "category": "Bulk Moderation",
-      "details": null
+      "group": "Profile",
+      "details": {
+        "bookmarksCount": 1
+      }
     },
     {
-      "name": "Invalid Action (Should Fail)",
-      "success": true,
-      "status_code": 400,
-      "error": null,
-      "duration_ms": 92,
-      "category": "Bulk Moderation",
-      "details": null
-    },
-    {
-      "name": "Create Draft",
+      "name": "POST /api/content/posts - Create Post",
       "success": true,
       "status_code": 201,
       "error": null,
-      "duration_ms": 279,
-      "category": "Drafts & Scheduling",
-      "details": {
-        "id": "73fec831-6ddd-4045-b538-8137ed7d9be0",
-        "status": null
-      }
+      "duration_ms": 503,
+      "group": "Content",
+      "details": null
     },
     {
-      "name": "List Drafts",
+      "name": "POST /api/content/{postId}/pin - Pin Post",
       "success": true,
       "status_code": 200,
       "error": null,
-      "duration_ms": 83,
-      "category": "Drafts & Scheduling",
+      "duration_ms": 64,
+      "group": "Content",
+      "details": null
+    },
+    {
+      "name": "DELETE /api/content/{postId}/pin - Unpin Post",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 56,
+      "group": "Content",
+      "details": null
+    },
+    {
+      "name": "POST /api/content/{postId}/archive - Archive Post",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 75,
+      "group": "Content",
+      "details": null
+    },
+    {
+      "name": "POST /api/content/{postId}/unarchive - Restore Post",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 93,
+      "group": "Content",
+      "details": null
+    },
+    {
+      "name": "POST /api/content/{postId}/hide - Hide Post",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 113,
+      "group": "Content",
+      "details": null
+    },
+    {
+      "name": "GET /api/content/{postId}/likers - Post Likers",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 86,
+      "group": "Content",
       "details": {
-        "draftsCount": 2
+        "likersCount": 0,
+        "total": 0
       }
     },
     {
-      "name": "Create Scheduled Post",
+      "name": "GET /api/content/{postId}/shares - Post Shares",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 108,
+      "group": "Content",
+      "details": {
+        "sharesCount": 0,
+        "total": 0
+      }
+    },
+    {
+      "name": "POST /api/content/{postId}/report - Report Post",
+      "success": false,
+      "status_code": 403,
+      "error": "Could not create post to report",
+      "duration_ms": 69,
+      "group": "Content",
+      "details": null
+    },
+    {
+      "name": "POST /api/content/{postId}/comments - Create Comment",
       "success": true,
       "status_code": 201,
       "error": null,
-      "duration_ms": 255,
-      "category": "Drafts & Scheduling",
-      "details": {
-        "id": "1c732ad0-ed40-4073-a655-b05f8e243de4",
-        "publishAt": "2026-03-12T00:03:48.788Z"
-      }
-    },
-    {
-      "name": "List Scheduled",
-      "success": true,
-      "status_code": 200,
-      "error": null,
-      "duration_ms": 112,
-      "category": "Drafts & Scheduling",
-      "details": {
-        "scheduledCount": 1
-      }
-    },
-    {
-      "name": "Publish Draft",
-      "success": true,
-      "status_code": 200,
-      "error": null,
-      "duration_ms": 80,
-      "category": "Drafts & Scheduling",
+      "duration_ms": 223,
+      "group": "Comments",
       "details": null
     },
     {
-      "name": "Reschedule Post",
-      "success": true,
-      "status_code": 200,
-      "error": null,
-      "duration_ms": 85,
-      "category": "Drafts & Scheduling",
-      "details": null
-    },
-    {
-      "name": "Past PublishAt (Should Fail)",
-      "success": true,
-      "status_code": 400,
-      "error": null,
-      "duration_ms": 72,
-      "category": "Drafts & Scheduling",
-      "details": null
-    },
-    {
-      "name": "Create Carousel Post",
+      "name": "POST /api/content/{postId}/comments/{commentId}/reply - Reply Comment",
       "success": true,
       "status_code": 201,
       "error": null,
-      "duration_ms": 294,
-      "category": "Carousel",
-      "details": {
-        "id": "701ed9e7-84d9-4512-adf5-a7885557da27",
-        "mediaCount": 0,
-        "carouselOrder": [
-          0,
-          1
-        ]
-      }
+      "duration_ms": 98,
+      "group": "Comments",
+      "details": null
     },
     {
-      "name": "Trending Feed (Default)",
+      "name": "PATCH /api/content/{postId}/comments/{commentId} - Edit Comment",
       "success": true,
       "status_code": 200,
       "error": null,
-      "duration_ms": 110,
-      "category": "Reel Trending",
-      "details": {
-        "itemsCount": 20,
-        "hasTrendingScore": true,
-        "trendingScore": 13.454011455997325
-      }
+      "duration_ms": 108,
+      "group": "Comments",
+      "details": null
     },
     {
-      "name": "Trending Feed (7d Window)",
-      "success": true,
-      "status_code": 200,
-      "error": null,
-      "duration_ms": 132,
-      "category": "Reel Trending",
-      "details": {
-        "itemsCount": 20,
-        "timeWindow": "7d"
-      }
-    },
-    {
-      "name": "Trending Feed (Limit=5)",
-      "success": true,
-      "status_code": 200,
-      "error": null,
-      "duration_ms": 95,
-      "category": "Reel Trending",
-      "details": {
-        "itemsCount": 5,
-        "limitApplied": true
-      }
-    },
-    {
-      "name": "Personalized Feed (Default)",
-      "success": true,
-      "status_code": 200,
-      "error": null,
-      "duration_ms": 99,
-      "category": "Reel Personalized",
-      "details": {
-        "itemsCount": 20,
-        "feedType": "personalized"
-      }
-    },
-    {
-      "name": "Personalized Feed (Limit=5)",
-      "success": true,
-      "status_code": 200,
-      "error": null,
-      "duration_ms": 77,
-      "category": "Reel Personalized",
-      "details": {
-        "itemsCount": 5,
-        "limitApplied": true
-      }
-    },
-    {
-      "name": "Detailed Analytics (30 days)",
+      "name": "POST /api/content/{postId}/comments/{commentId}/pin - Pin Comment",
       "success": true,
       "status_code": 200,
       "error": null,
       "duration_ms": 89,
-      "category": "Creator Analytics",
+      "group": "Comments",
+      "details": null
+    },
+    {
+      "name": "DELETE /api/content/{postId}/comments/{commentId} - Delete Comment",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 96,
+      "group": "Comments",
+      "details": null
+    },
+    {
+      "name": "POST /api/stories - Create Story",
+      "success": true,
+      "status_code": 201,
+      "error": null,
+      "duration_ms": 200,
+      "group": "Stories",
+      "details": null
+    },
+    {
+      "name": "POST /api/stories/{storyId}/view - View Story",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 102,
+      "group": "Stories",
+      "details": null
+    },
+    {
+      "name": "POST /api/stories/{storyId}/share - Share Story",
+      "success": false,
+      "status_code": 201,
+      "error": "HTTP 201",
+      "duration_ms": 58,
+      "group": "Stories",
+      "details": null
+    },
+    {
+      "name": "GET /api/me/stories/insights - Story Insights",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 70,
+      "group": "Stories",
       "details": {
-        "hasTotals": true,
-        "hasDailyViews": true,
-        "hasDailyLikes": true,
-        "hasRetention": true,
-        "hasTopEngagers": true,
-        "hasWeeklyPerformance": true
+        "totalViews": 2,
+        "totalStories": 12,
+        "hasMetrics": false
       }
     },
     {
-      "name": "Detailed Analytics (7 days)",
+      "name": "GET /api/reels/{reelId}/likers - Reel Likers",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 57,
+      "group": "Reels",
+      "details": {
+        "likersCount": 0,
+        "total": 0
+      }
+    },
+    {
+      "name": "GET /api/me/reels/saved - Saved Reels",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 65,
+      "group": "Reels",
+      "details": {
+        "savedReelsCount": 0
+      }
+    },
+    {
+      "name": "POST /api/reels/{reelId}/duet - Create Duet",
+      "success": true,
+      "status_code": 201,
+      "error": null,
+      "duration_ms": 97,
+      "group": "Reels",
+      "details": null
+    },
+    {
+      "name": "GET /api/reels/sounds/popular - Popular Sounds",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 64,
+      "group": "Reels",
+      "details": {
+        "soundsCount": 0
+      }
+    },
+    {
+      "name": "GET /api/tribes - List Tribes",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 53,
+      "group": "Tribes",
+      "details": {
+        "tribesCount": 21,
+        "totalCount": 21
+      }
+    },
+    {
+      "name": "GET /api/tribes/{tribeId}/stats - Tribe Stats",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 84,
+      "group": "Tribes",
+      "details": {
+        "members": 46,
+        "posts": null,
+        "reels": null
+      }
+    },
+    {
+      "name": "GET /api/tribes/{tribeId}/feed - Tribe Feed",
+      "success": false,
+      "status_code": 500,
+      "error": "Internal server error",
+      "duration_ms": 73,
+      "group": "Tribes",
+      "details": {}
+    },
+    {
+      "name": "GET /api/tribes/{tribeId}/events - Tribe Events",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 54,
+      "group": "Tribes",
+      "details": {
+        "eventsCount": 0
+      }
+    },
+    {
+      "name": "POST /api/tribes/{tribeId}/join - Join Tribe",
+      "success": false,
+      "status_code": 201,
+      "error": "HTTP 201",
+      "duration_ms": 78,
+      "group": "Tribes",
+      "details": null
+    },
+    {
+      "name": "POST /api/tribes/{tribeId}/cheer - Cheer Tribe",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 71,
+      "group": "Tribes",
+      "details": null
+    },
+    {
+      "name": "POST /api/tribes/{tribeId}/leave - Leave Tribe",
       "success": true,
       "status_code": 200,
       "error": null,
       "duration_ms": 95,
-      "category": "Creator Analytics",
+      "group": "Tribes",
       "details": null
     },
     {
-      "name": "Detailed Analytics (90 days)",
+      "name": "GET /api/users/{userId}/mutual-followers - Mutual Followers",
       "success": true,
       "status_code": 200,
       "error": null,
-      "duration_ms": 112,
-      "category": "Creator Analytics",
-      "details": null
+      "duration_ms": 92,
+      "group": "Tribes",
+      "details": {
+        "mutualFollowersCount": 0
+      }
     },
     {
-      "name": "Report Page",
-      "success": false,
-      "status_code": 409,
-      "error": "You have already reported this page",
-      "duration_ms": 66,
-      "category": "Page Endpoints",
-      "details": null
-    },
-    {
-      "name": "Request Verification",
+      "name": "GET /api/explore - Explore Page",
       "success": true,
-      "status_code": 403,
-      "error": "Not page owner (expected)",
-      "duration_ms": 139,
-      "category": "Page Endpoints",
-      "details": null
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 106,
+      "group": "Discovery",
+      "details": {
+        "postsCount": 18,
+        "reelsCount": 12,
+        "trendingHashtagsCount": 10
+      }
     },
     {
-      "name": "Admin Verification List",
+      "name": "GET /api/explore/creators - Popular Creators",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 101,
+      "group": "Discovery",
+      "details": {
+        "creatorsCount": 20,
+        "hasFollowerCount": true,
+        "hasIsFollowing": true
+      }
+    },
+    {
+      "name": "GET /api/explore/reels - Trending Reels",
       "success": true,
       "status_code": 200,
       "error": null,
       "duration_ms": 86,
-      "category": "Page Endpoints",
-      "details": null
-    },
-    {
-      "name": "Invite User to Page",
-      "success": false,
-      "status_code": 201,
-      "error": "HTTP 201",
-      "duration_ms": 292,
-      "category": "Page Endpoints",
-      "details": null
-    },
-    {
-      "name": "Normal Sticker Response",
-      "success": false,
-      "status_code": 404,
-      "error": "Route /stories/6d91a11a-d457-480b-ab8e-2df4504aa313/sticker-respond [POST] not found",
-      "duration_ms": 80,
-      "category": "Rate Limit",
-      "details": null
-    },
-    {
-      "name": "Sticker Rate Limit Trigger",
-      "success": true,
-      "status_code": 429,
-      "error": null,
-      "duration_ms": 0,
-      "category": "Rate Limit",
+      "group": "Discovery",
       "details": {
-        "requestsBeforeLimit": 0
+        "trendingReelsCount": 20
+      }
+    },
+    {
+      "name": "GET /api/feed/mixed - Mixed Feed",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 99,
+      "group": "Discovery",
+      "details": {
+        "mixedItemsCount": 20,
+        "hasTypeField": true
+      }
+    },
+    {
+      "name": "GET /api/feed/personalized - Personalized Feed",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 106,
+      "group": "Discovery",
+      "details": {
+        "personalizedItemsCount": 20
+      }
+    },
+    {
+      "name": "GET /api/trending/topics - Trending Topics",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 87,
+      "group": "Discovery",
+      "details": {
+        "trendingTopicsCount": 20,
+        "hasRank": true,
+        "hasScore": true
+      }
+    },
+    {
+      "name": "POST /api/notifications/read-all - Mark All Read",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 68,
+      "group": "Notifications",
+      "details": null
+    },
+    {
+      "name": "DELETE /api/notifications/clear - Clear All",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 53,
+      "group": "Notifications",
+      "details": null
+    },
+    {
+      "name": "GET /api/feed - Core Feed",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 85,
+      "group": "Core",
+      "details": {
+        "feedItemsCount": 20,
+        "feedType": "home"
+      }
+    },
+    {
+      "name": "GET /api/feed/stories - Core Stories",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 93,
+      "group": "Core",
+      "details": {
+        "storiesCount": 1,
+        "storyRailCount": 1
+      }
+    },
+    {
+      "name": "GET /api/feed/reels - Core Reels",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "duration_ms": 105,
+      "group": "Core",
+      "details": {
+        "reelsCount": 20
       }
     }
   ]
