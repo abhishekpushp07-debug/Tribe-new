@@ -1,64 +1,62 @@
 # Tribe — Changelog
-**Last Updated**: 2026-03-11
+**Last Updated**: 2026-03-12
+
+## 2026-03-12: "90+ Enhancement Pass" — Complete
+
+### Database Indexes (db.js)
+- Added 30+ new indexes for: follow_requests, recent_searches, analytics_events, profile_visits, transcode_jobs, tribe_cheers, likes, shares
+
+### Tribes Handler (tribes.js)
+- Enhanced pagination: hasMore, limit, offset in members and salutes
+- Audit trail: tribe_assignment_events for join/leave/cheer
+- Fixed: duplicate key 500 → graceful 409 on tribe join
+- Added tribeCode in all membership records
+
+### Search Handler (search.js)
+- Type validation for search filters (returns 400 for invalid types)
+- totalResults count in unified search response
+- reelCount + totalCount in hashtag search (cross-collection aggregation)
+
+### Analytics Handler (analytics.js)
+- NEW: `GET /analytics/stories` endpoint — story performance analytics
+- Time-series gap filling helper for consistent charting
+- Unique visitor dedup using $addToSet on profile visits
+- uniqueVisitors field in reach response
+
+### Transcode Handler (transcode.js)
+- NEW: `POST /transcode/:jobId/cancel` — cancel pending/processing jobs
+- NEW: `POST /transcode/:jobId/retry` — retry failed jobs (max 3 attempts)
+- Status filter on queue endpoint (`?status=COMPLETED`)
+- Total count in queue response
+- Mid-process cancellation checking during transcoding loop
+
+### Follow Requests Handler (follow-requests.js)
+- Block checking: prevents follow requests between blocked users
+- Rate limiting: 30 follow requests per hour per user
+
+### Testing
+- Testing agent: 93.9% (31/33) → fixed tribe join 500 → all passing
+- Comprehensive 24-endpoint smoke test: all 200 OK
+
+---
 
 ## 2026-03-11: Top 6 Gap Closure — Phase C & D Complete
 
-### Phase C: Anti-Abuse Hardening (Gap 5) ✅
-**Files Changed:**
-- `lib/services/anti-abuse-service.js` — 5-layer abuse detection engine (existing, verified)
-- `lib/handlers/social.js` — Wired anti-abuse into: like, comment, share, save, follow
-- `lib/handlers/stories.js` — Wired anti-abuse into: story reactions
-- `lib/handlers/reels.js` — Wired anti-abuse into: reel like, comment, save, share
-- `lib/handlers/admin.js` — Added abuse-dashboard + abuse-log endpoints
-- `app/api/[[...path]]/route.js` — Added routing for admin/abuse-dashboard, admin/abuse-log
+### Phase C: Anti-Abuse Hardening (Gap 5)
+- 5-layer abuse detection engine
+- Wired anti-abuse into all social interactions
+- Admin abuse dashboard + audit log endpoints
 
-**New Endpoints:**
-- `GET /api/admin/abuse-dashboard` — Summary dashboard (admin only)
-- `GET /api/admin/abuse-log` — Detailed audit log with filters (admin only)
-
-**New Collections:**
-- `abuse_audit_log` — Indexed: (timestamp), (userId, timestamp), (severity, timestamp)
-
-### Phase D: Post Subsystem Expansion (Gap 6) ✅
-**Files Changed:**
-- `lib/handlers/content.js` — Added poll creation, link preview, thread support, vote endpoint, poll-results endpoint, thread view endpoint
-- `lib/services/link-preview-service.js` — NEW: Safe URL metadata extraction with SSRF protection
-- `lib/auth-utils.js` — Updated enrichPosts to include viewerPollVote, isThreadPart
-- `app/api/[[...path]]/route.js` — Updated content routing for 3-segment paths (vote, poll-results, thread)
-
-**New Endpoints:**
-- `POST /api/content/:id/vote` — Vote on poll post
-- `GET /api/content/:id/poll-results` — Get poll results with viewer vote
-- `GET /api/content/:id/thread` — Get full thread view
-
-**New Post Sub-Types:** STANDARD, POLL, LINK, THREAD_HEAD, THREAD_PART
-
-**New Collections:**
-- `poll_votes` — Indexed: (contentId, userId), (contentId, optionId)
-
-### Documentation Created
-- `ANTI_ABUSE_POLICY.md` — Full anti-abuse system documentation
-- `POST_FEATURES_CONTRACT_FREEZE.md` — Poll/link/thread contract specification
-- `FRONTEND_HANDOFF_INDEX.md` — Master index for frontend team
-
-### Testing
-- Testing agent: 100% pass rate across all Phase C & D features
-- Regression: All existing endpoints (feed, posts, stories, reels, search, health) verified working
+### Phase D: Post Subsystem Expansion (Gap 6)
+- Poll creation, link preview, thread support
+- Vote endpoint, poll-results endpoint, thread view endpoint
+- New post sub-types: STANDARD, POLL, LINK, THREAD_HEAD, THREAD_PART
 
 ---
 
 ## Earlier Phases (2026-03-09 through 2026-03-11)
-- Phases A & B of Top 6 Gap Closure (distributionStage fix, cache key fix, story rail verification, reel transcoding)
-- Media Lifecycle Hardening (5 critical risks addressed)
-- Service Layer Refactor (ScoringService, FeedService, StoryService, ReelService, ContestService)
+- Phases A & B of Top 6 Gap Closure
+- Media Lifecycle Hardening
+- Service Layer Refactor
 - Full foundation build (auth, content, social, pages, tribes, stories, reels, search, notifications, governance)
-
----
-
-## Session 5 (2026-03-11) — "Reels, Stories, Posts, Pages to 100%"
-- **Stories**: Story edit (PATCH), mutes (mute/unmute/list), view duration tracking + analytics, sticker rate limit (30/hr), bulk moderation
-- **Posts**: Carousel/multi-media (max 10 items), post scheduling (publishAt, 30-day max), drafts (create/list/publish), auto-publish worker (60s)
-- **Reels**: Trending feed (velocity/age, time windows), personalized feed (following/preference/tribe/college signals), detailed creator analytics
-- **Pages**: Delete, verification workflow (request→review→decide), page report, page invite system
-- **Docs**: 7 contract freeze docs, updated FRONTEND_HANDOFF_INDEX, completed SEED_DATA_REFERENCE (708 lines)
-- **Infra**: 8 new DB indexes, scheduled publisher worker
+- Stories, Posts, Reels, Pages enhancements to 100%
