@@ -12,7 +12,7 @@ import requests
 import time
 import random
 
-BASE_URL = "https://tribe-feed-engine-1.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-feed-debug.preview.emergentagent.com/api"
 
 # ======================== HELPERS ========================
 

@@ -1,6 +1,6 @@
 # Tribe — Seed Data Reference
 **Last Updated**: 2026-03-11  
-**Backend URL**: `https://tribe-feed-engine-1.preview.emergentagent.com`
+**Backend URL**: `https://tribe-feed-debug.preview.emergentagent.com`
 
 > This document provides a complete inventory of all seeded and test data in the Tribe database. Use this as the definitive reference for frontend integration and testing.
 
@@ -43,7 +43,7 @@
 
 ### Quick Login Example
 ```bash
-curl -X POST https://tribe-feed-engine-1.preview.emergentagent.com/api/auth/login \
+curl -X POST https://tribe-feed-debug.preview.emergentagent.com/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"phone":"7777099001","pin":"1234"}'
 ```

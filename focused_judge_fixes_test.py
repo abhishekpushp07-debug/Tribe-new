@@ -10,7 +10,7 @@ import sys
 import time
 
 # Base URL from environment
-BASE_URL = "https://tribe-feed-engine-1.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-feed-debug.preview.emergentagent.com/api"
 
 class JudgeFixesFocusedTester:
     def __init__(self):

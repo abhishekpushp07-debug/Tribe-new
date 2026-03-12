@@ -20,7 +20,7 @@ import random
 import json
 import time
 
-API = "https://tribe-feed-engine-1.preview.emergentagent.com/api"
+API = "https://tribe-feed-debug.preview.emergentagent.com/api"
 SCORES = {}
 DETAILS = {}
 

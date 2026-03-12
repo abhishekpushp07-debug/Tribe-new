@@ -25,7 +25,7 @@ import sys
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Any
 
-BASE_URL = "https://tribe-feed-engine-1.preview.emergentagent.com"
+BASE_URL = "https://tribe-feed-debug.preview.emergentagent.com"
 API_URL = f"{BASE_URL}/api"
 
 @dataclass 

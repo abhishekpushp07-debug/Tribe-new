@@ -18,7 +18,7 @@ import sys
 import os
 
 # Configuration
-BASE_URL = "https://tribe-feed-engine-1.preview.emergentagent.com"
+BASE_URL = "https://tribe-feed-debug.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Admin credentials

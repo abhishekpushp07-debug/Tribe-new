@@ -1,7 +1,7 @@
 {
   "timestamp": "2026-03-09T13:15:09.721743",
   "stage": "Stage 2: Security & Session Hardening - Focused Test",
-  "base_url": "https://tribe-feed-engine-1.preview.emergentagent.com/api",
+  "base_url": "https://tribe-feed-debug.preview.emergentagent.com/api",
   "total_tests": 10,
   "passed": 8,
   "failed": 2,

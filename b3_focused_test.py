@@ -9,7 +9,7 @@ import json
 import time
 import random
 
-API_BASE_URL = "https://tribe-feed-engine-1.preview.emergentagent.com/api"
+API_BASE_URL = "https://tribe-feed-debug.preview.emergentagent.com/api"
 
 class B3PagesQuickTest:
     def __init__(self):

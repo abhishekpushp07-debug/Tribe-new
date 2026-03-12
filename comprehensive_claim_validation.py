@@ -8,7 +8,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://tribe-feed-engine-1.preview.emergentagent.com/api"
+BASE_URL = "https://tribe-feed-debug.preview.emergentagent.com/api"
 
 class ComprehensiveClaimValidation:
     def __init__(self):
