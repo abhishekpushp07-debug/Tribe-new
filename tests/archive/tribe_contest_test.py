@@ -14,7 +14,7 @@ import random
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://tribe-world-class.preview.emergentagent.com/api"
+BASE_URL = "https://media-platform-api.preview.emergentagent.com/api"
 SEASON_ID = "6dd39c1d-f3b3-4543-bba2-d2b44cdf60ac"
 ADMIN_USER = {'phone': '9000000001', 'pin': '1234'}
 

@@ -13,7 +13,7 @@ import os
 from urllib.parse import urljoin
 
 # Configuration
-API_BASE_URL = "https://tribe-world-class.preview.emergentagent.com/api"
+API_BASE_URL = "https://media-platform-api.preview.emergentagent.com/api"
 TEST_PHONE_BASE = "9123456"
 
 class B3PagesValidator:

@@ -18,7 +18,7 @@ import sys
 import os
 
 # Configuration
-BASE_URL = "https://tribe-world-class.preview.emergentagent.com"
+BASE_URL = "https://media-platform-api.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Admin credentials

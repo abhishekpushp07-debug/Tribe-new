@@ -5,9 +5,9 @@
 
 ## 🔗 Backend URL (Production)
 ```
-https://tribe-world-class.preview.emergentagent.com
+https://media-platform-api.preview.emergentagent.com
 ```
-All API calls: `https://tribe-world-class.preview.emergentagent.com/api/*`
+All API calls: `https://media-platform-api.preview.emergentagent.com/api/*`
 
 ### Quick Health Check
 ```
@@ -95,7 +95,7 @@ Content-Type: application/json
 
 ### 1. Set Base URL
 ```javascript
-const API_BASE = 'https://tribe-world-class.preview.emergentagent.com/api';
+const API_BASE = 'https://media-platform-api.preview.emergentagent.com/api';
 ```
 
 ### 2. Register & Login

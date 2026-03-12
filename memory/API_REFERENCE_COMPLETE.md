@@ -1,5 +1,5 @@
 # TRIBE — Complete API Reference (309 Endpoints)
-**Generated**: 2026-03-11 | **Backend URL**: `https://tribe-world-class.preview.emergentagent.com`
+**Generated**: 2026-03-11 | **Backend URL**: `https://media-platform-api.preview.emergentagent.com`
 **Total Endpoints**: 309 | **Domains**: 24
 
 All routes prefixed with `/api/`. Auth header: `Authorization: Bearer {accessToken}`

@@ -9,7 +9,7 @@ import requests
 import json
 import time
 
-API_BASE_URL = "https://tribe-world-class.preview.emergentagent.com/api"
+API_BASE_URL = "https://media-platform-api.preview.emergentagent.com/api"
 
 def test_basic_functionality():
     """Test basic functionality without authentication requirements"""

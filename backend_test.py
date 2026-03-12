@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Comprehensive Regression Test & Scoring for Tribe Social Media Backend API
-Base URL: https://tribe-world-class.preview.emergentagent.com/api
+Base URL: https://media-platform-api.preview.emergentagent.com/api
 
 Tests ALL 12 endpoint categories with scoring:
 1. AUTH & ONBOARDING
@@ -31,7 +31,7 @@ from datetime import datetime
 from typing import Dict, List, Any
 
 # Test Configuration
-BASE_URL = "https://tribe-world-class.preview.emergentagent.com/api"
+BASE_URL = "https://media-platform-api.preview.emergentagent.com/api"
 TEST_USER_1 = {"phone": "7777099001", "pin": "1234"}  
 TEST_USER_2 = {"phone": "7777099002", "pin": "1234"}
 

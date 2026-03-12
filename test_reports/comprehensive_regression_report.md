@@ -2,7 +2,7 @@
 ## Tribe Social Media Backend API Testing
 
 **Test Date:** 2026-03-12  
-**Base URL:** https://tribe-world-class.preview.emergentagent.com/api  
+**Base URL:** https://media-platform-api.preview.emergentagent.com/api  
 **Test Suite:** 12 Categories, 51 Endpoints  
 **Overall Success Rate:** 98.0% (50/51 endpoints working)  
 **Status:** 🟢 PRODUCTION READY

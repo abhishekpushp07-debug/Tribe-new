@@ -36,4 +36,4 @@ All 6 gaps from the deep audit are now closed.
 - Cross-account correlation for sockpuppet detection
 
 ## Backend URL
-`https://tribe-world-class.preview.emergentagent.com`
+`https://media-platform-api.preview.emergentagent.com`

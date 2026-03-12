@@ -4,7 +4,7 @@ import aiohttp
 import json
 
 async def test_legal_consent():
-    BASE_URL = "https://tribe-world-class.preview.emergentagent.com/api"
+    BASE_URL = "https://media-platform-api.preview.emergentagent.com/api"
     
     async with aiohttp.ClientSession() as session:
         # Register new user first

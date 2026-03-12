@@ -348,7 +348,7 @@
 
 ### H.1 Security Headers Proof (curl)
 ```
-$ curl -D - https://tribe-world-class.preview.emergentagent.com/api/healthz
+$ curl -D - https://media-platform-api.preview.emergentagent.com/api/healthz
 
 x-content-type-options: nosniff
 x-frame-options: DENY

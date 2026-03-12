@@ -15,7 +15,7 @@ import json
 import time
 from pymongo import MongoClient
 
-BASE_URL = "https://tribe-world-class.preview.emergentagent.com"
+BASE_URL = "https://media-platform-api.preview.emergentagent.com"
 API_URL = f"{BASE_URL}/api"
 
 class FocusedTestSuite:

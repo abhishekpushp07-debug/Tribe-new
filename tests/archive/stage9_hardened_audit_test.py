@@ -11,7 +11,7 @@ This is the comprehensive audit for the hardened version with fixes for:
 - Aggregation-based sticker results
 - Zero-COLLSCAN proven
 
-Base URL: https://tribe-world-class.preview.emergentagent.com/api
+Base URL: https://media-platform-api.preview.emergentagent.com/api
 Mandatory: 44 tests minimum covering all categories as per review request.
 """
 
@@ -27,7 +27,7 @@ from uuid import uuid4
 import base64
 
 # Test Configuration
-BASE_URL = "https://tribe-world-class.preview.emergentagent.com/api"
+BASE_URL = "https://media-platform-api.preview.emergentagent.com/api"
 MONGO_URL = "mongodb://localhost:27017"
 DB_NAME = "your_database_name"
 

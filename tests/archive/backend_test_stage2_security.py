@@ -13,7 +13,7 @@ This test validates Stage 2 security hardening features:
 8. Security Audit Logging
 9. Legacy Compatibility
 
-Base URL: https://tribe-world-class.preview.emergentagent.com/api
+Base URL: https://media-platform-api.preview.emergentagent.com/api
 """
 
 import requests
@@ -24,7 +24,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://tribe-world-class.preview.emergentagent.com/api"
+BASE_URL = "https://media-platform-api.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 class TestRunner:

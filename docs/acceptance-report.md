@@ -1,7 +1,7 @@
 # Tribe Backend — Proof-Based Acceptance Report
 
 **Date**: 2026-03-07
-**API URL**: https://tribe-world-class.preview.emergentagent.com
+**API URL**: https://media-platform-api.preview.emergentagent.com
 
 ---
 
