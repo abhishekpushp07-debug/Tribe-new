@@ -15,7 +15,7 @@ Testing the new features added as per the review request:
 10. Page Endpoints
 11. Sticker Response Rate Limit
 
-Base URL: https://media-app-guide.preview.emergentagent.com
+Base URL: https://dev-hub-39.preview.emergentagent.com
 Authentication: phone 7777099001 (ADMIN), 7777099002 (USER), PIN 1234
 """
 
@@ -28,7 +28,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 
-BASE_URL = "https://media-app-guide.preview.emergentagent.com"
+BASE_URL = "https://dev-hub-39.preview.emergentagent.com"
 API_URL = f"{BASE_URL}/api"
 
 @dataclass 

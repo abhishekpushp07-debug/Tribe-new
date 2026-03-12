@@ -17,7 +17,7 @@
 
 set -e
 
-API="${1:-https://media-app-guide.preview.emergentagent.com}"
+API="${1:-https://dev-hub-39.preview.emergentagent.com}"
 PASS=0
 FAIL=0
 TOTAL=0

@@ -7,7 +7,7 @@ Requirements from review request:
 - Register 3 test users (User A, User B, User C) via POST /api/auth/register
 - User A and B should follow each other via POST /api/follow/<userId>  
 - One user needs to be promoted to ADMIN role in MongoDB for admin tests
-- Base URL: https://media-app-guide.preview.emergentagent.com/api
+- Base URL: https://dev-hub-39.preview.emergentagent.com/api
 
 Endpoints to test (~25 endpoints):
 1. Stories CRUD (POST/GET/DELETE /api/stories)
@@ -35,7 +35,7 @@ from uuid import uuid4
 import base64
 
 # Test Configuration
-BASE_URL = "https://media-app-guide.preview.emergentagent.com/api"
+BASE_URL = "https://dev-hub-39.preview.emergentagent.com/api"
 MONGO_URL = "mongodb://localhost:27017"
 DB_NAME = "your_database_name"
 

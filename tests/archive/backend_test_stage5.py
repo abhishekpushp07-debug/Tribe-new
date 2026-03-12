@@ -11,7 +11,7 @@ import random
 from datetime import datetime, timedelta
 
 # Base API URL from review request
-BASE_URL = "https://media-app-guide.preview.emergentagent.com/api"
+BASE_URL = "https://dev-hub-39.preview.emergentagent.com/api"
 
 # Test credentials from review request
 ADMIN_PHONE = "9000000501"  # ADMIN role, college linked to IIT Bombay

@@ -9,7 +9,7 @@ import requests
 import json
 import time
 
-API_BASE_URL = "https://media-app-guide.preview.emergentagent.com/api"
+API_BASE_URL = "https://dev-hub-39.preview.emergentagent.com/api"
 
 def test_basic_functionality():
     """Test basic functionality without authentication requirements"""

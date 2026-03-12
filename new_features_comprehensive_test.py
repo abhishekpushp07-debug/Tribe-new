@@ -13,7 +13,7 @@ Testing all 50 new features across 8 groups:
 7. Feed & Discovery (7 endpoints)
 8. Notifications (2 endpoints)
 
-Base URL: https://media-app-guide.preview.emergentagent.com
+Base URL: https://dev-hub-39.preview.emergentagent.com
 """
 
 import asyncio
@@ -24,7 +24,7 @@ import sys
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Any
 
-BASE_URL = "https://media-app-guide.preview.emergentagent.com"
+BASE_URL = "https://dev-hub-39.preview.emergentagent.com"
 API_URL = f"{BASE_URL}/api"
 
 @dataclass

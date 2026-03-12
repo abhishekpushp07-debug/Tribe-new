@@ -6,7 +6,7 @@ Covers: 100% test closure, RBAC proof, replay/idempotency, E2E, legacy cleanup r
 import requests, json, time, subprocess, sys
 from datetime import datetime
 
-BASE = "https://media-app-guide.preview.emergentagent.com/api"
+BASE = "https://dev-hub-39.preview.emergentagent.com/api"
 results = []
 n = 0
 

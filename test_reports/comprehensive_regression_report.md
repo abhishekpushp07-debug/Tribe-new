@@ -2,7 +2,7 @@
 ## Tribe Social Media Backend API Testing
 
 **Test Date:** 2026-03-12  
-**Base URL:** https://media-app-guide.preview.emergentagent.com/api  
+**Base URL:** https://dev-hub-39.preview.emergentagent.com/api  
 **Test Suite:** 12 Categories, 51 Endpoints  
 **Overall Success Rate:** 98.0% (50/51 endpoints working)  
 **Status:** 🟢 PRODUCTION READY

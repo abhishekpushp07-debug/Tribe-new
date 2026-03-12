@@ -1,7 +1,7 @@
 # Tribe — Android & Frontend Integration Guide
 
 > Complete technical guide for building the Tribe mobile app (Android/iOS/Flutter/React Native)
-> **Backend URL**: `https://media-app-guide.preview.emergentagent.com`
+> **Backend URL**: `https://dev-hub-39.preview.emergentagent.com`
 > **API Prefix**: All endpoints prefixed with `/api`
 
 ---
@@ -26,7 +26,7 @@
 
 ### Backend Contract
 ```
-Base URL: https://media-app-guide.preview.emergentagent.com/api
+Base URL: https://dev-hub-39.preview.emergentagent.com/api
 Content-Type: application/json
 Auth: Bearer token in Authorization header
 ```

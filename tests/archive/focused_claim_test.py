@@ -7,7 +7,7 @@ Testing after understanding the current system state
 import requests
 import json
 
-BASE_URL = "https://media-app-guide.preview.emergentagent.com/api"
+BASE_URL = "https://dev-hub-39.preview.emergentagent.com/api"
 
 # Test Users
 REGULAR_USER = {"phone": "9000000001", "pin": "1234"}  

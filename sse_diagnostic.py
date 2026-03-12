@@ -6,7 +6,7 @@ Simple SSE Connection Test - Diagnose SSE endpoints
 import requests
 import time
 
-BASE_URL = "https://media-app-guide.preview.emergentagent.com/api"
+BASE_URL = "https://dev-hub-39.preview.emergentagent.com/api"
 
 def test_sse_basic():
     print("🔍 SSE Basic Connection Test")

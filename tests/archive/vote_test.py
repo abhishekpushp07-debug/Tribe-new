@@ -6,7 +6,7 @@ Quick test for vote system fix
 import requests
 import json
 
-BASE_URL = "https://media-app-guide.preview.emergentagent.com/api"
+BASE_URL = "https://dev-hub-39.preview.emergentagent.com/api"
 ADMIN_PHONE = "9000000501"
 USER_PHONE = "9000000502" 
 PIN = "1234"

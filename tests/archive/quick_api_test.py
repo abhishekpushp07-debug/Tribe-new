@@ -4,7 +4,7 @@ import aiohttp
 import json
 
 async def test_api():
-    BASE_URL = "https://media-app-guide.preview.emergentagent.com/api"
+    BASE_URL = "https://dev-hub-39.preview.emergentagent.com/api"
     
     async with aiohttp.ClientSession() as session:
         # Login first

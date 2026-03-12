@@ -1,7 +1,7 @@
 {
   "test_type": "Stage 1 Canonical Contract Freeze v2 - Deep Validation",
   "timestamp": "2026-03-09T11:21:43.879254",
-  "base_url": "https://media-app-guide.preview.emergentagent.com/api",
+  "base_url": "https://dev-hub-39.preview.emergentagent.com/api",
   "summary": {
     "tests_run": 33,
     "tests_passed": 32,

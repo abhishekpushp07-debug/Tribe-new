@@ -20,7 +20,7 @@ import random
 import json
 import sys
 
-API = "https://media-app-guide.preview.emergentagent.com/api"
+API = "https://dev-hub-39.preview.emergentagent.com/api"
 SCORES = {}
 DETAILS = {}
 

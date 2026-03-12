@@ -20,7 +20,7 @@ import base64
 from typing import Dict, Any, Optional, Tuple
 
 # Configuration
-BASE_URL = "https://media-app-guide.preview.emergentagent.com/api"
+BASE_URL = "https://dev-hub-39.preview.emergentagent.com/api"
 TEST_USER_PHONE = "9000000001"  # Fully onboarded test user
 TEST_USER_PIN = "1234"
 
