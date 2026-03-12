@@ -1,118 +1,88 @@
 # Tribe — Product Requirements Document
-**Version**: 5.0
+**Version**: 6.0
 **Last Updated**: 2026-03-12
 
 ## Problem Statement
-Build a world-best social media backend for "Tribe" — a college-centric social platform. The system serves users across colleges, tribes, houses with content types including Posts, Reels, Stories, and Pages.
+Build a world-best social media backend for "Tribe" — a college-centric social platform with Posts, Reels, Stories, and Pages.
 
 ## Core Architecture
 - **Application**: Next.js 14 monolithic API with Service-Oriented Architecture
 - **Database**: MongoDB (local)
 - **Media Storage**: Supabase Storage (bucket: `tribe-media`)
-- **Video Processing**: ffmpeg (real transcoding pipeline)
+- **Video Processing**: ffmpeg (HLS transcoding, multi-quality, thumbnail extraction)
 - **Testing**: pytest (~1001 tests, 99.9% pass rate)
 - **Auth**: Phone + PIN with JWT tokens
 
-## User Personas
-1. **Student**: Creates posts, stories, reels. Joins tribes, follows pages
-2. **Page Admin**: Manages pages, creates page-authored content
-3. **Moderator**: Reviews flagged content, manages reports
-4. **Admin/Super Admin**: Platform governance, tribe management, analytics
+## Feature Status (as of 2026-03-12)
 
-## Current Feature Status (as of 2026-03-12)
+### Session 2 — Critical Bug Fixes (4 bugs)
+- Home feed `cache.get()` not awaited → fixed
+- Story rail queried wrong collection → fixed
+- Reels feed queried wrong collection → fixed
+- Reels follow field name mismatch → fixed
 
-### Critical Bugs Fixed (Session 2)
-- GET /feed returned {} (anon) or 500 (auth) — cache.get not awaited + wrong applyFeedPolicy args
-- GET /feed/stories returned empty — queried wrong collection
-- GET /feed/reels showed minimal content — queried wrong collection  
-- Reels follow check used wrong field name (followingId → followeeId)
+### Session 2 — 50 Social Features Added
+- Profile & Settings (12), Content Interactions (9), Comment Operations (5)
+- Stories (3), Reels (4), Tribes (8), Feed & Discovery (7), Notifications (2)
 
-### 50 New Social Media Features Added (Session 2)
+### Session 2 — 4 World-Class Features Added
 
-#### Profile & Settings (12 endpoints)
-1. GET /me — own profile with stats
-2. GET /me/stats — dashboard (posts, reels, stories, followers, following, likes, saves)
-3. GET /me/settings — all settings (privacy, notifications, profile, interests)
-4. PATCH /me/settings — bulk update settings
-5. GET /me/privacy — privacy settings
-6. PATCH /me/privacy — toggle private/public, tagging, mentions, online status
-7. GET /me/activity — 7-day activity summary
-8. POST /me/interests — set interests
-9. GET /me/interests — get interests
-10. GET /me/login-activity — recent sessions
-11. GET /me/bookmarks — all saved content
-12. POST /me/deactivate — deactivate account
+#### 1. Full-Text Search with Autocomplete (8 endpoints)
+- `GET /search?q=` — Unified search across users, hashtags, content, pages, tribes
+- `GET /search/autocomplete?q=` — Real-time suggestions as you type
+- `GET /search/users?q=` — Dedicated user search with follow status
+- `GET /search/hashtags?q=` — Hashtag search with post counts
+- `GET /search/content?q=` — Content/post search
+- `GET /hashtags/:tag` — Hashtag detail page (top + recent, total posts)
+- `GET /search/recent` — Recent search history
+- `DELETE /search/recent` — Clear search history
 
-#### Content Interactions (9 endpoints)
-13. POST /content/:id/report — report content
-14. POST /content/:id/archive — archive post
-15. POST /content/:id/unarchive — restore archived post
-16. POST /content/:id/pin — pin to profile
-17. DELETE /content/:id/pin — unpin
-18. POST /content/:id/hide — hide from feed
-19. GET /content/:id/likers — who liked
-20. GET /content/:id/shares — who shared/reposted
+#### 2. Engagement Analytics Dashboard (8 endpoints)
+- `POST /analytics/track` — Track impressions, views, profile visits, clicks
+- `GET /analytics/overview` — Full account analytics (engagement, reach, audience, growth %)
+- `GET /analytics/content` — Content performance ranking (likes, comments, saves, shares, engagement rate)
+- `GET /analytics/content/:id` — Deep analytics per post (time-series, top likers)
+- `GET /analytics/audience` — Audience demographics (colleges, tribes, gender, top engagers)
+- `GET /analytics/reach` — Reach & impressions time series + top performing content
+- `GET /analytics/reels` — Reel performance analytics
+- `GET /analytics/profile-visits` — Profile visit details with recent visitors
 
-#### Comment Operations (5 endpoints)
-21. POST /content/:id/comments/:cid/reply — threaded replies
-22. PATCH /content/:id/comments/:cid — edit comment
-23. POST /content/:id/comments/:cid/pin — pin comment (author only)
-24. POST /content/:id/comments/:cid/report — report comment
-25. DELETE /content/:id/comments/:cid — delete comment
+#### 3. Follow Request System (7 endpoints)
+- Private account toggle via `PATCH /me/privacy` with `{"isPrivate": true}`
+- `POST /follow/:id` — Auto-creates follow request for private accounts
+- `GET /me/follow-requests` — View pending requests received
+- `GET /me/follow-requests/sent` — View sent requests
+- `GET /me/follow-requests/count` — Badge count for pending requests
+- `POST /follow-requests/:id/accept` — Accept request (creates follow)
+- `POST /follow-requests/:id/reject` — Reject request
+- `DELETE /follow-requests/:id` — Cancel sent request
+- `POST /follow-requests/accept-all` — Bulk accept all
 
-#### Stories (3 endpoints)
-26. POST /stories/:id/view — mark as viewed + increment count
-27. GET /me/stories/insights — story analytics
-28. POST /stories/:id/share — share story as post
+#### 4. Video Transcoding (HLS Streaming) (6 endpoints)
+- `POST /transcode/:mediaId` — Start transcoding job with quality presets
+- `GET /transcode/:jobId/status` — Real-time job status tracking
+- `GET /transcode/media/:mediaId` — Get transcode info for any media
+- `GET /transcode/queue` — View job queue with aggregate stats
+- `GET /media/:id/stream` — HLS master playlist (adaptive bitrate variants)
+- `GET /media/:id/thumbnails` — Auto-generated thumbnails at key frames
+- Quality presets: 1080p, 720p, 480p, 360p, 240p
+- Background processing with progress tracking
 
-#### Reels (4 endpoints)
-29. GET /reels/:id/likers — who liked reel
-30. GET /me/reels/saved — saved reels list
-31. POST /reels/:id/duet — create duet
-32. GET /reels/sounds/popular — popular sounds
-
-#### Tribes (8 endpoints)
-33. POST /tribes/:id/join — join tribe
-34. POST /tribes/:id/leave — leave tribe
-35. GET /tribes/:id/feed — tribe content feed
-36. GET /tribes/:id/events — tribe events
-37. GET /tribes/:id/stats — tribe statistics
-38. POST /tribes/:id/cheer — daily cheer (rate-limited)
-39. GET /users/:id/mutual-followers — mutual followers
-
-#### Feed & Discovery (7 endpoints)
-40. GET /explore — trending posts + reels + hashtags
-41. GET /explore/creators — popular creators with follow status
-42. GET /explore/reels — trending reels
-43. GET /feed/mixed — interleaved posts + reels
-44. GET /feed/personalized — interest-based ranking
-45. GET /trending/topics — trending hashtags with scores
-
-#### Notifications (2 endpoints)
-46. POST /notifications/read-all — mark all read
-47. DELETE /notifications/clear — clear all
-
-### Pre-existing Features (from prior sessions)
-- Stories: Full CRUD, privacy, reactions, replies, stickers, highlights, close friends, mutes, view duration, bulk moderation
-- Posts: CRUD, polls, link previews, threads, carousel, drafts, scheduling
-- Reels: CRUD, feed, publish, archive, restore, pin, like/save, comments, report, hide, share, audio, remixes, series, analytics
-- Social: Follow/unfollow, like/dislike, comment/reply, save/unsave, share/repost
-- Pages: Full CRUD, members, verification, analytics
-- Events: Full CRUD, RSVP, attendees, reminders
-- Tribes: Leaderboard, standings, distribution, seasons, contests
-- Notifications: List, read, unread count, device registration, preferences
-- Discovery: Search, hashtags, suggestions, colleges
+### Pre-existing Features
+- Full Story/Reel/Post CRUD with all interactions
+- Pages, Events, Tribes, Notifications, Discovery
+- Complete social graph (follow, like, comment, save, share, report, block)
 
 ## Remaining Roadmap
-- **P1: Write pytest tests** for all recently added features — required by Master Prompt  
-- **P2: Phase 1 Core Blockers** — Post distributionStage automation, feed cache key collision fix
-- **P3: Reel Processing** — Real video transcoding, anti-gaming strengthening
-- **P4: Phase 2-6 Subsystem Completion** — Continue sprints from Master Prompt
-- **P5: Test Suite Hardening** — Zero-flake test suite (rate-limit flake fix)
-- **P6: Infra & Scale** — Redis, job queues, dedicated test DB
-- **P7: Advanced Features** — Recommendation engine, ML ranking, push notifications
+- **P1:** Write pytest tests for all new features (Master Prompt requirement)
+- **P2:** Smart Feed Algorithm (ML-like ranking with engagement prediction)
+- **P3:** Content Recommendations ("Suggested Posts", "Reels You May Like")
+- **P4:** Activity Status ("Active now", "Active 2h ago")
+- **P5:** Smart Suggestions ("People you may know", "Trending in your college")
+- **P6:** Content Quality Scoring (auto spam detection, shadow-ban)
+- **P7:** Redis caching layer for performance
+- **P8:** Phase 2-6 Master Prompt sprints
 
 ## Test Credentials
 - Admin: `7777099001` / PIN: `1234`
 - User: `7777099002` / PIN: `1234`
-- See SEED_DATA_REFERENCE.md for full inventory
