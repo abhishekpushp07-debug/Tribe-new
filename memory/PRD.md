@@ -99,6 +99,14 @@ Build the world's best social media application for Indian college students.
   - Backfill on login for existing users missing tribeHeroName
   - New users get tribeHeroName at registration
 
+- **Chunked Video Upload (Mar 2026)**:
+  - POST /media/chunked/init → POST /media/chunked/:id/chunk (×N) → POST /media/chunked/:id/complete
+  - Supports up to 200MB videos in chunks (2MB each recommended)
+  - Progress tracking via GET /media/chunked/:id/status
+  - 30-min session expiry, duplicate chunk detection, missing chunk validation
+  - Legacy base64 limit bumped from 30MB → 50MB
+  - Chunks auto-assembled and uploaded to Supabase/Object Storage
+
 ## Backlog
 - Frontend UI development
 - WebSocket real-time push notifications (P2)
