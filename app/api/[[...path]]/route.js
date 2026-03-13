@@ -9,6 +9,7 @@ import { handleUsers } from '@/lib/handlers/users'
 import { handleDiscovery } from '@/lib/handlers/discovery'
 import { handleMedia } from '@/lib/handlers/media'
 import { handleMediaCleanup, startMediaCleanupWorker } from '@/lib/handlers/media-cleanup'
+import { startCleanupWorker } from '@/lib/services/cleanup-worker'
 import { handleAdmin } from '@/lib/handlers/admin'
 import { handleGovernance } from '@/lib/handlers/governance'
 import { handleModerationRoutes } from '@/lib/moderation/routes/moderation.routes'
@@ -504,6 +505,7 @@ async function handleRouteCore(request, { params }, reqCtx) {
       }
     } else if (path[0] === 'media') {
       startMediaCleanupWorker(db) // Lazy-init cleanup worker
+      startCleanupWorker(db) // Chunked upload + scheduled post cleanup
       result = await handleMedia(path, method, request, db)
       if (!result) {
         result = await handleTranscode(path, method, request, db)
@@ -532,62 +534,34 @@ async function handleRouteCore(request, { params }, reqCtx) {
     } else if (path[0] === 'notifications') {
       result = await handleNotifications(path, method, request, db)
     } else if (['reports', 'moderation', 'appeals', 'legal', 'admin', 'grievances'].includes(path[0])) {
+      // ---- ADMIN & MODERATION ROUTES (refactored from if/else chain) ----
+      const adminRouteMap = {
+        'college-claims': handleCollegeClaims,
+        'distribution': handleDistribution,
+        'resources': handleResources,
+        'stories': handleStories,
+        'reels': handleReels,
+        'pages': handlePages,
+        'events': handleEvents,
+        'board-notices': handleBoardNotices,
+        'authenticity': handleAuthenticityTags,
+        'media': handleMediaCleanup,
+        'tribes': handleTribeAdmin,
+        'tribe-seasons': handleTribeAdmin,
+        'tribe-awards': handleTribeAdmin,
+        'tribe-rivalries': handleTribeAdmin,
+        'tribe-contests': handleTribeContestAdmin,
+        'tribe-salutes': handleTribeContestAdmin,
+        'abuse-dashboard': handleAdmin,
+        'abuse-log': handleAdmin,
+      }
+
       if (path[0] === 'appeals' && path.length === 3 && path[2] === 'decide') {
         result = await handleAppealDecision(path, method, request, db)
-      }
-      else if (path[0] === 'admin' && path[1] === 'college-claims') {
-        result = await handleCollegeClaims(path, method, request, db)
-      }
-      else if (path[0] === 'admin' && path[1] === 'distribution') {
-        result = await handleDistribution(path, method, request, db)
-      }
-      else if (path[0] === 'admin' && path[1] === 'resources') {
-        result = await handleResources(path, method, request, db)
-      }
-      else if (path[0] === 'admin' && path[1] === 'stories') {
-        result = await handleStories(path, method, request, db)
-      }
-      else if (path[0] === 'admin' && path[1] === 'reels') {
-        result = await handleReels(path, method, request, db)
-      }
-      else if (path[0] === 'admin' && path[1] === 'pages') {
-        result = await handlePages(path, method, request, db)
-      }
-      else if (path[0] === 'admin' && path[1] === 'events') {
-        result = await handleEvents(path, method, request, db)
-      }
-      else if (path[0] === 'admin' && path[1] === 'board-notices') {
+      } else if (path[0] === 'moderation' && path[1] === 'board-notices') {
         result = await handleBoardNotices(path, method, request, db)
-      }
-      else if (path[0] === 'admin' && path[1] === 'authenticity') {
-        result = await handleAuthenticityTags(path, method, request, db)
-      }
-      else if (path[0] === 'admin' && path[1] === 'media') {
-        result = await handleMediaCleanup(path, method, request, db)
-      }
-      else if (path[0] === 'admin' && path[1] === 'tribes') {
-        result = await handleTribeAdmin(path, method, request, db)
-      }
-      else if (path[0] === 'admin' && path[1] === 'tribe-seasons') {
-        result = await handleTribeAdmin(path, method, request, db)
-      }
-      else if (path[0] === 'admin' && path[1] === 'tribe-contests') {
-        result = await handleTribeContestAdmin(path, method, request, db)
-      }
-      else if (path[0] === 'admin' && path[1] === 'tribe-salutes') {
-        result = await handleTribeContestAdmin(path, method, request, db)
-      }
-      else if (path[0] === 'admin' && path[1] === 'tribe-awards') {
-        result = await handleTribeAdmin(path, method, request, db)
-      }
-      else if (path[0] === 'admin' && path[1] === 'tribe-rivalries') {
-        result = await handleTribeAdmin(path, method, request, db)
-      }
-      else if (path[0] === 'admin' && (path[1] === 'abuse-dashboard' || path[1] === 'abuse-log')) {
-        result = await handleAdmin(path, method, request, db)
-      }
-      else if (path[0] === 'moderation' && path[1] === 'board-notices') {
-        result = await handleBoardNotices(path, method, request, db)
+      } else if (path[0] === 'admin' && adminRouteMap[path[1]]) {
+        result = await adminRouteMap[path[1]](path, method, request, db)
       }
       if (!result) {
         result = await handleAdmin(path, method, request, db)
@@ -627,7 +601,14 @@ async function handleRouteCore(request, { params }, reqCtx) {
       return jsonErr(result.error, result.code || 'ERROR', result.status || 400, result.headers || {})
     }
 
-    return jsonOk(result.data, result.status || 200)
+    const resp = jsonOk(result.data, result.status || 200)
+    // Apply any custom headers from handler (e.g., TUS headers)
+    if (result.headers) {
+      for (const [key, value] of Object.entries(result.headers)) {
+        resp.headers.set(key, value)
+      }
+    }
+    return resp
 
   } catch (error) {
     if (error.status && error.code) {
