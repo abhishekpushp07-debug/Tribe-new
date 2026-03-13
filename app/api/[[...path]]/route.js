@@ -580,6 +580,9 @@ async function handleRouteCore(request, { params }, reqCtx) {
       else if (path[0] === 'admin' && path[1] === 'tribe-awards') {
         result = await handleTribeAdmin(path, method, request, db)
       }
+      else if (path[0] === 'admin' && path[1] === 'tribe-rivalries') {
+        result = await handleTribeAdmin(path, method, request, db)
+      }
       else if (path[0] === 'admin' && (path[1] === 'abuse-dashboard' || path[1] === 'abuse-log')) {
         result = await handleAdmin(path, method, request, db)
       }
@@ -601,6 +604,8 @@ async function handleRouteCore(request, { params }, reqCtx) {
       result = await handleAuthenticityTags(path, method, request, db)
     } else if (path[0] === 'tribe-contests') {
       result = await handleTribeContests(path, method, request, db)
+    } else if (path[0] === 'tribe-rivalries') {
+      result = await handleTribes(path, method, request, db)
     } else if (path[0] === 'tribes') {
       result = await handleTribes(path, method, request, db)
     }

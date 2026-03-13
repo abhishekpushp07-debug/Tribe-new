@@ -1,0 +1,116 @@
+{
+  "summary": {
+    "total_tests": 15,
+    "passed": 11,
+    "failed": 4,
+    "success_rate": 73.33333333333333,
+    "timestamp": "2026-03-13T21:25:53.506627"
+  },
+  "results": [
+    {
+      "test": "Auth User 1",
+      "success": true,
+      "message": "Logged in user 7777099001",
+      "timestamp": "2026-03-13T21:25:49.522300",
+      "response_data": null
+    },
+    {
+      "test": "Auth User 2",
+      "success": true,
+      "message": "Logged in user 7777099002",
+      "timestamp": "2026-03-13T21:25:49.631724",
+      "response_data": null
+    },
+    {
+      "test": "Get User Tribe",
+      "success": true,
+      "message": "User belongs to tribe: cdd9f68f-15f7-4613-ab8b-bc17d4ae4b98",
+      "timestamp": "2026-03-13T21:25:49.721649",
+      "response_data": null
+    },
+    {
+      "test": "Daily Cheer",
+      "success": true,
+      "message": "Cheer successful - HeroName: None, TotalSalutes: None, CheerCount: None",
+      "timestamp": "2026-03-13T21:25:49.833407",
+      "response_data": null
+    },
+    {
+      "test": "Cheer Rate Limit",
+      "success": true,
+      "message": "Second daily cheer correctly blocked with 429",
+      "timestamp": "2026-03-13T21:25:50.913390",
+      "response_data": null
+    },
+    {
+      "test": "Content Salute",
+      "success": true,
+      "message": "Content salute successful - SaluteID: None",
+      "timestamp": "2026-03-13T21:25:51.223681",
+      "response_data": null
+    },
+    {
+      "test": "Cross-Tribe Salute",
+      "success": true,
+      "message": "Cross-tribe salute allowed",
+      "timestamp": "2026-03-13T21:25:51.408661",
+      "response_data": null
+    },
+    {
+      "test": "Get Tribes List",
+      "success": true,
+      "message": "Found 21 tribes for rivalry testing",
+      "timestamp": "2026-03-13T21:25:51.486294",
+      "response_data": null
+    },
+    {
+      "test": "Admin Create Rivalry",
+      "success": true,
+      "message": "Rivalry created with ID: None",
+      "timestamp": "2026-03-13T21:25:51.681788",
+      "response_data": null
+    },
+    {
+      "test": "List Rivalries",
+      "success": true,
+      "message": "Found 1 rivalries",
+      "timestamp": "2026-03-13T21:25:52.774148",
+      "response_data": null
+    },
+    {
+      "test": "Create Contest",
+      "success": false,
+      "message": "Contest creation failed: 400",
+      "timestamp": "2026-03-13T21:25:52.911508",
+      "response_data": null
+    },
+    {
+      "test": "User Profile HeroName",
+      "success": false,
+      "message": "HeroName not found in user profile or tribe data",
+      "timestamp": "2026-03-13T21:25:53.052310",
+      "response_data": null
+    },
+    {
+      "test": "Tribes List Fields",
+      "success": true,
+      "message": "All required fields present - HeroName: Major Somnath Sharma, Color: #B71C1C, Salutes: 677, Cheers: 2",
+      "timestamp": "2026-03-13T21:25:53.121615",
+      "response_data": null
+    },
+    {
+      "test": "House Only Visibility",
+      "success": false,
+      "message": "Expected HOUSE_ONLY, got None",
+      "timestamp": "2026-03-13T21:25:53.309959",
+      "response_data": null
+    },
+    {
+      "test": "Default Visibility",
+      "success": false,
+      "message": "Expected PUBLIC default, got None",
+      "timestamp": "2026-03-13T21:25:53.506449",
+      "response_data": null
+    }
+  ]
+}
