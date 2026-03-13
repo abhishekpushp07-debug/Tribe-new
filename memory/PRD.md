@@ -78,6 +78,26 @@ Build the world's best social media application for Indian college students.
 - Complete pytest regression suite (121 tests, 100% pass rate)
 - **World-class documentation suite (7,804 lines across 5 documents)**
 - **Bug Fix (Feb 2026)**: Backend now honors `visibility` field from frontend for posts, reels, and story-to-post sharing. Added `HOUSE_ONLY`, `COLLEGE_ONLY`, `FOLLOWERS` to allowed visibility values. Fixed draft publish to restore intended visibility.
+- **Tribe Competitions Improvement (Mar 2026)**:
+  - Scoring engine pulls REAL content engagement from reels/posts/stories (likes, views, comments, saves, shares)
+  - New `scoring_content_engagement_v1` model for content-based competitions
+  - `story` added to entry types for contests
+  - Content validation on entry submission (verifies contentId exists and belongs to user)
+- **Rivalry System (Mar 2026)**:
+  - Full tribe vs tribe rivalry lifecycle: create → contribute → resolve/cancel
+  - Admin: POST /admin/tribe-rivalries, POST /admin/tribe-rivalries/:id/resolve|cancel
+  - User: GET /tribe-rivalries, GET /tribe-rivalries/:id, POST /tribe-rivalries/:id/contribute
+  - Engagement-based scoring from contributed reels/posts/stories
+  - Salute prize awarded to winner on resolution
+- **Salute/Cheer Enhancement (Mar 2026)**:
+  - Enhanced POST /tribes/:id/cheer with salute ledger tracking and heroName in response
+  - New POST /tribes/:id/salute for content-based salutes (rate limited: 10/hr)
+  - Cheers/salutes auto-contribute to active rivalries
+- **Badge: heroName from Tribe Data (Mar 2026)**:
+  - `toTribeSnippet` now returns heroName, primaryColor, secondaryColor, cheerCount, totalSalutes
+  - `toUserSnippet` includes tribeHeroName
+  - Backfill on login for existing users missing tribeHeroName
+  - New users get tribeHeroName at registration
 
 ## Backlog
 - Frontend UI development
