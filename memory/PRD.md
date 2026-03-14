@@ -230,6 +230,17 @@ Build the world's best social media application for Indian college students.
   - **Page reels/stories**: Consistent playbackMeta enrichment across page content
   - **Enhanced toMediaObject**: Canonical media object includes `publicUrl`, `thumbnailUrl`, `posterFrameUrl`, `storageType`, `playbackHints`
 
+- **Production Video Processing Pipeline (Mar 2026)**:
+  - **New service**: `/app/lib/services/video-pipeline.js` — Complete async video pipeline
+  - **Pipeline stages**: Download → ffprobe metadata → faststart MP4 → 720p H.264+AAC transcode → thumbnail@1s → poster@0.5s → upload variants → update DB
+  - **Processing state machine**: `UPLOADING → PROCESSING → READY | FAILED` — frontend never plays before READY
+  - **Media asset schema**: Added `playbackStatus`, `playbackUrl`, `variants` (original, 720p, faststart, thumbnail, poster), `processing` (faststart, transcoded, thumbnailGenerated, posterGenerated), `videoMeta` (durationMs, bitrate, codec, fps, audioCodec)
+  - **Best-URL selection**: enrichPosts picks `720p > faststart > CDN original` for video playback
+  - **GET /media/:id/processing** — New endpoint for frontend to poll processing status
+  - **Upload-status enhanced**: Returns `playbackStatus`, `variants`, `processing`, `videoMeta`
+  - **Media serving**: Redirects to best processed variant, adds `Accept-Ranges`, `X-Content-Duration` headers
+  - **Auto-trigger**: upload-complete fires async pipeline for all video uploads with fallback to old thumbnail generator
+
 ## Backlog
 - Frontend UI development (Posts grid view +30pts — reuse GridItem component)
 - Full 200+ endpoint sub-60ms optimization (P1)
