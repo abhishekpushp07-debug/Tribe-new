@@ -241,6 +241,16 @@ Build the world's best social media application for Indian college students.
   - **Media serving**: Redirects to best processed variant, adds `Accept-Ranges`, `X-Content-Duration` headers
   - **Auto-trigger**: upload-complete fires async pipeline for all video uploads with fallback to old thumbnail generator
 
+- **HLS Adaptive Streaming & Retry Worker (Mar 2026)**:
+  - **Multi-bitrate HLS ladder**: 360p (800kbps), 480p (1.4Mbps), 720p (2.8Mbps) — auto-selected based on source resolution
+  - **HLS generation**: For videos >10MB, generates per-quality .m3u8 playlists + .ts segments + master.m3u8 with proper BANDWIDTH/RESOLUTION tags
+  - **Playlist rewriting**: Segment URLs in playlists are rewritten to CDN URLs after upload to Supabase
+  - **Multi-bitrate MP4**: Also generates standalone 360p/480p/720p MP4 files as fallback for non-HLS players
+  - **Background retry worker**: Checks every 5 min for FAILED transcodes, retries up to 3 times, marks PERMANENTLY_FAILED after max attempts
+  - **URL priority**: enrichPosts picks `HLS master > 720p > 480p > 360p > faststart > original`
+  - **Processing status**: `GET /media/:id/processing` returns `recommended.primary` (best URL), `recommended.fallback`, `recommended.poster`
+  - **Schema**: `hlsUrl` field, `variants.hls` with sub-variant details, `processing.hlsReady`, `processing.retryCount`
+
 ## Backlog
 - Frontend UI development (Posts grid view +30pts — reuse GridItem component)
 - Full 200+ endpoint sub-60ms optimization (P1)
