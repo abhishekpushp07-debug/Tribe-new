@@ -165,6 +165,15 @@ Build the world's best social media application for Indian college students.
   - Feed PostCard supports video playback via `<video>` tag with CDN URLs
   - Legacy chunked + base64 uploads preserved as backward-compatible fallbacks
 
+- **Instagram-Level UI Overhaul (Mar 2026)**:
+  - **Story Rail**: Gradient ring avatars (amber→pink→violet→cyan), "Your story" with blue plus, horizontal scroll, profile pics
+  - **Instagram Video Player**: Tap-to-play/pause (no native controls), mute toggle, IntersectionObserver autoplay on scroll, play/pause overlay animation
+  - **Profile Pic Upload**: Camera button on own profile → direct-to-CDN upload → saved to user profile
+  - **Profile Pics Everywhere**: Post authors, suggestions, sidebar, story rings all show profile pictures via `profilePicUrl`
+  - **Video Grid**: Profile post grid shows Film icon on video posts
+  - Backend: Added `profilePicUrl` to user snippet, profile update endpoint, entity-snippets
+  - Frontend testing: 100% pass rate
+
 ## Backlog
 - Frontend UI development
 - WebSocket real-time push notifications (P2)
