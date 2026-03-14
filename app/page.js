@@ -501,12 +501,23 @@ function PostCard({ post, currentUser, onUserClick, onLike, onSave, onComment, o
       {/* Media */}
       {post.media && post.media.length > 0 && (
         <div className="relative bg-secondary/30" onDoubleClick={handleLike}>
-          <img
-            src={post.media[0].url}
-            alt=""
-            className="w-full object-cover max-h-[600px]"
-            loading="lazy"
-          />
+          {post.media[0].mimeType?.startsWith('video/') || post.media[0].type === 'VIDEO' ? (
+            <video
+              src={post.media[0].publicUrl || post.media[0].url}
+              className="w-full object-cover max-h-[600px] bg-black"
+              controls
+              playsInline
+              preload="metadata"
+              data-testid="post-video"
+            />
+          ) : (
+            <img
+              src={post.media[0].publicUrl || post.media[0].url}
+              alt=""
+              className="w-full object-cover max-h-[600px]"
+              loading="lazy"
+            />
+          )}
         </div>
       )}
 
@@ -600,39 +611,48 @@ function ComposeDialog({ open, onClose, user, onPost }) {
   const [file, setFile] = useState(null)
   const [filePreview, setFilePreview] = useState(null)
   const [fileType, setFileType] = useState(null) // 'image' | 'video'
+  const [videoDuration, setVideoDuration] = useState(null)
   const [loading, setLoading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadPhase, setUploadPhase] = useState('')
+  const [uploadStats, setUploadStats] = useState({})
   const fileRef = useRef(null)
-
-  const CHUNK_THRESHOLD = 5 * 1024 * 1024 // 5MB — above this, use chunked upload
 
   function handleFile(e) {
     const f = e.target.files?.[0]
     if (!f) return
     const isVideo = f.type.startsWith('video/')
-    const maxSize = isVideo ? 200 * 1024 * 1024 : 50 * 1024 * 1024
-    if (f.size > maxSize) { alert(`Max ${Math.round(maxSize / 1024 / 1024)}MB`); return }
+    const maxSize = 200 * 1024 * 1024
+    if (f.size > maxSize) { alert('Max 200MB'); return }
 
     setFile(f)
     setFileType(isVideo ? 'video' : 'image')
+    setVideoDuration(null)
 
+    const url = URL.createObjectURL(f)
+    setFilePreview(url)
+
+    // Extract video duration
     if (isVideo) {
-      setFilePreview(URL.createObjectURL(f))
-    } else {
-      const reader = new FileReader()
-      reader.onload = () => setFilePreview(reader.result)
-      reader.readAsDataURL(f)
+      const vid = document.createElement('video')
+      vid.preload = 'metadata'
+      vid.onloadedmetadata = () => {
+        setVideoDuration(Math.round(vid.duration))
+        URL.revokeObjectURL(vid.src)
+      }
+      vid.src = url
     }
   }
 
   function clearFile() {
-    if (filePreview && fileType === 'video') URL.revokeObjectURL(filePreview)
+    if (filePreview) URL.revokeObjectURL(filePreview)
     setFile(null)
     setFilePreview(null)
     setFileType(null)
+    setVideoDuration(null)
     setUploadProgress(0)
     setUploadPhase('')
+    setUploadStats({})
   }
 
   async function handlePost() {
@@ -640,32 +660,19 @@ function ComposeDialog({ open, onClose, user, onPost }) {
     setLoading(true)
     setUploadProgress(0)
     setUploadPhase('')
+    setUploadStats({})
 
     try {
       let mediaIds = []
 
       if (file) {
-        if (file.size > CHUNK_THRESHOLD) {
-          // Chunked upload for large files
-          const result = await api.uploadChunked(file, (pct, phase) => {
-            setUploadProgress(pct)
-            setUploadPhase(phase)
-          })
-          mediaIds = [result.id]
-        } else {
-          // Base64 upload for small files
-          setUploadPhase('Uploading...')
-          setUploadProgress(30)
-          const base64 = await new Promise((resolve) => {
-            const reader = new FileReader()
-            reader.onload = () => resolve(reader.result.split(',')[1])
-            reader.readAsDataURL(file)
-          })
-          setUploadProgress(60)
-          const media = await api.uploadMedia(base64, file.type, fileType === 'video' ? 'VIDEO' : 'IMAGE')
-          mediaIds = [media.id]
-          setUploadProgress(100)
-        }
+        // Direct-to-CDN upload via presigned URL
+        const result = await api.uploadFile(file, (pct, phase, stats) => {
+          setUploadProgress(pct)
+          setUploadPhase(phase)
+          setUploadStats(stats || {})
+        }, { duration: videoDuration })
+        mediaIds = [result.id]
       }
 
       const data = await api.createPost({ caption: caption.trim(), mediaIds })
@@ -680,7 +687,6 @@ function ComposeDialog({ open, onClose, user, onPost }) {
   }
 
   const fileSizeMB = file ? (file.size / (1024 * 1024)).toFixed(1) : 0
-  const isChunked = file && file.size > CHUNK_THRESHOLD
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -719,36 +725,49 @@ function ComposeDialog({ open, onClose, user, onPost }) {
               ) : (
                 <img src={filePreview} alt="Preview" className="w-full max-h-80 object-cover rounded-lg" />
               )}
-              <button
-                onClick={clearFile}
-                className="absolute top-2 right-2 bg-black/60 rounded-full p-1 hover:bg-black/80 transition-colors"
-                data-testid="clear-media-btn"
-              >
-                <X className="w-4 h-4 text-white" />
-              </button>
+              {!loading && (
+                <button
+                  onClick={clearFile}
+                  className="absolute top-2 right-2 bg-black/60 rounded-full p-1 hover:bg-black/80 transition-colors"
+                  data-testid="clear-media-btn"
+                >
+                  <X className="w-4 h-4 text-white" />
+                </button>
+              )}
               {/* File info badge */}
               <div className="absolute bottom-2 left-2 flex gap-1.5">
                 <Badge className="bg-black/60 text-white border-none text-[10px]">
                   {fileType === 'video' ? <Film className="w-3 h-3 mr-1" /> : <ImagePlus className="w-3 h-3 mr-1" />}
-                  {fileSizeMB}MB
+                  {fileSizeMB} MB
                 </Badge>
-                {isChunked && (
-                  <Badge className="bg-violet-600/80 text-white border-none text-[10px]">
-                    <Upload className="w-3 h-3 mr-1" />Chunked
+                {videoDuration && (
+                  <Badge className="bg-black/60 text-white border-none text-[10px]">
+                    {Math.floor(videoDuration / 60)}:{String(videoDuration % 60).padStart(2, '0')}
                   </Badge>
                 )}
+                <Badge className="bg-emerald-600/80 text-white border-none text-[10px]">
+                  <Upload className="w-3 h-3 mr-1" />CDN Direct
+                </Badge>
               </div>
             </div>
           )}
 
-          {/* Upload Progress Bar */}
+          {/* Upload Progress */}
           {loading && file && (
-            <div className="space-y-2" data-testid="upload-progress">
+            <div className="space-y-2 bg-muted/30 rounded-lg p-3" data-testid="upload-progress">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">{uploadPhase}</span>
-                <span className="text-xs font-medium text-violet-400">{uploadProgress}%</span>
+                <span className="text-xs text-muted-foreground font-medium">{uploadPhase}</span>
+                <span className="text-xs font-bold text-emerald-400">{uploadProgress}%</span>
               </div>
-              <Progress value={uploadProgress} className="h-2" />
+              <Progress value={uploadProgress} className="h-2.5" />
+              {uploadStats.speedMB > 0 && (
+                <div className="flex justify-between text-[10px] text-muted-foreground/70">
+                  <span>{uploadStats.speedMB} MB/s</span>
+                  <span>
+                    {((uploadStats.bytes || 0) / (1024 * 1024)).toFixed(1)} / {((uploadStats.total || file.size) / (1024 * 1024)).toFixed(1)} MB
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
