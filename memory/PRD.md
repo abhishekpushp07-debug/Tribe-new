@@ -219,6 +219,17 @@ Build the world's best social media application for Indian college students.
   - RBAC enforced: only OWNER/ADMIN/EDITOR can publish, non-members get 403
   - MongoDB indexes added for page reels, stories, drafts, scheduled, pinned posts
 
+- **Video & Media Playback Enhancement (Mar 2026)**:
+  - **Reel playbackMeta**: Every reel response includes `playbackMeta: { loop: true, preload: 'auto', muted: true, playsInline: true, aspectRatio: '9:16', durationMs }` for smooth looping
+  - **Story playbackMeta**: Video stories include `playbackMeta: { preload: 'auto', autoAdvance: true, muted: true }` for seamless story progression
+  - **Thumbnail resolution**: `enrichPosts` batch-resolves media asset thumbnails from DB — all video media includes `thumbnailUrl` and `posterFrameUrl`
+  - **CDN-first URLs**: All media objects prefer `publicUrl` (Supabase CDN) over proxy `/api/media/:id` — eliminates server bottleneck for playback
+  - **hasVideo flag**: Feed posts include `hasVideo: true/false` for frontend player selection
+  - **Video playbackHints**: Post media includes `playbackHints: { preload: 'metadata', loop: false, playsInline: true }` for in-feed video
+  - **Auto-thumbnail from mediaId**: Reel creation auto-resolves thumbnail/poster from uploaded media asset
+  - **Page reels/stories**: Consistent playbackMeta enrichment across page content
+  - **Enhanced toMediaObject**: Canonical media object includes `publicUrl`, `thumbnailUrl`, `posterFrameUrl`, `storageType`, `playbackHints`
+
 ## Backlog
 - Frontend UI development (Posts grid view +30pts — reuse GridItem component)
 - Full 200+ endpoint sub-60ms optimization (P1)
