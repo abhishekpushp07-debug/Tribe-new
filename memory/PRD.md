@@ -136,8 +136,19 @@ Build the world's best social media application for Indian college students.
   - **Batch Lookups**: Replaced N+1 queries with $in batch lookups for user enrichment, season enrichment, tribe enrichment
   - **Route Refactoring**: Admin block reduced from 50+ if/else to map-based lookup
 
+- **Redis & Resilience Verification (Mar 2026)**:
+  - Redis installed and managed via supervisor (auto-restarts)
+  - Cache hit/miss tracking verified (50% hit rate on test cycles)
+  - Cache invalidation confirmed: POST_CREATED clears feed caches (12 invalidations per post)
+  - Circuit breaker verified: CLOSED state when Redis healthy, OPEN after 5 failures, auto-recovery after 30s
+  - Read replica configured: Analytics queries use `secondaryPreferred` read preference
+  - /api/ops/metrics returns real request counts, latency histograms (p50/p95/p99), status codes, SLIs
+  - /api/cache/stats returns hits, misses, invalidations, Redis connection state, circuit breaker state
+  - Full regression: 96.3% pass rate (26/27 tests) — all critical flows verified
+
 ## Backlog
 - Frontend UI development
+- Frontend integration for chunked upload progress bar (P1)
 - WebSocket real-time push notifications (P2)
 - route.js refactoring (P3)
 - A/B testing framework (P3)
