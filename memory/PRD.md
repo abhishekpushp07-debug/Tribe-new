@@ -155,12 +155,15 @@ Build the world's best social media application for Indian college students.
   - Full regression: 88.9% pass rate (32/36 tests) — all functional, 4 were API nesting contract checks
 
 - **Frontend Chunked Upload with Progress Bar (Mar 2026)**:
-  - Added `uploadChunked()` to `lib/api.js` — handles init → chunk upload → complete flow
-  - Auto-selects chunked upload for files >5MB, base64 for smaller files
-  - ComposeDialog now supports video uploads (up to 200MB via chunked, previously image-only 5MB)
-  - Real-time progress bar with phase labels (Initializing → Uploading 1/N → Assembling → Done)
-  - File type badges (Image/Video), size display, chunked upload indicator
-  - 2MB chunk size, 30-min session expiry, duplicate chunk detection
+  - ~~OLD: base64 chunked upload through server~~ → **NEW: Direct-to-Supabase CDN presigned upload**
+  - `uploadFile()` in `lib/api.js` — 3-step flow: presign → XHR binary PUT → confirm
+  - XHR progress events: real-time speed (MB/s), ETA, bytes transferred
+  - Video preview with duration extraction, CDN Direct badge
+  - Videos served from Supabase CDN with `Accept-Ranges: bytes` for native seeking/scrubbing
+  - HTTP 206 Range Request support for fallback media serving (non-CDN)
+  - Post media now returns `publicUrl` (CDN URL) alongside `url` for direct CDN playback
+  - Feed PostCard supports video playback via `<video>` tag with CDN URLs
+  - Legacy chunked + base64 uploads preserved as backward-compatible fallbacks
 
 ## Backlog
 - Frontend UI development
