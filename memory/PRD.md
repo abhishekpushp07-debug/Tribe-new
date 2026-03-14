@@ -198,10 +198,25 @@ Build the world's best social media application for Indian college students.
   - Full 7-batch API audit (350+ endpoints tested across all domains)
   - Healthz: 1ms, Feed: 1-3ms (cached), Search: 37ms, Explore: 27ms, Analytics: 6ms
 
-**🔒 BACKEND FROZEN after this point — no more backend changes**
+- **Page Content System — Full Lifecycle (Mar 2026)**:
+  - **POST /pages/:id/reels** (+75pts) — Create reels as page with authorType=PAGE, full validation, moderation
+  - **GET /pages/:id/reels** — List page-authored reels with pagination
+  - **POST /pages/:id/stories** (+80pts) — Create stories as page (TEXT/IMAGE/VIDEO), background, stickers
+  - **GET /pages/:id/stories** — List active page stories
+  - **POST /pages/:id/posts/:id/pin** / **DELETE** (+85pts) — Pin/unpin page posts (one pin at a time)
+  - **POST /pages/:id/reels/:id/pin** / **DELETE** — Pin/unpin page reels
+  - **POST /pages/:id/posts** with scheduling (+90pts) — publishAt, DRAFT status, visibility
+  - **GET /pages/:id/posts/scheduled** — List scheduled page posts
+  - **GET /pages/:id/posts/drafts** — List draft page posts
+  - **POST /pages/:id/posts/:id/publish** — Publish draft/scheduled post immediately
+  - **PATCH /pages/:id/posts/:id/schedule** — Update/remove schedule
+  - **authorType=PAGE** (+40pts) — All page content shows authorType=PAGE, author=page snippet
+  - RBAC enforced: only OWNER/ADMIN/EDITOR can publish, non-members get 403
+  - MongoDB indexes added for page reels, stories, drafts, scheduled, pinned posts
 
 ## Backlog
-- Frontend UI development
+- Frontend UI development (Posts grid view +30pts — reuse GridItem component)
+- Full 200+ endpoint sub-60ms optimization (P1)
 - WebSocket real-time push notifications (P2)
 - A/B testing framework (P3)
 - CDN integration for media delivery (P4)
