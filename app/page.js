@@ -5,7 +5,7 @@ import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
@@ -17,7 +17,8 @@ import {
   Home, Search, PlusSquare, User, Heart, MessageCircle, Bookmark, BookmarkCheck,
   MoreHorizontal, ArrowLeft, Camera, LogOut, Send, GraduationCap, Shield, Users,
   Flag, X, Loader2, ChevronRight, Eye, Globe, UserPlus, MapPin, Building2,
-  ThumbsDown, ImagePlus, Sparkles, TrendingUp, Flame, Crown, Check, Film, Upload
+  ThumbsDown, ImagePlus, Sparkles, TrendingUp, Flame, Crown, Check, Film, Upload,
+  Play, Pause, Volume2, VolumeX, Plus
 } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
 
@@ -58,7 +59,243 @@ function avatarColor(id) {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
 }
 
-// ===== LOGIN VIEW =====
+// ===== STORY RING =====
+function StoryRing({ user, size = 56, hasStory = false, isSeen = false, onClick, isAdd = false }) {
+  const s = size
+  const borderW = s > 48 ? 3 : 2
+  const gapW = 2
+  const innerSize = s - (borderW + gapW) * 2
+  const imgUrl = user?.profilePicUrl || user?.avatarUrl || null
+
+  return (
+    <button onClick={onClick} className="flex flex-col items-center gap-1 shrink-0" data-testid={`story-ring-${user?.id || 'add'}`}>
+      <div
+        className="rounded-full flex items-center justify-center"
+        style={{
+          width: s, height: s,
+          background: isAdd
+            ? 'transparent'
+            : hasStory
+              ? isSeen
+                ? '#52525b'
+                : 'linear-gradient(135deg, #f59e0b, #ec4899, #8b5cf6, #06b6d4)'
+              : 'transparent',
+          padding: hasStory || isAdd ? borderW : 0,
+        }}
+      >
+        <div
+          className="rounded-full flex items-center justify-center bg-background"
+          style={{ width: hasStory || isAdd ? s - borderW * 2 : s, height: hasStory || isAdd ? s - borderW * 2 : s, padding: hasStory ? gapW : 0 }}
+        >
+          <div className="relative w-full h-full">
+            <Avatar className="w-full h-full" style={{ width: innerSize, height: innerSize }}>
+              {imgUrl ? (
+                <AvatarImage src={imgUrl} className="object-cover" />
+              ) : null}
+              <AvatarFallback className={`${avatarColor(user?.id)} text-white font-semibold`}
+                style={{ fontSize: innerSize > 40 ? 16 : 11 }}>
+                {initials(user?.displayName)}
+              </AvatarFallback>
+            </Avatar>
+            {isAdd && (
+              <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-blue-500 rounded-full border-2 border-background flex items-center justify-center">
+                <Plus className="w-3 h-3 text-white" />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      <span className="text-[10px] text-muted-foreground truncate w-16 text-center">
+        {isAdd ? 'Your story' : user?.displayName?.split(' ')[0] || ''}
+      </span>
+    </button>
+  )
+}
+
+// ===== STORY RAIL =====
+function StoryRail({ currentUser }) {
+  const [stories, setStories] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await api.fetch('/stories/feed')
+        setStories(data.storyRail || data.stories || [])
+      } catch {}
+      setLoading(false)
+    }
+    load()
+  }, [])
+
+  if (loading) return (
+    <div className="flex gap-4 px-4 py-3 overflow-hidden border-b border-border/20">
+      {[1,2,3,4,5].map(i => <Skeleton key={i} className="w-14 h-14 rounded-full shrink-0" />)}
+    </div>
+  )
+
+  return (
+    <div className="flex gap-3 px-4 py-3 overflow-x-auto no-scrollbar border-b border-border/20" data-testid="story-rail">
+      <StoryRing user={currentUser} isAdd hasStory={false} size={62} />
+      {stories.map(s => (
+        <StoryRing
+          key={s.userId || s.id}
+          user={{ id: s.userId, displayName: s.displayName || s.username, profilePicUrl: s.profilePicUrl }}
+          hasStory
+          isSeen={s.seen || false}
+          size={62}
+        />
+      ))}
+      {stories.length === 0 && (
+        <>
+          {[1,2,3,4].map(i => (
+            <div key={i} className="flex flex-col items-center gap-1 shrink-0">
+              <div className="w-[62px] h-[62px] rounded-full bg-secondary/30" />
+              <div className="w-10 h-2 bg-secondary/20 rounded" />
+            </div>
+          ))}
+        </>
+      )}
+    </div>
+  )
+}
+
+// ===== INSTAGRAM-STYLE VIDEO PLAYER =====
+function InstaVideo({ src, poster, className = '', autoPlay = false }) {
+  const videoRef = useRef(null)
+  const containerRef = useRef(null)
+  const [playing, setPlaying] = useState(false)
+  const [muted, setMuted] = useState(true)
+  const [showControls, setShowControls] = useState(false)
+  const hideTimer = useRef(null)
+
+  // IntersectionObserver for autoplay/pause on scroll
+  useEffect(() => {
+    const video = videoRef.current
+    const container = containerRef.current
+    if (!video || !container) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && entry.intersectionRatio > 0.6) {
+          video.play().then(() => setPlaying(true)).catch(() => {})
+        } else {
+          video.pause()
+          setPlaying(false)
+        }
+      },
+      { threshold: [0, 0.6] }
+    )
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [src])
+
+  function togglePlay(e) {
+    e.stopPropagation()
+    const v = videoRef.current
+    if (!v) return
+    if (v.paused) {
+      v.play().then(() => setPlaying(true)).catch(() => {})
+    } else {
+      v.pause()
+      setPlaying(false)
+    }
+    // Flash controls
+    setShowControls(true)
+    clearTimeout(hideTimer.current)
+    hideTimer.current = setTimeout(() => setShowControls(false), 1500)
+  }
+
+  function toggleMute(e) {
+    e.stopPropagation()
+    const v = videoRef.current
+    if (!v) return
+    v.muted = !v.muted
+    setMuted(v.muted)
+  }
+
+  return (
+    <div ref={containerRef} className={`relative bg-black cursor-pointer select-none ${className}`} onClick={togglePlay} data-testid="insta-video">
+      <video
+        ref={videoRef}
+        src={src}
+        poster={poster}
+        className="w-full h-full object-cover"
+        loop
+        muted={muted}
+        playsInline
+        preload="metadata"
+      />
+
+      {/* Play/Pause overlay — fades in on tap */}
+      <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 pointer-events-none ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+        <div className="w-16 h-16 bg-black/40 rounded-full flex items-center justify-center backdrop-blur-sm">
+          {playing
+            ? <Pause className="w-8 h-8 text-white fill-white" />
+            : <Play className="w-8 h-8 text-white fill-white ml-1" />
+          }
+        </div>
+      </div>
+
+      {/* Initial play button when not yet played */}
+      {!playing && !showControls && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-14 h-14 bg-black/30 rounded-full flex items-center justify-center backdrop-blur-sm">
+            <Play className="w-7 h-7 text-white/90 fill-white/90 ml-0.5" />
+          </div>
+        </div>
+      )}
+
+      {/* Mute toggle */}
+      <button
+        onClick={toggleMute}
+        className="absolute bottom-3 right-3 w-7 h-7 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm z-10"
+        data-testid="mute-toggle"
+      >
+        {muted ? <VolumeX className="w-3.5 h-3.5 text-white" /> : <Volume2 className="w-3.5 h-3.5 text-white" />}
+      </button>
+    </div>
+  )
+}
+
+// ===== PROFILE PIC AVATAR =====
+function ProfileAvatar({ user, size = 80, showUpload = false, onUpload }) {
+  const fileRef = useRef(null)
+  const imgUrl = user?.profilePicUrl || user?.avatarUrl || null
+
+  async function handleFile(e) {
+    const f = e.target.files?.[0]
+    if (!f || !f.type.startsWith('image/')) return
+    if (f.size > 10 * 1024 * 1024) { alert('Max 10MB'); return }
+    onUpload?.(f)
+  }
+
+  return (
+    <div className="relative" data-testid="profile-avatar">
+      <Avatar className="ring-2 ring-violet-500/30" style={{ width: size, height: size }}>
+        {imgUrl ? <AvatarImage src={imgUrl} className="object-cover" /> : null}
+        <AvatarFallback
+          className={`${avatarColor(user?.id)} text-white font-bold`}
+          style={{ fontSize: size > 60 ? 24 : 14 }}
+        >
+          {initials(user?.displayName)}
+        </AvatarFallback>
+      </Avatar>
+      {showUpload && (
+        <>
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="absolute bottom-0 right-0 w-7 h-7 bg-blue-500 rounded-full border-2 border-background flex items-center justify-center hover:bg-blue-600 transition-colors"
+            data-testid="upload-avatar-btn"
+          >
+            <Camera className="w-3.5 h-3.5 text-white" />
+          </button>
+        </>
+      )}
+    </div>
+  )
+}
 function LoginView({ onAuth }) {
   const [mode, setMode] = useState('login')
   const [phone, setPhone] = useState('')
@@ -469,6 +706,7 @@ function PostCard({ post, currentUser, onUserClick, onLike, onSave, onComment, o
       <div className="flex items-center px-4 py-3">
         <button onClick={() => onUserClick?.(author.id)} className="flex items-center gap-3 flex-1 min-w-0">
           <Avatar className="w-9 h-9 ring-2 ring-border/30">
+            {author.profilePicUrl ? <AvatarImage src={author.profilePicUrl} className="object-cover" /> : null}
             <AvatarFallback className={`${avatarColor(author.id)} text-white text-xs font-semibold`}>
               {initials(author.displayName)}
             </AvatarFallback>
@@ -502,13 +740,9 @@ function PostCard({ post, currentUser, onUserClick, onLike, onSave, onComment, o
       {post.media && post.media.length > 0 && (
         <div className="relative bg-secondary/30" onDoubleClick={handleLike}>
           {post.media[0].mimeType?.startsWith('video/') || post.media[0].type === 'VIDEO' ? (
-            <video
+            <InstaVideo
               src={post.media[0].publicUrl || post.media[0].url}
-              className="w-full object-cover max-h-[600px] bg-black"
-              controls
-              playsInline
-              preload="metadata"
-              data-testid="post-video"
+              className="w-full max-h-[600px]"
             />
           ) : (
             <img
@@ -517,6 +751,12 @@ function PostCard({ post, currentUser, onUserClick, onLike, onSave, onComment, o
               className="w-full object-cover max-h-[600px]"
               loading="lazy"
             />
+          )}
+          {/* Double-tap heart animation */}
+          {likeAnim && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <Heart className="w-20 h-20 text-white fill-white animate-ping" style={{ animationDuration: '0.4s' }} />
+            </div>
           )}
         </div>
       )}
@@ -858,11 +1098,18 @@ function ProfileView({ userId, currentUser, onBack, onUserClick, isOwn }) {
       {/* Profile Info */}
       <div className="px-6 py-6">
         <div className="flex items-start gap-6">
-          <Avatar className="w-20 h-20 ring-2 ring-violet-500/30">
-            <AvatarFallback className={`${avatarColor(profile.id)} text-white text-2xl font-bold`}>
-              {initials(profile.displayName)}
-            </AvatarFallback>
-          </Avatar>
+          <ProfileAvatar
+            user={profile}
+            size={80}
+            showUpload={isOwn}
+            onUpload={async (file) => {
+              try {
+                const result = await api.uploadFile(file, () => {})
+                await api.updateProfile({ profilePicUrl: result.publicUrl || result.url })
+                setProfile(p => ({ ...p, profilePicUrl: result.publicUrl || result.url }))
+              } catch (e) { alert('Upload failed: ' + e.message) }
+            }}
+          />
           <div className="flex-1 pt-1">
             <div className="flex gap-6 justify-around text-center">
               <div><div className="font-bold text-lg">{profile.postsCount || 0}</div><div className="text-xs text-muted-foreground">Posts</div></div>
@@ -904,7 +1151,16 @@ function ProfileView({ userId, currentUser, onBack, onUserClick, isOwn }) {
         {posts.map(p => (
           <div key={p.id} className="aspect-square bg-secondary/30 relative group cursor-pointer">
             {p.media && p.media.length > 0 ? (
-              <img src={p.media[0].url} alt="" className="w-full h-full object-cover" loading="lazy" />
+              <>
+                {(p.media[0].mimeType?.startsWith('video/') || p.media[0].type === 'VIDEO') ? (
+                  <div className="w-full h-full relative">
+                    <img src={p.media[0].publicUrl || p.media[0].url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    <Film className="absolute top-2 right-2 w-4 h-4 text-white drop-shadow-lg" />
+                  </div>
+                ) : (
+                  <img src={p.media[0].publicUrl || p.media[0].url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                )}
+              </>
             ) : (
               <div className="w-full h-full flex items-center justify-center p-2">
                 <p className="text-xs text-muted-foreground line-clamp-4 text-center">{p.caption}</p>
@@ -1157,6 +1413,7 @@ function SuggestionsWidget({ suggestions, onFollow, onUserClick }) {
           <div key={u.id} className="flex items-center gap-3">
             <button onClick={() => onUserClick(u.id)}>
               <Avatar className="w-9 h-9">
+                {u.profilePicUrl ? <AvatarImage src={u.profilePicUrl} className="object-cover" /> : null}
                 <AvatarFallback className={`${avatarColor(u.id)} text-white text-xs font-semibold`}>{initials(u.displayName)}</AvatarFallback>
               </Avatar>
             </button>
@@ -1429,6 +1686,9 @@ function App() {
             {/* Home Feed */}
             {activeTab === 'home' && !subView && (
               <div ref={feedRef}>
+                {/* Story Rail */}
+                <StoryRail currentUser={currentUser} />
+
                 <Tabs value={feedTab} onValueChange={f => { setFeedTab(f); setPosts([]); setCursor(null) }} className="sticky top-12 lg:top-0 bg-background/95 backdrop-blur-md z-10">
                   <TabsList className="bg-transparent w-full justify-start px-4 gap-0 border-b border-border/30 rounded-none h-11">
                     <TabsTrigger value="public" className="text-xs data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-violet-500 rounded-none px-4">
@@ -1528,6 +1788,7 @@ function App() {
             {/* Current user */}
             <div className="flex items-center gap-3 mb-6">
               <Avatar className="w-11 h-11">
+                {currentUser?.profilePicUrl ? <AvatarImage src={currentUser.profilePicUrl} className="object-cover" /> : null}
                 <AvatarFallback className={`${avatarColor(currentUser?.id)} text-white text-sm font-semibold`}>
                   {initials(currentUser?.displayName)}
                 </AvatarFallback>

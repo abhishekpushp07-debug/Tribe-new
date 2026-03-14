@@ -1352,6 +1352,67 @@ test_plan:
   test_all: false
   test_priority: "high_first"
 
+frontend:
+  - task: "Story Rail (Instagram-style horizontal story feed)"
+    implemented: true
+    working: true
+    file: "app/page.js (StoryRail component, lines 115-161)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ STORY RAIL COMPREHENSIVE VALIDATION COMPLETED: Story rail container found at top of home feed with data-testid='story-rail'. Features working excellently: (1) 'Your story' button with blue plus icon for adding new stories, (2) Horizontal scrollable layout with circular avatars for story items, (3) Story ring component with proper gradient borders and seen/unseen states, (4) Auto-loading of story feed data via /stories/feed API endpoint. Component properly integrated into main feed layout and provides Instagram-level story browsing experience."
+
+  - task: "Instagram-style Video Player (custom controls, no native browser controls)"
+    implemented: true
+    working: true
+    file: "app/page.js (InstaVideo component, lines 163-259)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ INSTAGRAM-STYLE VIDEO PLAYER COMPREHENSIVE VALIDATION COMPLETED: Found 4 Instagram-style video players with data-testid='insta-video'. All key features working perfectly: (1) NO native browser controls (videos have no controls attribute - true Instagram style), (2) Custom play button overlay in center that appears on tap/interaction, (3) Mute toggle button in bottom-right with data-testid='mute-toggle' working correctly, (4) Video area click toggles play/pause functionality, (5) IntersectionObserver for auto-play/pause on scroll, (6) Custom overlay controls with fade in/out animations. Video player provides true Instagram-level user experience with seamless playback controls."
+
+  - task: "Profile Page & Profile Pic Upload functionality"
+    implemented: true
+    working: true
+    file: "app/page.js (ProfileView and ProfileAvatar components, lines 1043-1189, 261-298)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PROFILE PAGE & UPLOAD COMPREHENSIVE VALIDATION COMPLETED: Profile page navigation working perfectly via sidebar. ProfileAvatar component found with data-testid='profile-avatar' featuring: (1) Camera upload button with data-testid='upload-avatar-btn' for own profile, (2) Proper file handling with 10MB limit and image type validation, (3) Profile stats display for post count, followers, following, (4) User info display with displayName, bio, college affiliation, (5) Follow/unfollow functionality for other users, (6) Posts grid view with media thumbnails. Upload button click triggers file input correctly for profile picture updates."
+
+  - task: "Post Feed with author avatars and social interactions"
+    implemented: true
+    working: true
+    file: "app/page.js (PostCard component, lines 641-846)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ POST FEED COMPREHENSIVE VALIDATION COMPLETED: Post feed displaying correctly with all Instagram-level features: (1) Author avatars with profile pictures using Avatar component with ring borders, (2) Social interactions - heart/like buttons, message circle/comment buttons, bookmark/save buttons all present and functional, (3) Double-tap heart animation working on media posts, (4) Post actions with optimistic UI updates and API integration, (5) Media display supporting both images and videos, (6) Caption display with expand/collapse for long text, (7) Comment system with threaded replies, (8) Time ago display and user navigation. Feed provides complete Instagram-style social interaction experience."
+
+  - task: "General UI - Navigation, Compose Dialog, Feed Tabs, Dark Theme"
+    implemented: true
+    working: true
+    file: "app/page.js (main App component and navigation, lines 1441-1724)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ GENERAL UI COMPREHENSIVE VALIDATION COMPLETED: All core UI elements working excellently: (1) Sidebar navigation with all 5/5 items (Home, Search, Create, Activity, Profile) functional, (2) Feed tabs (Public, Following) properly implemented and switching correctly, (3) Create button opens compose dialog with data-testid='compose-dialog' supporting both photos AND videos (accept='image/*,video/*'), (4) Dark theme active and properly implemented via CSS classes, (5) Responsive design working across desktop/mobile viewports, (6) Right sidebar with user info and suggestions, (7) Mobile-friendly navigation with proper touch interactions. UI provides complete Instagram-level user experience with modern design patterns."
+
 agent_communication:
 
     - agent: "testing"
@@ -1461,6 +1522,8 @@ agent_communication:
       message: "🏛️ TRIBE SOCIAL PLATFORM BACKEND TESTING COMPLETED: Executed comprehensive testing of tribe competition, salute mechanism, rivalry system, and heroName badge features. SUCCESS RATE: 86.7% (13/15 tests passed - corrected after debug analysis). ✅ ALL MAJOR FEATURES WORKING: (1) SALUTE/CHEER MECHANISM - Daily cheer with rate limiting (429), content-based salute, cross-tribe salutes all functional, (2) TRIBE RIVALRY SYSTEM - Admin rivalry creation, listing rivalries, rivalry detail with live scores all working, (3) HERONAME BADGE - User profile includes tribeHeroName field, tribes list includes heroName/primaryColor/secondaryColor/cheerCount/totalSalutes, (4) VISIBILITY REGRESSION - Both HOUSE_ONLY and PUBLIC visibility working correctly, posts save with proper visibility values. ✅ AUTHENTICATION VERIFIED: Test users 7777099001 and 7777099002 both authenticated successfully with admin access. ✅ TECHNICAL VALIDATION: All API endpoints responding correctly, proper error codes (403 for non-admin operations, 429 for rate limiting), admin features working with appropriate role-based access control. ⚠️ MINOR ISSUE: Contest creation API validation error - appears to be field name mismatch in request payload, core contest system likely functional. ✅ KEY FINDINGS: User has tribeHeroName='Grenadier Yogendra Singh Yadav', belongs to YADAV tribe with 303 members and 503 total salutes, cross-tribe salutes allowed as designed, rivalry system supports full lifecycle (create/list/detail/contribute/resolve/cancel). VERDICT: All requested tribe features are PRODUCTION READY - salute mechanism, rivalry system, heroName badges, and visibility controls all working excellently."
     - agent: "testing"
       message: "🚀 6 MAJOR FEATURES COMPREHENSIVE TESTING COMPLETED: Executed comprehensive validation of all 6 requested features at https://upload-overhaul.preview.emergentagent.com with 90.9% SUCCESS RATE (20/22 tests passed) - EXCELLENT RESULTS! ✅ FEATURE 1 - FEED VISIBILITY FILTERING (5/5 100%): HOUSE_ONLY, COLLEGE_ONLY, and PUBLIC post creation working perfectly, authenticated feed access shows all visibility types, public feed properly includes HOUSE_ONLY and COLLEGE_ONLY for matching users. ✅ FEATURE 2 - PUSH NOTIFICATION STREAM (3/3 100%): SSE stream endpoint returns correct Content-Type (text/event-stream), connected event found in stream, test push notifications working perfectly. ✅ FEATURE 3 - TUS BINARY UPLOAD (3/3 100%): Chunked session initialization working, TUS PATCH binary upload successful, HEAD request returns proper Upload-Offset and Tus-Resumable headers. ✅ FEATURE 4 - CHUNKED UPLOAD CLEANUP (3/3 100%): Incomplete session creation working, status check shows UPLOADING correctly, cleanup worker registration confirmed (sessions managed properly). ✅ FEATURE 5 - ADMIN ROUTE REFACTORING (3/3 100%): Tribe-contests route accessible and functional, login route regression test passed, tribe operations endpoint accessible. ✅ FEATURE 6 - VISIBILITY REGRESSION (3/3 100%): Default visibility correctly defaults to PUBLIC, explicit HOUSE_ONLY visibility honored, invalid visibility properly rejected with 400 error. ✅ AUTHENTICATION (2/2 100%): Both test users (7777099001, 7777099002) authenticated successfully with PIN 1234. ⚠️ NOTE: Initial test code errors for visibility parsing were corrected - all visibility features working perfectly. VERDICT: ALL 6 MAJOR FEATURES ARE PRODUCTION READY - Feed filtering, SSE streaming, TUS uploads, cleanup workers, admin routing, and visibility controls all working excellently at 90.9% success rate."
+    - agent: "testing"
+      message: "🎬 INSTAGRAM-LEVEL UI FEATURES COMPREHENSIVE VALIDATION COMPLETED: Executed comprehensive testing of all 5 Instagram-grade frontend features at https://upload-overhaul.preview.emergentagent.com with 100% SUCCESS RATE! ✅ FEATURE 1 - STORY RAIL (100%): Horizontal story feed found at top of home feed with data-testid='story-rail'. 'Your story' button with blue plus icon working perfectly, story items display with circular avatars and gradient borders. ✅ FEATURE 2 - INSTAGRAM-STYLE VIDEO PLAYER (100%): Found 4 video players with data-testid='insta-video' featuring NO native browser controls (true Instagram style), custom play button overlay in center, mute toggle in bottom-right with data-testid='mute-toggle', video area click for play/pause toggle. ✅ FEATURE 3 - PROFILE & UPLOAD (100%): Profile page navigation working, ProfileAvatar with data-testid='profile-avatar' found, camera upload button data-testid='upload-avatar-btn' functional, profile stats (posts/followers/following) displayed correctly. ✅ FEATURE 4 - POST FEED (100%): Author avatars with profile pics working, social interactions (like/comment/save buttons) all functional, double-tap heart animation tested on media posts, complete Instagram-level social experience. ✅ FEATURE 5 - GENERAL UI (100%): Sidebar navigation 5/5 items working, feed tabs (Public/Following) functional, Create opens compose dialog accepting photos AND videos, dark theme active. ✅ LOGIN & ONBOARDING: Seamless authentication with phone 7777099001 + PIN 1234, smooth onboarding flow handling. VERDICT: ALL INSTAGRAM-LEVEL UI FEATURES ARE PRODUCTION READY - The frontend provides a complete Instagram-grade user experience with modern social media functionality, responsive design, and intuitive interactions!"
     - agent: "testing"
       message: "🏆 PERFORMANCE OPTIMIZATION COMPREHENSIVE TESTING COMPLETED: Executed comprehensive performance optimization testing for Tribe social media API with 92.0% SUCCESS RATE (23/25 tests passed) - EXCELLENT RESULTS! ✅ RESPONSE LATENCY BENCHMARKS (6/6 100%): All key endpoints tested with cold/warm cache comparison - /api/feed, /api/feed/public, /api/tribes, /api/tribe-contests, /api/tribe-rivalries, /api/reels/feed all showing sub-100ms response times. Cache improvements verified (feed/public: 0.9%, reels/feed: 7.6%, tribe detail: 27.8%). ✅ CACHE-CONTROL HEADERS (2/3 67%): /api/feed and /api/tribes properly configured with public, max-age, s-maxage, stale-while-revalidate directives. Search endpoint missing cache headers. ✅ X-LATENCY-MS HEADER (3/3 100%): All tested endpoints return proper server processing time headers (feed: 10ms, tribes: 1ms, reels: 11ms). ✅ FEED VISIBILITY FILTERING (4/4 100%): Successfully created and verified HOUSE_ONLY, COLLEGE_ONLY, and PUBLIC posts with proper visibility filtering in authenticated feeds. ✅ TRIBE DETAIL CACHING (1/1 100%): Excellent cache performance with 27.8% improvement (99ms → 71ms) and proper enrichment (topMembers, board, recentSalutes). ✅ CONTEST/RIVALRY CACHING (2/2 100%): Both contest and rivalry lists functional with season enrichment operational. ✅ PROJECTION OPTIMIZATION (1/2 50%): User snippets properly exclude sensitive fields (passwordHash, pinHash, pinSalt, phone) in feed responses. ✅ CLEANUP WORKER (1/1 100%): Chunked upload session management working with UPLOADING status tracking. ✅ PUSH NOTIFICATIONS STREAM (1/1 100%): SSE streaming operational with text/event-stream content-type and connected events. ⚠️ MINOR ISSUES: Search endpoint missing cache headers, /api/content/posts endpoint returns 404. VERDICT: PERFORMANCE OPTIMIZATION FEATURES ARE PRODUCTION READY - Redis caching, latency tracking, visibility filtering, projection optimization, and stream functionality all working excellently."
     - agent: "testing"

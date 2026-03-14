@@ -103,3 +103,7 @@
   50% { transform: scale(1.05); opacity: 0.3; }
   100% { transform: scale(0.95); opacity: 0.5; }
 }
+
+/* Hide scrollbar for story rail */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
