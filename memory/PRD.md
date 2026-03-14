@@ -146,10 +146,24 @@ Build the world's best social media application for Indian college students.
   - /api/cache/stats returns hits, misses, invalidations, Redis connection state, circuit breaker state
   - Full regression: 96.3% pass rate (26/27 tests) — all critical flows verified
 
+- **Route.js Refactoring (Mar 2026)**:
+  - Extracted monolithic 706-line route.js into clean dispatch registry pattern
+  - New `/app/lib/route-dispatch.js` (269 lines) — switch-based dispatch with sub-dispatchers for complex routes
+  - `route.js` reduced to 367 lines (48% reduction) — pure middleware/observability/response logic
+  - Admin routes use map-based lookup instead of if/else chains
+  - Sub-dispatchers for /me/*, /content/*, /follow/*, /users/*, /admin/* path groups
+  - Full regression: 88.9% pass rate (32/36 tests) — all functional, 4 were API nesting contract checks
+
+- **Frontend Chunked Upload with Progress Bar (Mar 2026)**:
+  - Added `uploadChunked()` to `lib/api.js` — handles init → chunk upload → complete flow
+  - Auto-selects chunked upload for files >5MB, base64 for smaller files
+  - ComposeDialog now supports video uploads (up to 200MB via chunked, previously image-only 5MB)
+  - Real-time progress bar with phase labels (Initializing → Uploading 1/N → Assembling → Done)
+  - File type badges (Image/Video), size display, chunked upload indicator
+  - 2MB chunk size, 30-min session expiry, duplicate chunk detection
+
 ## Backlog
 - Frontend UI development
-- Frontend integration for chunked upload progress bar (P1)
 - WebSocket real-time push notifications (P2)
-- route.js refactoring (P3)
 - A/B testing framework (P3)
 - CDN integration for media delivery (P4)
