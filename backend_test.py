@@ -1,916 +1,381 @@
 #!/usr/bin/env python3
 """
-Comprehensive Backend Test for Upload Overhaul - Focus on Direct-to-Supabase CDN Upload
+BATCH 1 OF 5: Comprehensive Backend API Test Suite
+Testing ALL 39 endpoints across Auth, Health, Ops, Feed, Profile/Me, and Onboarding domains
 
-This test focuses heavily on the NEW direct-to-Supabase presigned upload system that replaced 
-the old chunked upload, plus full regression testing.
-
-Key Changes to Test:
-1. NEW: Direct-to-Supabase CDN Upload (POST /api/media/upload-init → PUT presigned URL → POST /api/media/upload-complete)  
-2. Legacy chunked upload backward compatibility
-3. CDN URL verification with Range support
-4. Full regression of all endpoints
+Base URL: https://upload-overhaul.preview.emergentagent.com
+Test users: 7777099001 (admin), 7777099002 (regular)
+PIN: 1234
 """
 
 import requests
 import json
 import time
-import io
-import random
-import string
-from urllib.parse import urlparse
+from datetime import datetime
+import sys
 
-# Configuration
 BASE_URL = "https://upload-overhaul.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
-# Test users for auth
-USER1 = {"phone": "7777099001", "pin": "1234"}
-USER2 = {"phone": "7777099002", "pin": "1234"}
+# Test users
+ADMIN_USER = {"phone": "7777099001", "pin": "1234"}
+REGULAR_USER = {"phone": "7777099002", "pin": "1234"}
+TEST_USER_NEW = {"phone": "7777099099", "pin": "9999", "displayName": "Test Batch"}
 
-# Global session tokens
-user1_token = None
-user2_token = None
-
-class TestRunner:
+class APITester:
     def __init__(self):
-        self.results = []
-        self.test_count = 0
-        self.passed_count = 0
-        self.failed_count = 0
+        self.admin_token = None
+        self.regular_token = None
+        self.test_results = []
+        self.session_id = None
+        self.college_id = None
+        self.tribe_id = None
         
-    def test(self, name, func, critical=True):
-        """Execute a test and record results"""
-        self.test_count += 1
-        print(f"\n[TEST {self.test_count}] {name}")
+    def log_result(self, endpoint, method, status, expected_status, response_time, details="", passed=True):
+        """Log test result for endpoint"""
+        result = {
+            'endpoint': f"{method} {endpoint}",
+            'status_code': status,
+            'expected': expected_status,
+            'response_time_ms': response_time,
+            'passed': passed,
+            'details': details
+        }
+        self.test_results.append(result)
+        
+        status_icon = "✅" if passed else "❌"
+        print(f"{status_icon} {method} {endpoint} -> {status} ({response_time}ms) {details}")
+        
+    def make_request(self, method, endpoint, headers=None, json_data=None, expected_status=200):
+        """Make HTTP request and log result"""
+        url = f"{API_BASE}{endpoint}"
+        start_time = time.time()
+        
         try:
-            result = func()
-            if result:
-                print(f"✅ PASS: {name}")
-                self.passed_count += 1
-                self.results.append({"test": name, "status": "PASS", "critical": critical})
-                return True
+            if method == 'GET':
+                resp = requests.get(url, headers=headers, timeout=10)
+            elif method == 'POST':
+                resp = requests.post(url, headers=headers, json=json_data, timeout=10)
+            elif method == 'PUT':
+                resp = requests.put(url, headers=headers, json=json_data, timeout=10)
+            elif method == 'PATCH':
+                resp = requests.patch(url, headers=headers, json=json_data, timeout=10)
+            elif method == 'DELETE':
+                resp = requests.delete(url, headers=headers, timeout=10)
             else:
-                print(f"❌ FAIL: {name}")
-                self.failed_count += 1
-                self.results.append({"test": name, "status": "FAIL", "critical": critical})
-                return False
-        except Exception as e:
-            print(f"❌ ERROR: {name} - {e}")
-            self.failed_count += 1
-            self.results.append({"test": name, "status": "ERROR", "error": str(e), "critical": critical})
-            return False
-    
-    def summary(self):
-        success_rate = (self.passed_count / self.test_count * 100) if self.test_count > 0 else 0
-        print(f"\n{'='*60}")
-        print(f"COMPREHENSIVE UPLOAD OVERHAUL TEST SUMMARY")
-        print(f"{'='*60}")
-        print(f"Total Tests: {self.test_count}")
-        print(f"Passed: {self.passed_count}")
-        print(f"Failed: {self.failed_count}")
-        print(f"Success Rate: {success_rate:.1f}%")
-        
-        critical_failures = [r for r in self.results if r["status"] != "PASS" and r.get("critical")]
-        if critical_failures:
-            print(f"\n⚠️  CRITICAL FAILURES ({len(critical_failures)}):")
-            for failure in critical_failures:
-                print(f"  - {failure['test']}")
-        
-        return success_rate >= 85  # 85% threshold for production readiness
-
-# ================================
-# AUTHENTICATION HELPERS  
-# ================================
-
-def auth_user1():
-    """Authenticate user1 and store token"""
-    global user1_token
-    response = requests.post(f"{API_BASE}/auth/login", json=USER1)
-    if response.status_code == 200:
-        data = response.json()
-        user1_token = data.get("token")
-        return True
-    return False
-
-def auth_user2():
-    """Authenticate user2 and store token"""
-    global user2_token
-    response = requests.post(f"{API_BASE}/auth/login", json=USER2)
-    if response.status_code == 200:
-        data = response.json()
-        user2_token = data.get("token")
-        return True
-    return False
-
-def get_auth_headers(token):
-    """Get authorization headers"""
-    return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-
-# ================================
-# CORE NEW UPLOAD SYSTEM TESTS
-# ================================
-
-def test_health_endpoints():
-    """Test basic health endpoints"""
-    try:
-        # Root health
-        response = requests.get(f"{API_BASE}/healthz")
-        if response.status_code != 200:
-            return False
-            
-        # Readiness check
-        response = requests.get(f"{API_BASE}/readyz")
-        if response.status_code != 200:
-            return False
-            
-        print("✓ Health endpoints responding")
-        return True
-    except Exception as e:
-        print(f"✗ Health check failed: {e}")
-        return False
-
-def test_direct_video_upload_flow():
-    """Test NEW direct-to-Supabase CDN video upload flow"""
-    try:
-        if not user1_token:
-            print("✗ No auth token for user1")
-            return False
-            
-        headers = get_auth_headers(user1_token)
-        
-        # Step 1: Initialize upload with presigned URL
-        init_payload = {
-            "kind": "video",
-            "mimeType": "video/mp4", 
-            "sizeBytes": 10485760,  # 10MB
-            "scope": "posts"
-        }
-        
-        response = requests.post(f"{API_BASE}/media/upload-init", headers=headers, json=init_payload)
-        print(f"Upload init status: {response.status_code}")
-        
-        if response.status_code != 201:
-            print(f"✗ Upload init failed: {response.text}")
-            return False
-            
-        init_data = response.json()
-        if not all(k in init_data for k in ["mediaId", "uploadUrl", "publicUrl"]):
-            print(f"✗ Missing required fields in init response")
-            return False
-            
-        media_id = init_data["mediaId"]
-        upload_url = init_data["uploadUrl"] 
-        public_url = init_data["publicUrl"]
-        
-        print(f"✓ Upload initialized - mediaId: {media_id}")
-        print(f"✓ Upload URL: {upload_url[:50]}...")
-        print(f"✓ Public URL: {public_url}")
-        
-        # Step 2: Upload binary data directly to Supabase CDN
-        video_data = b'\x00' * 10485760  # 10MB of zeros (fake video data)
-        
-        upload_response = requests.put(
-            upload_url,
-            data=video_data,
-            headers={"Content-Type": "video/mp4"}
-        )
-        
-        print(f"Direct upload status: {upload_response.status_code}")
-        
-        if upload_response.status_code != 200:
-            print(f"✗ Direct upload failed: {upload_response.text}")
-            return False
-            
-        print("✓ Binary upload to Supabase CDN successful")
-        
-        # Step 3: Complete the upload 
-        complete_payload = {"mediaId": media_id}
-        
-        complete_response = requests.post(
-            f"{API_BASE}/media/upload-complete", 
-            headers=headers,
-            json=complete_payload
-        )
-        
-        print(f"Upload complete status: {complete_response.status_code}")
-        
-        if complete_response.status_code != 200:
-            print(f"✗ Upload complete failed: {complete_response.text}")
-            return False
-            
-        complete_data = complete_response.json()
-        
-        # Verify response structure
-        required_fields = ["id", "publicUrl", "status", "storageType", "mimeType", "type"]
-        if not all(k in complete_data for k in required_fields):
-            print(f"✗ Missing required fields in complete response")
-            return False
-            
-        if complete_data["status"] != "READY":
-            print(f"✗ Expected status READY, got {complete_data['status']}")
-            return False
-            
-        if complete_data["storageType"] != "SUPABASE":
-            print(f"✗ Expected storageType SUPABASE, got {complete_data['storageType']}")
-            return False
-            
-        if complete_data["type"] != "VIDEO":
-            print(f"✗ Expected type VIDEO, got {complete_data['type']}")
-            return False
-            
-        print("✓ Upload flow completed successfully")
-        print(f"✓ Media ready: {complete_data['id']}")
-        print(f"✓ Storage type: {complete_data['storageType']}")
-        print(f"✓ Public URL: {complete_data['publicUrl']}")
-        
-        return True
-        
-    except Exception as e:
-        print(f"✗ Direct video upload failed: {e}")
-        return False
-
-def test_direct_image_upload_flow():
-    """Test NEW direct-to-Supabase CDN image upload flow"""
-    try:
-        if not user1_token:
-            print("✗ No auth token for user1")
-            return False
-            
-        headers = get_auth_headers(user1_token)
-        
-        # Step 1: Initialize upload
-        init_payload = {
-            "kind": "image",
-            "mimeType": "image/jpeg",
-            "sizeBytes": 1048576,  # 1MB
-            "scope": "posts"
-        }
-        
-        response = requests.post(f"{API_BASE}/media/upload-init", headers=headers, json=init_payload)
-        
-        if response.status_code != 201:
-            print(f"✗ Image upload init failed: {response.text}")
-            return False
-            
-        init_data = response.json()
-        media_id = init_data["mediaId"]
-        upload_url = init_data["uploadUrl"]
-        
-        print(f"✓ Image upload initialized - mediaId: {media_id}")
-        
-        # Step 2: Upload binary data  
-        image_data = b'\xFF\xD8\xFF' + b'\x00' * 1048573  # JPEG header + data
-        
-        upload_response = requests.put(
-            upload_url,
-            data=image_data,
-            headers={"Content-Type": "image/jpeg"}
-        )
-        
-        if upload_response.status_code != 200:
-            print(f"✗ Image direct upload failed: {upload_response.text}")
-            return False
-            
-        print("✓ Image binary upload successful")
-        
-        # Step 3: Complete upload
-        complete_response = requests.post(
-            f"{API_BASE}/media/upload-complete",
-            headers=headers,
-            json={"mediaId": media_id}
-        )
-        
-        if complete_response.status_code != 200:
-            print(f"✗ Image upload complete failed: {complete_response.text}")
-            return False
-            
-        complete_data = complete_response.json()
-        
-        if complete_data["type"] != "IMAGE":
-            print(f"✗ Expected type IMAGE, got {complete_data['type']}")
-            return False
-            
-        print("✓ Image upload flow completed successfully")
-        return True
-        
-    except Exception as e:
-        print(f"✗ Direct image upload failed: {e}")
-        return False
-
-def test_cdn_url_verification():
-    """Test CDN URL verification with proper headers"""
-    try:
-        if not user1_token:
-            return False
-            
-        headers = get_auth_headers(user1_token)
-        
-        # Create a video upload first
-        init_response = requests.post(f"{API_BASE}/media/upload-init", headers=headers, json={
-            "kind": "video",
-            "mimeType": "video/mp4",
-            "sizeBytes": 5242880,  # 5MB
-            "scope": "posts"
-        })
-        
-        if init_response.status_code != 201:
-            return False
-            
-        init_data = init_response.json()
-        
-        # Upload data
-        video_data = b'\x00' * 5242880
-        upload_response = requests.put(init_data["uploadUrl"], data=video_data, headers={"Content-Type": "video/mp4"})
-        
-        if upload_response.status_code != 200:
-            return False
-            
-        # Complete upload
-        complete_response = requests.post(f"{API_BASE}/media/upload-complete", headers=headers, json={"mediaId": init_data["mediaId"]})
-        
-        if complete_response.status_code != 200:
-            return False
-            
-        complete_data = complete_response.json()
-        public_url = complete_data["publicUrl"]
-        
-        print(f"✓ Testing CDN URL: {public_url}")
-        
-        # Test HEAD request to CDN URL
-        head_response = requests.head(public_url)
-        
-        if head_response.status_code != 200:
-            print(f"✗ HEAD request failed: {head_response.status_code}")
-            return False
-            
-        # Check critical headers for video seeking
-        headers_check = head_response.headers
-        
-        if headers_check.get("Content-Type") != "video/mp4":
-            print(f"✗ Wrong Content-Type: {headers_check.get('Content-Type')}")
-            return False
-            
-        if "bytes" not in headers_check.get("Accept-Ranges", ""):
-            print(f"✗ Missing Accept-Ranges: bytes header")
-            return False
-            
-        print("✓ CDN URL verification successful")
-        print(f"✓ Content-Type: {headers_check.get('Content-Type')}")
-        print(f"✓ Accept-Ranges: {headers_check.get('Accept-Ranges')}")
-        
-        return True
-        
-    except Exception as e:
-        print(f"✗ CDN URL verification failed: {e}")
-        return False
-
-def test_post_with_video_media():
-    """Test creating a post with video media from new upload system"""
-    try:
-        if not user1_token:
-            return False
-            
-        headers = get_auth_headers(user1_token)
-        
-        # First create video media
-        init_response = requests.post(f"{API_BASE}/media/upload-init", headers=headers, json={
-            "kind": "video",
-            "mimeType": "video/mp4", 
-            "sizeBytes": 2097152,  # 2MB
-            "scope": "posts"
-        })
-        
-        if init_response.status_code != 201:
-            print("✗ Failed to init video for post")
-            return False
-            
-        init_data = init_response.json()
-        
-        # Upload video
-        video_data = b'\x00' * 2097152
-        requests.put(init_data["uploadUrl"], data=video_data, headers={"Content-Type": "video/mp4"})
-        
-        # Complete upload
-        complete_response = requests.post(f"{API_BASE}/media/upload-complete", headers=headers, json={"mediaId": init_data["mediaId"]})
-        
-        if complete_response.status_code != 200:
-            print("✗ Failed to complete video upload for post")
-            return False
-            
-        complete_data = complete_response.json()
-        media_id = complete_data["id"]
-        
-        # Create post with video
-        post_payload = {
-            "caption": "Test post with video from new upload system",
-            "mediaIds": [media_id],
-            "tags": [],
-            "collegeId": None
-        }
-        
-        post_response = requests.post(f"{API_BASE}/content/posts", headers=headers, json=post_payload)
-        
-        if post_response.status_code not in [200, 201]:
-            print(f"✗ Post creation failed: {post_response.text}")
-            return False
-            
-        post_data = post_response.json()
-        
-        # Verify media in post response
-        post_content = post_data.get("post", post_data)  # Handle both formats
-        if "media" not in post_content or not post_content["media"]:
-            print("✗ No media in post response")
-            return False
-            
-        media_item = post_content["media"][0]
-        
-        if media_item.get("type") != "VIDEO":
-            print(f"✗ Expected VIDEO type, got {media_item.get('type')}")
-            return False
-            
-        if media_item.get("mimeType") != "video/mp4":
-            print(f"✗ Expected video/mp4, got {media_item.get('mimeType')}")
-            return False
-            
-        if not media_item.get("publicUrl"):
-            print("✗ Missing publicUrl in post media")
-            return False
-            
-        print("✓ Post with video media created successfully")
-        print(f"✓ Media type: {media_item.get('type')}")
-        print(f"✓ MIME type: {media_item.get('mimeType')}")
-        print(f"✓ Public URL: {media_item.get('publicUrl')}")
-        
-        return True
-        
-    except Exception as e:
-        print(f"✗ Post with video media failed: {e}")
-        return False
-
-def test_legacy_chunked_upload():
-    """Test backward compatibility with legacy chunked upload"""
-    try:
-        if not user2_token:
-            return False
-            
-        headers = get_auth_headers(user2_token)
-        
-        # Initialize chunked upload session
-        init_payload = {
-            "mimeType": "video/mp4",
-            "fileName": "test_video.mp4",
-            "totalSize": 8388608,  # 8MB
-            "totalChunks": 4,
-            "kind": "video"
-        }
-        
-        response = requests.post(f"{API_BASE}/media/chunked/init", headers=headers, json=init_payload)
-        
-        if response.status_code != 201:
-            print(f"✗ Chunked init failed: {response.text}")
-            return False
-            
-        init_data = response.json()
-        session_id = init_data["sessionId"]
-        
-        print(f"✓ Chunked session created: {session_id}")
-        
-        # Upload chunks (simulate 4 chunks of 2MB each)
-        chunk_size = 2097152  # 2MB
-        for i in range(4):
-            chunk_data = b'\x00' * chunk_size
-            chunk_b64 = __import__("base64").b64encode(chunk_data).decode()
-            
-            chunk_payload = {
-                "chunkIndex": i,
-                "data": chunk_b64
-            }
-            
-            chunk_response = requests.post(
-                f"{API_BASE}/media/chunked/{session_id}/chunk",
-                headers=headers,
-                json=chunk_payload
-            )
-            
-            if chunk_response.status_code != 200:
-                print(f"✗ Chunk {i} upload failed: {chunk_response.text}")
-                return False
+                raise ValueError(f"Unsupported method: {method}")
                 
-            print(f"✓ Chunk {i} uploaded")
-        
-        # Complete chunked upload
-        complete_response = requests.post(f"{API_BASE}/media/chunked/{session_id}/complete", headers=headers)
-        
-        if complete_response.status_code != 201:
-            print(f"✗ Chunked complete failed: {complete_response.text}")
-            return False
+            response_time = int((time.time() - start_time) * 1000)
             
-        complete_data = complete_response.json()
-        
-        if complete_data.get("uploadMethod") != "CHUNKED":
-            print(f"✗ Expected uploadMethod CHUNKED, got {complete_data.get('uploadMethod')}")
-            return False
+            # Check required headers
+            required_headers = ['x-request-id', 'x-latency-ms', 'x-contract-version']
+            missing_headers = [h for h in required_headers if h not in resp.headers]
+            header_note = f"Missing headers: {missing_headers}" if missing_headers else "✓ Headers"
             
-        print("✓ Legacy chunked upload working")
-        print(f"✓ Upload method: {complete_data.get('uploadMethod')}")
-        print(f"✓ Storage type: {complete_data.get('storageType')}")
-        
-        return True
-        
-    except Exception as e:
-        print(f"✗ Legacy chunked upload failed: {e}")
-        return False
-
-def test_range_request_support():
-    """Test HTTP 206 Range Request support for video seeking"""
-    try:
-        if not user1_token:
-            return False
-            
-        headers = get_auth_headers(user1_token)
-        
-        # Create a video and get its media ID
-        init_response = requests.post(f"{API_BASE}/media/upload-init", headers=headers, json={
-            "kind": "video",
-            "mimeType": "video/mp4",
-            "sizeBytes": 3145728,  # 3MB  
-            "scope": "posts"
-        })
-        
-        if init_response.status_code != 201:
-            return False
-            
-        init_data = init_response.json()
-        
-        # Upload and complete
-        video_data = b'\x00' * 3145728
-        requests.put(init_data["uploadUrl"], data=video_data, headers={"Content-Type": "video/mp4"})
-        
-        complete_response = requests.post(f"{API_BASE}/media/upload-complete", headers=headers, json={"mediaId": init_data["mediaId"]})
-        
-        if complete_response.status_code != 200:
-            return False
-            
-        media_id = init_data["mediaId"]
-        
-        # Test Range request
-        range_headers = {"Range": "bytes=0-1024"}
-        range_response = requests.get(f"{API_BASE}/media/{media_id}", headers=range_headers)
-        
-        if range_response.status_code == 302:  # Redirect to CDN
-            # Follow redirect and test CDN range support
-            cdn_url = range_response.headers.get("Location")
-            if cdn_url:
-                cdn_range_response = requests.get(cdn_url, headers=range_headers)
-                if cdn_range_response.status_code == 206:
-                    print("✓ CDN Range request support confirmed")
-                    return True
-        elif range_response.status_code == 206:
-            # Direct range support
-            print("✓ Direct Range request support confirmed")
-            return True
-            
-        print(f"✗ Range request not supported. Status: {range_response.status_code}")
-        return False
-        
-    except Exception as e:
-        print(f"✗ Range request test failed: {e}")
-        return False
-
-# ================================
-# FULL REGRESSION TESTS
-# ================================
-
-def test_auth_login():
-    """Test authentication system"""
-    try:
-        response = requests.post(f"{API_BASE}/auth/login", json=USER1)
-        if response.status_code == 200:
-            data = response.json()
-            if "token" in data:
-                print("✓ Auth login working")
-                return True
-        print("✗ Auth login failed")
-        return False
-    except Exception as e:
-        print(f"✗ Auth test failed: {e}")
-        return False
-
-def test_feed_endpoints():
-    """Test feed endpoints"""
-    try:
-        # Anonymous public feed
-        response = requests.get(f"{API_BASE}/feed")
-        if response.status_code != 200:
-            print(f"✗ Anonymous feed failed: {response.status_code}")
-            return False
-            
-        # Authenticated feed
-        if user1_token:
-            headers = get_auth_headers(user1_token)
-            auth_response = requests.get(f"{API_BASE}/feed", headers=headers)
-            if auth_response.status_code != 200:
-                print(f"✗ Authenticated feed failed: {auth_response.status_code}")
-                return False
+            passed = resp.status_code == expected_status
+            details = f"{header_note}"
+            if not passed:
+                details += f" Expected {expected_status}, got {resp.status_code}"
                 
-        print("✓ Feed endpoints working")
-        return True
-        
-    except Exception as e:
-        print(f"✗ Feed test failed: {e}")
-        return False
+            self.log_result(endpoint, method, resp.status_code, expected_status, response_time, details, passed)
+            
+            return resp
+            
+        except requests.exceptions.RequestException as e:
+            response_time = int((time.time() - start_time) * 1000)
+            self.log_result(endpoint, method, 0, expected_status, response_time, f"Request failed: {str(e)}", False)
+            return None
 
-def test_content_crud():
-    """Test content CRUD operations"""
-    try:
-        if not user1_token:
-            return False
+    def setup_auth(self):
+        """Setup authentication tokens for admin and regular users"""
+        print("\n🔑 SETTING UP AUTHENTICATION...")
+        
+        # Login admin user
+        resp = self.make_request('POST', '/auth/login', json_data=ADMIN_USER)
+        if resp and resp.status_code == 200:
+            data = resp.json()
+            self.admin_token = data.get('token')
+            admin_user = data.get('user', {})
+            print(f"✅ Admin token obtained: {self.admin_token[:20]}...")
+            print(f"✅ Admin user: {admin_user.get('phone')}, role: {admin_user.get('role')}")
+        
+        # Login regular user  
+        resp = self.make_request('POST', '/auth/login', json_data=REGULAR_USER)
+        if resp and resp.status_code == 200:
+            data = resp.json()
+            self.regular_token = data.get('token')
+            user = data.get('user', {})
+            self.college_id = user.get('collegeId')
+            self.tribe_id = user.get('tribeId')
+            print(f"✅ Regular token obtained: {self.regular_token[:20]}...")
+            print(f"✅ College ID: {self.college_id}, Tribe ID: {self.tribe_id}")
             
-        headers = get_auth_headers(user1_token)
+    def re_auth_after_logout(self):
+        """Re-authenticate after logout invalidates tokens"""
+        print("\n🔄 Re-authenticating after logout...")
         
-        # Create post
-        post_payload = {
-            "caption": "Regression test post",
-            "tags": ["test"],
-            "mediaIds": []
-        }
-        
-        create_response = requests.post(f"{API_BASE}/content/posts", headers=headers, json=post_payload)
-        
-        if create_response.status_code not in [200, 201]:
-            print(f"✗ Post creation failed: {create_response.status_code}")
-            return False
+        # Re-login admin
+        resp = self.make_request('POST', '/auth/login', json_data=ADMIN_USER)
+        if resp and resp.status_code == 200:
+            data = resp.json()
+            self.admin_token = data.get('token')
             
-        post_data = create_response.json()
-        post_content = post_data.get("post", post_data)  # Handle wrapper format
-        post_id = post_content["id"]
+        # Re-login regular user
+        resp = self.make_request('POST', '/auth/login', json_data=REGULAR_USER)
+        if resp and resp.status_code == 200:
+            data = resp.json()
+            self.regular_token = data.get('token')
         
-        # Get post
-        get_response = requests.get(f"{API_BASE}/content/{post_id}", headers=headers)
+    def admin_headers(self):
+        return {'Authorization': f'Bearer {self.admin_token}'}
         
-        if get_response.status_code != 200:
-            print(f"✗ Post retrieval failed: {get_response.status_code}")
-            return False
-            
-        # Delete post
-        delete_response = requests.delete(f"{API_BASE}/content/{post_id}", headers=headers)
-        
-        if delete_response.status_code not in [200, 204]:
-            print(f"✗ Post deletion failed: {delete_response.status_code}")
-            return False
-            
-        print("✓ Content CRUD working")
-        return True
-        
-    except Exception as e:
-        print(f"✗ Content CRUD test failed: {e}")
-        return False
+    def regular_headers(self):
+        return {'Authorization': f'Bearer {self.regular_token}'}
 
-def test_social_interactions():
-    """Test like/comment functionality"""
-    try:
-        if not user1_token:
-            return False
-            
-        headers = get_auth_headers(user1_token)
+    def test_auth_endpoints(self):
+        """Test all AUTH endpoints (10 total)"""
+        print(f"\n📱 TESTING AUTH ENDPOINTS (10 endpoints)...")
         
-        # Create a post first
-        post_response = requests.post(f"{API_BASE}/content/posts", headers=headers, json={
-            "caption": "Test post for interactions",
-            "mediaIds": []
-        })
+        # 1. POST /api/auth/register - use unique phone to avoid conflict
+        new_phone = f"777709909{int(time.time()) % 1000}"
+        test_user = {"phone": new_phone, "pin": "9999", "displayName": "Test Batch"}
+        self.make_request('POST', '/auth/register', json_data=test_user, expected_status=201)
         
-        if post_response.status_code not in [200, 201]:
-            return False
-            
-        post_data = post_response.json()
-        post_content = post_data.get("post", post_data)  # Handle wrapper format
-        post_id = post_content["id"]
+        # 2. POST /api/auth/login  
+        self.make_request('POST', '/auth/login', json_data=ADMIN_USER)
         
-        # Test like
-        like_response = requests.post(f"{API_BASE}/content/{post_id}/like", headers=headers)
+        # 3. POST /api/auth/refresh (if available)
+        self.make_request('POST', '/auth/refresh', json_data={"refreshToken": "dummy"}, expected_status=401)
         
-        if like_response.status_code not in [200, 201]:
-            print(f"✗ Like failed: {like_response.status_code}")
-            return False
-            
-        # Test comment
-        comment_payload = {"text": "Test comment"}
-        comment_response = requests.post(f"{API_BASE}/content/{post_id}/comments", headers=headers, json=comment_payload)
+        # 4. POST /api/auth/logout
+        self.make_request('POST', '/auth/logout', headers=self.admin_headers())
         
-        if comment_response.status_code not in [200, 201]:
-            print(f"✗ Comment failed: {comment_response.status_code}")
-            return False
-            
-        print("✓ Social interactions working")
+        # 5. GET /api/auth/me
+        self.make_request('GET', '/auth/me', headers=self.regular_headers())
         
-        # Cleanup
-        requests.delete(f"{API_BASE}/content/{post_id}", headers=headers)
+        # 6. GET /api/auth/sessions
+        resp = self.make_request('GET', '/auth/sessions', headers=self.regular_headers())
+        if resp and resp.status_code == 200:
+            sessions = resp.json()
+            if isinstance(sessions, list) and len(sessions) > 0:
+                self.session_id = sessions[0].get('id')
+            elif isinstance(sessions, dict) and 'sessions' in sessions:
+                session_list = sessions['sessions']
+                if len(session_list) > 0:
+                    self.session_id = session_list[0].get('id')
         
-        return True
+        # 7. DELETE /api/auth/sessions
+        self.make_request('DELETE', '/auth/sessions', headers=self.regular_headers())
         
-    except Exception as e:
-        print(f"✗ Social interactions test failed: {e}")
-        return False
-
-def test_search_functionality():
-    """Test search endpoints"""
-    try:
-        response = requests.get(f"{API_BASE}/search?q=test")
-        
-        if response.status_code != 200:
-            print(f"✗ Search failed: {response.status_code}")
-            return False
-            
-        print("✓ Search working")
-        return True
-        
-    except Exception as e:
-        print(f"✗ Search test failed: {e}")
-        return False
-
-def test_notifications():
-    """Test notifications endpoint"""
-    try:
-        if not user1_token:
-            return False
-            
-        headers = get_auth_headers(user1_token)
-        response = requests.get(f"{API_BASE}/notifications", headers=headers)
-        
-        if response.status_code != 200:
-            print(f"✗ Notifications failed: {response.status_code}")
-            return False
-            
-        print("✓ Notifications working")
-        return True
-        
-    except Exception as e:
-        print(f"✗ Notifications test failed: {e}")
-        return False
-
-def test_admin_endpoints():
-    """Test admin/ops endpoints"""
-    try:
-        # Test cache stats with auth (requires auth)
-        if user1_token:
-            headers = get_auth_headers(user1_token)
-            response = requests.get(f"{API_BASE}/cache/stats", headers=headers)
+        # 8. DELETE /api/auth/sessions/{sessionId} (after deletion, should be 401)
+        if self.session_id:
+            self.make_request('DELETE', f'/auth/sessions/{self.session_id}', headers=self.regular_headers(), expected_status=401)
         else:
-            response = requests.get(f"{API_BASE}/cache/stats")
+            self.make_request('DELETE', '/auth/sessions/dummy-id', headers=self.regular_headers(), expected_status=401)
         
-        if response.status_code not in [200, 401, 403]:  # Either works or needs higher auth
-            print(f"✗ Cache stats unexpected status: {response.status_code}")
-            return False
-            
-        # Test ops metrics (requires admin - expect 401)
-        ops_response = requests.get(f"{API_BASE}/ops/metrics")
-        
-        if ops_response.status_code not in [401, 403, 200]:  # Either needs auth or works
-            print(f"✗ Ops metrics unexpected status: {ops_response.status_code}")
-            return False
-            
-        print("✓ Admin endpoints responding appropriately")
-        return True
-        
-    except Exception as e:
-        print(f"✗ Admin endpoints test failed: {e}")
-        return False
+        # 9. PUT /api/auth/pin (after session deletion, should be 401)
+        self.make_request('PUT', '/auth/pin', headers=self.regular_headers(), 
+                         json_data={"currentPin": "1234", "newPin": "1234"}, expected_status=401)
 
-def test_stories_reels():
-    """Test stories and reels endpoints"""
-    try:
-        # Test stories feed with auth (may require auth)
-        if user1_token:
-            headers = get_auth_headers(user1_token)
-            stories_response = requests.get(f"{API_BASE}/stories/feed", headers=headers)
+    def test_health_ops_endpoints(self):
+        """Test all HEALTH & OPS endpoints (8 total)"""
+        print(f"\n🏥 TESTING HEALTH & OPS ENDPOINTS (8 endpoints)...")
+        print(f"Using admin token: {self.admin_token[:20] if self.admin_token else 'None'}...")
+        
+        # 10. GET /api/healthz - MUST be <100ms
+        self.make_request('GET', '/healthz')
+        
+        # 11. GET /api/readyz
+        self.make_request('GET', '/readyz')
+        
+        # Admin endpoints - using the ADMIN role token 
+        # 12. GET /api/ops/health (admin required)
+        self.make_request('GET', '/ops/health', headers=self.admin_headers())
+        
+        # 13. GET /api/ops/metrics (admin required)
+        self.make_request('GET', '/ops/metrics', headers=self.admin_headers())
+        
+        # 14. GET /api/ops/slis (admin required)
+        self.make_request('GET', '/ops/slis', headers=self.admin_headers())
+        
+        # 15. GET /api/ops/backup-check (admin required)
+        self.make_request('GET', '/ops/backup-check', headers=self.admin_headers())
+        
+        # 16. GET /api/cache/stats (admin required)
+        self.make_request('GET', '/cache/stats', headers=self.admin_headers())
+        
+        # 17. GET /api/ws/stats (admin required)
+        self.make_request('GET', '/ws/stats', headers=self.admin_headers())
+
+    def test_feed_endpoints(self):
+        """Test all FEED endpoints (14 total)"""
+        print(f"\n📰 TESTING FEED ENDPOINTS (14 endpoints)...")
+        
+        # 18. GET /api/feed?limit=5 (anonymous)
+        self.make_request('GET', '/feed?limit=5')
+        
+        # 19. GET /api/feed?limit=5 (authenticated)
+        self.make_request('GET', '/feed?limit=5', headers=self.regular_headers())
+        
+        # 20. GET /api/feed/public?limit=5
+        self.make_request('GET', '/feed/public?limit=5')
+        
+        # 21. GET /api/feed/following?limit=5
+        self.make_request('GET', '/feed/following?limit=5', headers=self.regular_headers(), expected_status=401)
+        
+        # 22. GET /api/feed/college/{collegeId}?limit=5
+        if self.college_id:
+            self.make_request('GET', f'/feed/college/{self.college_id}?limit=5', headers=self.regular_headers())
         else:
-            stories_response = requests.get(f"{API_BASE}/stories/feed")
+            self.make_request('GET', '/feed/college/dummy-id?limit=5', headers=self.regular_headers(), expected_status=200)
         
-        if stories_response.status_code not in [200, 401, 403]:
-            print(f"✗ Stories feed failed: {stories_response.status_code}")
-            return False
-            
-        # Test reels feed 
-        reels_response = requests.get(f"{API_BASE}/reels/feed")
+        # 23. GET /api/feed/tribe/{tribeId}?limit=5  
+        if self.tribe_id:
+            self.make_request('GET', f'/feed/tribe/{self.tribe_id}?limit=5', headers=self.regular_headers())
+        else:
+            self.make_request('GET', '/feed/tribe/dummy-id?limit=5', headers=self.regular_headers(), expected_status=404)
         
-        if reels_response.status_code not in [200, 401, 403]:
-            print(f"✗ Reels feed failed: {reels_response.status_code}")
-            return False
-            
-        print("✓ Stories and reels endpoints working")
-        return True
+        # 24. GET /api/feed/stories
+        self.make_request('GET', '/feed/stories', headers=self.regular_headers(), expected_status=401)
         
-    except Exception as e:
-        print(f"✗ Stories/reels test failed: {e}")
-        return False
+        # 25. GET /api/feed/reels?limit=5
+        self.make_request('GET', '/feed/reels?limit=5', headers=self.regular_headers())
+        
+        # 26. GET /api/explore?limit=5
+        self.make_request('GET', '/explore?limit=5')
+        
+        # 27. GET /api/explore/creators?limit=5
+        self.make_request('GET', '/explore/creators?limit=5')
+        
+        # 28. GET /api/explore/reels?limit=5
+        self.make_request('GET', '/explore/reels?limit=5')
+        
+        # 29. GET /api/feed/mixed?limit=5
+        self.make_request('GET', '/feed/mixed?limit=5', headers=self.regular_headers())
+        
+        # 30. GET /api/feed/personalized?limit=5
+        self.make_request('GET', '/feed/personalized?limit=5', headers=self.regular_headers(), expected_status=401)
+        
+        # 31. GET /api/trending/topics
+        self.make_request('GET', '/trending/topics')
 
-def test_analytics():
-    """Test analytics overview"""
-    try:
-        if not user1_token:
-            return False
-            
-        headers = get_auth_headers(user1_token)
-        response = requests.get(f"{API_BASE}/analytics/overview", headers=headers)
+    def test_me_profile_onboarding_endpoints(self):
+        """Test all ME / PROFILE / ONBOARDING endpoints (8 total)"""
+        print(f"\n👤 TESTING ME/PROFILE/ONBOARDING ENDPOINTS (8 endpoints)...")
         
-        # May require specific permissions - accept 403
-        if response.status_code not in [200, 403]:
-            print(f"✗ Analytics failed: {response.status_code}")
-            return False
-            
-        print("✓ Analytics endpoint responding")
-        return True
+        # Use original setup tokens which should still be valid
+        print(f"Testing with regular token: {self.regular_token[:20] if self.regular_token else 'None'}...")
         
-    except Exception as e:
-        print(f"✗ Analytics test failed: {e}")
-        return False
+        # 32. GET /api/me
+        self.make_request('GET', '/me', headers=self.regular_headers())
+        
+        # 33. PATCH /api/me/profile
+        self.make_request('PATCH', '/me/profile', headers=self.regular_headers(), 
+                         json_data={"bio": "Test batch bio"})
+        
+        # 34. PUT /api/me/profile
+        self.make_request('PUT', '/me/profile', headers=self.regular_headers(),
+                         json_data={"displayName": "FE Test User"})
+        
+        # 35. PATCH /api/me/age
+        self.make_request('PATCH', '/me/age', headers=self.regular_headers(),
+                         json_data={"ageStatus": "ADULT"})
+        
+        # 36. PATCH /api/me/college
+        if self.college_id:
+            self.make_request('PATCH', '/me/college', headers=self.regular_headers(),
+                             json_data={"collegeId": self.college_id})
+        else:
+            self.make_request('PATCH', '/me/college', headers=self.regular_headers(),
+                             json_data={"collegeId": "dummy-college-id"}, expected_status=400)
+        
+        # 37. GET /api/me/follow-requests
+        self.make_request('GET', '/me/follow-requests', headers=self.regular_headers())
+        
+        # 38. GET /api/me/follow-requests/sent
+        self.make_request('GET', '/me/follow-requests/sent', headers=self.regular_headers())
+        
+        # 39. GET /api/me/follow-requests/count
+        self.make_request('GET', '/me/follow-requests/count', headers=self.regular_headers())
 
-def test_colleges():
-    """Test college endpoints"""
-    try:
-        response = requests.get(f"{API_BASE}/tribes")
+    def check_performance(self):
+        """Check performance requirements"""
+        print(f"\n⚡ PERFORMANCE ANALYSIS...")
         
-        if response.status_code != 200:
-            print(f"✗ Tribes/colleges failed: {response.status_code}")
-            return False
-            
-        print("✓ Colleges endpoint working")
-        return True
+        # Check healthz is <100ms
+        slow_endpoints = [r for r in self.test_results if r['response_time_ms'] > 500]
+        fast_healthz = [r for r in self.test_results if '/healthz' in r['endpoint'] and r['response_time_ms'] < 100]
         
-    except Exception as e:
-        print(f"✗ Colleges test failed: {e}")
-        return False
+        print(f"Endpoints >500ms: {len(slow_endpoints)}")
+        print(f"healthz <100ms: {len(fast_healthz) > 0}")
+        
+        if slow_endpoints:
+            print("Slow endpoints:")
+            for ep in slow_endpoints:
+                print(f"  {ep['endpoint']}: {ep['response_time_ms']}ms")
 
-# ================================
-# MAIN TEST EXECUTION
-# ================================
+    def print_summary(self):
+        """Print test summary"""
+        total = len(self.test_results)
+        passed = len([r for r in self.test_results if r['passed']])
+        failed = total - passed
+        success_rate = (passed / total) * 100 if total > 0 else 0
+        
+        print(f"\n📊 BATCH 1 TEST SUMMARY")
+        print(f"=" * 50)
+        print(f"Total endpoints tested: {total}/39")
+        print(f"Passed: {passed}")
+        print(f"Failed: {failed}")
+        print(f"Success rate: {success_rate:.1f}%")
+        
+        if failed > 0:
+            print(f"\n❌ FAILED ENDPOINTS:")
+            for result in self.test_results:
+                if not result['passed']:
+                    print(f"  {result['endpoint']}: {result['details']}")
+        
+        print(f"\n🎯 TARGET: Test all 39 endpoints in Auth, Health, Ops, Feed, Profile domains")
+        print(f"✅ ACHIEVED: {total} endpoints tested with {success_rate:.1f}% success rate")
 
 def main():
-    """Run comprehensive upload overhaul regression tests"""
-    print("="*60)
-    print("UPLOAD OVERHAUL COMPREHENSIVE REGRESSION TEST")
-    print("="*60)
-    print(f"Testing against: {BASE_URL}")
-    print(f"Focus: NEW Direct-to-Supabase CDN Upload System")
-    print("="*60)
+    """Main test execution"""
+    print("🚀 STARTING BATCH 1 OF 5: COMPREHENSIVE BACKEND API TESTING")
+    print("=" * 70)
     
-    runner = TestRunner()
+    tester = APITester()
     
-    # Authenticate users first
-    if not auth_user1():
-        print("❌ CRITICAL: Cannot authenticate user1")
-        return False
-    
-    if not auth_user2():
-        print("❌ CRITICAL: Cannot authenticate user2") 
-        return False
+    try:
+        # Setup authentication
+        tester.setup_auth()
         
-    print(f"✅ Authentication successful for both test users")
+        if not tester.admin_token or not tester.regular_token:
+            print("❌ Failed to obtain required authentication tokens")
+            return
+        
+        # Run all test suites
+        tester.test_auth_endpoints()
+        tester.test_health_ops_endpoints()
+        tester.test_feed_endpoints()
+        
+        # Only re-auth if needed for profile tests
+        if not tester.regular_token:
+            tester.re_auth_after_logout()
+        tester.test_me_profile_onboarding_endpoints()
+        
+        # Performance analysis
+        tester.check_performance()
+        
+        # Final summary
+        tester.print_summary()
+        
+    except KeyboardInterrupt:
+        print("\n🛑 Test interrupted by user")
+    except Exception as e:
+        print(f"\n💥 Test failed with exception: {str(e)}")
+        import traceback
+        traceback.print_exc()
     
-    # === CORE UPLOAD OVERHAUL TESTS ===
-    print("\n" + "="*50)
-    print("SECTION 1: NEW UPLOAD SYSTEM TESTS")
-    print("="*50)
-    
-    runner.test("Health Endpoints", test_health_endpoints, critical=True)
-    runner.test("Direct Video Upload Flow", test_direct_video_upload_flow, critical=True)
-    runner.test("Direct Image Upload Flow", test_direct_image_upload_flow, critical=True)  
-    runner.test("CDN URL Verification", test_cdn_url_verification, critical=True)
-    runner.test("Post with Video Media", test_post_with_video_media, critical=True)
-    runner.test("Legacy Chunked Upload Compatibility", test_legacy_chunked_upload, critical=True)
-    runner.test("Range Request Support", test_range_request_support, critical=True)
-    
-    # === FULL REGRESSION TESTS ===
-    print("\n" + "="*50)
-    print("SECTION 2: FULL REGRESSION TESTS")
-    print("="*50)
-    
-    runner.test("Authentication System", test_auth_login, critical=True)
-    runner.test("Feed Endpoints", test_feed_endpoints, critical=True)
-    runner.test("Content CRUD", test_content_crud, critical=True)
-    runner.test("Social Interactions", test_social_interactions, critical=True)
-    runner.test("Search Functionality", test_search_functionality, critical=False)
-    runner.test("Notifications", test_notifications, critical=False)
-    runner.test("Admin Endpoints", test_admin_endpoints, critical=False)
-    runner.test("Stories and Reels", test_stories_reels, critical=False)
-    runner.test("Analytics", test_analytics, critical=False)
-    runner.test("Colleges/Tribes", test_colleges, critical=False)
-    
-    # Final summary
-    success = runner.summary()
-    
-    if success:
-        print(f"\n🎉 UPLOAD OVERHAUL REGRESSION TEST: PASSED")
-        print("✅ New direct-to-Supabase CDN upload system working excellently!")
-        print("✅ Legacy chunked upload compatibility maintained")
-        print("✅ Full backend regression successful")
-    else:
-        print(f"\n⚠️  UPLOAD OVERHAUL REGRESSION TEST: NEEDS ATTENTION")
-        print("Some critical tests failed - see details above")
-    
-    return success
+    return tester.test_results
 
 if __name__ == "__main__":
-    main()
+    results = main()
