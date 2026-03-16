@@ -188,18 +188,47 @@ async function handleRoute(request, context) {
   response.headers.set('x-latency-ms', String(latencyMs))
   applyFreezeHeaders(response, route, method)
 
-  // Cache-Control for GET 200s
+  // ═══ WORLD BEST: Response optimization for minimal network overhead ═══
+  
+  // 1. ETag for conditional requests (304 Not Modified — zero body transfer)
   if (method === 'GET' && statusCode === 200) {
-    if (route.includes('/feed') || route.includes('/reels/feed') || route.includes('/discover')) {
-      response.headers.set('Cache-Control', 'public, max-age=10, s-maxage=15, stale-while-revalidate=30')
+    // Generate ETag from latency + route + userId (lightweight, no body clone needed)
+    const { createHash } = await import('crypto')
+    const etagSource = `${route}:${reqCtx.userId || 'anon'}:${Math.floor(Date.now() / 5000)}`
+    const etag = `"${createHash('md5').update(etagSource).digest('hex').slice(0, 16)}"`
+    response.headers.set('ETag', etag)
+    
+    const ifNoneMatch = request.headers.get('if-none-match')
+    if (ifNoneMatch === etag) {
+      const notModified = cors(new NextResponse(null, { status: 304 }))
+      notModified.headers.set('ETag', etag)
+      notModified.headers.set('x-request-id', requestId)
+      notModified.headers.set('x-latency-ms', String(latencyMs))
+      applySecurityHeaders(notModified)
+      metrics.recordRequest(route, method, 304, latencyMs)
+      return notModified
+    }
+  }
+
+  // 2. Cache-Control — aggressive for reads
+  if (method === 'GET' && statusCode === 200) {
+    if (route === '/auth/me' || route === '/auth/check' || route === '/auth/sessions') {
+      response.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60')
+    } else if (route.includes('/feed') || route.includes('/reels/feed') || route.includes('/discover')) {
+      response.headers.set('Cache-Control', 'private, max-age=10, stale-while-revalidate=30')
     } else if (route.includes('/tribes') || route.includes('/tribe-contests')) {
       response.headers.set('Cache-Control', 'public, max-age=30, s-maxage=60, stale-while-revalidate=120')
     } else if (route.includes('/media/') && !route.includes('/upload')) {
       response.headers.set('Cache-Control', 'public, max-age=3600, s-maxage=86400, immutable')
+    } else if (route.includes('/notifications/unread')) {
+      response.headers.set('Cache-Control', 'private, max-age=5, stale-while-revalidate=10')
     } else {
       response.headers.set('Cache-Control', 'private, max-age=5, stale-while-revalidate=15')
     }
   }
+
+  // 3. Vary header for proper cache keying
+  response.headers.set('Vary', 'Authorization, Accept-Encoding')
 
   logger.info('HTTP', 'request_completed', {
     requestId, method, route, statusCode, latencyMs, ip,
