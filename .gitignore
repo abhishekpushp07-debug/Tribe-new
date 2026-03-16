@@ -84,9 +84,6 @@ node_modules/@next/swc-linux-arm64-gnu/next-swc.linux-arm64-gnu.node
 -e 
 
 # Environment files with secrets
-.env
-.env.local
-.env.production
 -e 
 # Environment files
 -e 
