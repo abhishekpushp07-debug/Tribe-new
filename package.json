@@ -14,6 +14,7 @@
         "test:smoke": "bash scripts/ci-gate.sh smoke"
     },
     "dependencies": {
+        "@ffprobe-installer/ffprobe": "^2.1.2",
         "@hookform/resolvers": "^5.1.1",
         "@radix-ui/react-accordion": "^1.2.11",
         "@radix-ui/react-alert-dialog": "^1.1.14",
@@ -50,6 +51,8 @@
         "cmdk": "^1.1.1",
         "date-fns": "^4.1.0",
         "embla-carousel-react": "^8.6.0",
+        "ffmpeg-static": "^5.3.0",
+        "ffprobe-static": "^3.1.0",
         "input-otp": "^1.4.2",
         "ioredis": "^5.10.0",
         "lucide-react": "^0.516.0",
