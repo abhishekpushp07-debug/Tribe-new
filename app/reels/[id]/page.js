@@ -21,7 +21,7 @@ export async function generateMetadata({ params }) {
   const reel = db ? await db.collection('reels').findOne(
     { id, status: 'PUBLISHED' },
     { projection: { _id: 0, id: 1, caption: 1, creatorId: 1, playbackUrl: 1, thumbnailUrl: 1, posterFrameUrl: 1, mediaId: 1, durationMs: 1, likeCount: 1, viewCount: 1, width: 1, height: 1 } }
-  )
+  ) : null
 
   if (!reel) {
     return {
@@ -115,7 +115,7 @@ export default async function ReelPage({ params }) {
   const reel = db ? await db.collection('reels').findOne(
     { id, status: 'PUBLISHED' },
     { projection: { _id: 0, id: 1, caption: 1, creatorId: 1, playbackUrl: 1, mediaId: 1, likeCount: 1, viewCount: 1 } }
-  )
+  ) : null
 
   // Resolve video URL
   let videoUrl = reel?.playbackUrl || ''
